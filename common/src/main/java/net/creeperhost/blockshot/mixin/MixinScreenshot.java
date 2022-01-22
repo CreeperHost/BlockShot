@@ -53,7 +53,6 @@ public abstract class MixinScreenshot
                         String status = jsonElement.getAsJsonObject().get("status").getAsString();
                         if (!status.equals("error"))
                         {
-                            System.out.println(rsp);
                             String url = jsonElement.getAsJsonObject().get("url").getAsString();
                             Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
                             consumer.accept(link);
