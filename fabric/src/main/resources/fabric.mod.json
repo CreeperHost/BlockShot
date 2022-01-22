@@ -3,7 +3,7 @@
   "id": "blockshot",
   "version": "${version}",
   "name": "BlockShot",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "Upload your screenshots for easy sharing\n",
   "authors": [
     "CreeperHost"
   ],
@@ -26,5 +26,8 @@
   },
   "suggests": {
     "flamingo": "*"
-  }
+  },
+  "mixins": [
+    "blockshot.mixins.json"
+  ]
 }

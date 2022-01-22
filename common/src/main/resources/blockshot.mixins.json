@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "net.creeperhost.blockshot.mixin",
+  "mixins": [
+  ],
+  "client": [
+    "MixinScreenshot"
+  ],
+  "server": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
