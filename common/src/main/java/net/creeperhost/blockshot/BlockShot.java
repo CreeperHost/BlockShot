@@ -100,6 +100,7 @@ public class BlockShot
                         byte[] bytes = BlockShot.latest.asByteArray();
                         try {
                             String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false);
+                            if(rsp.equals("error")) return;
                             JsonElement jsonElement = new JsonParser().parse(rsp);
                             String status = jsonElement.getAsJsonObject().get("status").getAsString();
                             if (!status.equals("error")) {

@@ -46,6 +46,7 @@ public abstract class MixinScreenshot
                         byte[] bytes = nativeImage.asByteArray();
                         try {
                             String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false);
+                            if(rsp.equals("error")) return;
                             JsonElement jsonElement = new JsonParser().parse(rsp);
                             String status = jsonElement.getAsJsonObject().get("status").getAsString();
                             if (!status.equals("error")) {
@@ -57,7 +58,6 @@ public abstract class MixinScreenshot
                                 Component failMessage = new TextComponent(message);
                                 consumer.accept(failMessage);
                             }
-                            ci.cancel();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -72,12 +72,14 @@ public abstract class MixinScreenshot
                 if(BlockShot.latest != null)
                 {
                     BlockShot.latest.close();
-                    BlockShot.latest = null;
                 }
                 BlockShot.latest = nativeImage;
-                TextComponent confirmMessage = new TextComponent("Click here to upload this screenshot to BlockShot");
-                confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
-                consumer.accept(confirmMessage);
+                if(BlockShot.latest != null)
+                {
+                    TextComponent confirmMessage = new TextComponent("Click here to upload this screenshot to BlockShot");
+                    confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
+                    consumer.accept(confirmMessage);
+                }
             }
             ci.cancel();
         }
