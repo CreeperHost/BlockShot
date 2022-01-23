@@ -85,9 +85,9 @@ public class BlockShotHistoryScreen extends Screen {
         this.renderBackground(poseStack);
         if(list.getCurrSelected() != null && list.getCurrSelected() != lastSelected)
         {
-                this.copyButton.active = true;
-                this.deleteButton.active = true;
-                this.viewButton.active = true;
+                this.copyButton.active = !list.getCurrSelected().isDeleting;
+                this.deleteButton.active = !list.getCurrSelected().isDeleting;
+                this.viewButton.active = !list.getCurrSelected().isDeleting;
                 lastSelected = list.getCurrSelected();
         }
         if(isLoading) {

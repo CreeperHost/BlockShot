@@ -15,6 +15,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.screens.controls.ControlsScreen;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -28,6 +29,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.List;
 import java.util.Random;
 
 public class BlockShot
@@ -35,7 +37,7 @@ public class BlockShot
     public static final String MOD_ID = "blockshot";
     public static Logger logger = LogManager.getLogger();
     public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
-    public static NativeImage latest;
+    public static byte[] latest;
 
     public static void init()
     {
@@ -93,11 +95,22 @@ public class BlockShot
         Command uploadLatest = new Command() {
             @Override
             public int run(CommandContext context) {
-                if(BlockShot.latest == null) return 0;
+                if(BlockShot.latest == null || BlockShot.latest.length == 0) return 0;
+                //TODO: Figure out how to remove our "Click here to upload" message.
+                /*if(Minecraft.getInstance().gui != null && Minecraft.getInstance().gui.getChat() != null) {
+                    List<String> chat = Minecraft.getInstance().gui.getChat().getRecentChat();
+                    for(String msg : chat)
+                    {
+                        if(msg.equals("Click here to upload this screenshot to BlockShot"))
+                        {
+                            Minecraft.getInstance().gui.getChat();
+                        }
+                    }
+                }*/
                 Util.ioPool().execute(() ->
                 {
                     try {
-                        byte[] bytes = BlockShot.latest.asByteArray();
+                        byte[] bytes = BlockShot.latest;
                         try {
                             String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false);
                             if(rsp.equals("error")) return;
@@ -108,7 +121,8 @@ public class BlockShot
                                 Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
                                 if(Minecraft.getInstance().player != null)
                                 {
-                                    Minecraft.getInstance().player.sendMessage(link, Util.NIL_UUID);
+                                    Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
+                                    Minecraft.getInstance().player.sendMessage(finished, Util.NIL_UUID);
                                 }
                             } else {
                                 String message = jsonElement.getAsJsonObject().get("message").getAsString();
@@ -127,8 +141,6 @@ public class BlockShot
                         {
                             Minecraft.getInstance().player.sendMessage(err, Util.NIL_UUID);
                         }
-                    } finally {
-                        BlockShot.latest.close();
                     }
                     BlockShot.latest = null;
                 });

@@ -168,7 +168,9 @@ public class WebUtils
 
             rd.close();
             return respData.toString();
-        } catch (Throwable ignored) {}
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
         return "error";
     }
 

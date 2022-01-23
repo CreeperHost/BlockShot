@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Base64;
 import java.util.function.Consumer;
 
@@ -39,20 +40,34 @@ public abstract class MixinScreenshot
         if(Config.INSTANCE.uploadMode != 0)
         {
             NativeImage nativeImage = takeScreenshot(renderTarget);
+            if(nativeImage == null) return;
+            byte[] bytes = new byte[0];
+            try {
+                bytes = nativeImage.asByteArray();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            } finally
+            {
+                nativeImage.close();
+            }
+            BlockShot.latest = bytes;
             if(Config.INSTANCE.uploadMode == 2) {
                 Util.ioPool().execute(() ->
                 {
                     try {
-                        byte[] bytes = nativeImage.asByteArray();
                         try {
-                            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false);
+                            if(BlockShot.latest == null || BlockShot.latest.length == 0) return;
+                            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(BlockShot.latest), false, false);
+                            BlockShot.latest = null;
                             if(rsp.equals("error")) return;
                             JsonElement jsonElement = new JsonParser().parse(rsp);
                             String status = jsonElement.getAsJsonObject().get("status").getAsString();
                             if (!status.equals("error")) {
                                 String url = jsonElement.getAsJsonObject().get("url").getAsString();
                                 Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
-                                consumer.accept(link);
+                                Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
+                                consumer.accept(finished);
                             } else {
                                 String message = jsonElement.getAsJsonObject().get("message").getAsString();
                                 Component failMessage = new TextComponent(message);
@@ -64,17 +79,10 @@ public abstract class MixinScreenshot
                     } catch (Exception var7) {
                         LOGGER.warn("Couldn't save screenshot", var7);
                         consumer.accept(new TranslatableComponent("Failed to create screenshot ", new Object[]{var7.getMessage()}));
-                    } finally {
-                        nativeImage.close();
                     }
                 });
             } else {
-                if(BlockShot.latest != null)
-                {
-                    BlockShot.latest.close();
-                }
-                BlockShot.latest = nativeImage;
-                if(BlockShot.latest != null)
+                if(BlockShot.latest != null && BlockShot.latest.length > 0)
                 {
                     TextComponent confirmMessage = new TextComponent("Click here to upload this screenshot to BlockShot");
                     confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
