@@ -51,7 +51,14 @@ public class WebUtils
                 }
             }
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.138 Safari/537.36 Vivaldi/1.8.770.56 MineTogether/0.0.0");
-
+            //Used only to verify you against Mojang using hasJoined
+            conn.setRequestProperty("Server-Id", BlockShot.getServerIDAndVerify());
+            conn.setRequestProperty("Minecraft-Name", Minecraft.getInstance().getUser().getName());
+            if(!Config.INSTANCE.anonymous)
+            {
+                //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
+                conn.setRequestProperty("Minecraft-Uuid", Minecraft.getInstance().getUser().getUuid());
+            }
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String line;
             StringBuilder respData = new StringBuilder();
@@ -115,8 +122,15 @@ public class WebUtils
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.138 Safari/537.36 Vivaldi/1.8.770.56 BlockShot/1.0.0");
+
+            //Used only to verify you against Mojang using hasJoined
             conn.setRequestProperty("Server-Id", BlockShot.getServerIDAndVerify());
             conn.setRequestProperty("Minecraft-Name", Minecraft.getInstance().getUser().getName());
+            if(!Config.INSTANCE.anonymous)
+            {
+                //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
+                conn.setRequestProperty("Minecraft-Uuid", Minecraft.getInstance().getUser().getUuid());
+            }
             conn.setRequestMethod(method);
             if (cookies != null)
             {

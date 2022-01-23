@@ -14,16 +14,21 @@ public class Config
 {
     public static Config INSTANCE;
 
-    public boolean enabled;
+    public int uploadMode;
+    public boolean anonymous;
 
     public Config()
     {
-        this.enabled = true;
+        this.uploadMode = 1; this.anonymous = true;
     }
 
-    public Config(boolean enabled)
+    public Config(int mode)
     {
-        this.enabled = enabled;
+        this.uploadMode = mode;
+    }
+    public Config(int mode, boolean anonymous)
+    {
+        this.uploadMode = mode; this.anonymous = anonymous;
     }
 
     public static String saveConfig()

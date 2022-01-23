@@ -1,0 +1,238 @@
+package net.creeperhost.blockshot;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.*;
+import net.minecraft.client.gui.screens.*;
+import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+public class BlockShotHistoryScreen extends Screen {
+
+    private Button deleteButton;
+    private Button viewButton;
+    private Button copyButton;
+    private ScreenList<BlockShotHistoryEntry> list;
+    public Screen parent;
+    public BlockShotHistoryScreen(Screen parent) {
+        super(new TextComponent("BlockShot Upload History"));
+        this.parent = parent;
+    }
+
+    boolean isLoading = true;
+    @Override
+    protected void init() {
+        if(list == null) {
+            list = new ScreenList(this, this.minecraft, this.width, this.height, 56, this.height - 36, 36);
+            isLoading = true;
+            this.loadRemote().thenRun(() -> isLoading = false);
+        }
+        this.addRenderableWidget(list);
+        this.copyButton = (Button)this.addRenderableWidget(new Button(this.width / 2 - (76*2), this.height - 28, 72, 20, new TranslatableComponent("Copy URL"), (arg) -> {
+            list.getCurrSelected().copyUrl();
+        }));
+        this.deleteButton = (Button)this.addRenderableWidget(new Button(this.width / 2 - 76, this.height - 28, 72, 20, new TranslatableComponent("selectWorld.delete"), (arg) -> {
+            try {
+                this.copyButton.active = false;
+                this.deleteButton.active = false;
+                this.viewButton.active = false;
+                CompletableFuture.runAsync(() -> {
+                    isLoading = true;
+                    list.getCurrSelected().delete();
+                    this.loadRemote().thenRun(() -> isLoading = false);
+                }).thenRun(() -> {});
+            } catch(Exception ignored) {}
+        }));
+        this.viewButton = (Button)this.addRenderableWidget(new Button(this.width / 2, this.height - 28, 72, 20, new TextComponent("View"), (arg) -> {
+            list.getCurrSelected().openUrl();
+        }));
+        this.addRenderableWidget(new Button(this.width / 2 + 76, this.height - 28, 72, 20, CommonComponents.GUI_CANCEL, (arg) -> {
+            this.minecraft.setScreen(this.parent);
+        }));
+        this.copyButton.active = false;
+        this.deleteButton.active = false;
+        this.viewButton.active = false;
+    }
+    int ticks = 0;
+    BlockShotHistoryEntry lastSelected;
+    @Override
+    public void render(PoseStack poseStack, int i, int j, float f) {
+        this.renderBackground(poseStack);
+        if(list.getCurrSelected() != null && list.getCurrSelected() != lastSelected)
+        {
+                this.copyButton.active = true;
+                this.deleteButton.active = true;
+                this.viewButton.active = true;
+                lastSelected = list.getCurrSelected();
+        }
+        if(isLoading) {
+            ticks++;
+            loadingSpin(poseStack, f, ticks, width / 2, height / 2 - 80 , new ItemStack(Items.COOKED_BEEF));
+        }
+        super.render(poseStack, i, j, f);
+        drawCenteredString(poseStack, font, this.getTitle(), width / 2, 18, 0xFFFFFF);
+    }
+    public static void loadingSpin(PoseStack poseStack, float partialTicks, int ticks, int x, int y, ItemStack stack)
+    {
+        int rotateTickMax = 30;
+        int throbTickMax = 20;
+        int rotateTicks = ticks % rotateTickMax;
+        int throbTicks = ticks % throbTickMax;
+        poseStack.pushPose();
+        poseStack.translate(x, y, 0);
+        float scale = 1F + ((throbTicks >= (throbTickMax / 2) ? (throbTickMax - (throbTicks + partialTicks)) : (throbTicks + partialTicks)) * (2F / throbTickMax));
+        poseStack.scale(scale, scale, scale);
+
+        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+        itemRenderer.renderGuiItem(stack, -8, -8);
+
+        poseStack.popPose();
+    }
+    private CompletableFuture<?> loadRemote()
+    {
+        return CompletableFuture.runAsync(() -> {
+            String rsp = WebUtils.getWebResponse("https://blockshot.ch/list");
+            if (rsp == "error") this.minecraft.setScreen(this.parent);
+            JsonElement jsonElement = new JsonParser().parse(rsp);
+            JsonArray images = jsonElement.getAsJsonArray();
+            list.children().clear();
+            int i = 0;
+            for (JsonElement obj : images) {
+                String iid = obj.getAsJsonObject().get("id").getAsString();
+                String preview = obj.getAsJsonObject().get("preview").getAsString();
+                long created = obj.getAsJsonObject().get("created").getAsLong();
+                BlockShotHistoryEntry entry = new BlockShotHistoryEntry(list, iid, preview, created);
+                list.children().add(entry);
+                i++;
+            }
+        });
+    }
+
+
+    class BlockShotHistoryEntry extends ScreenListEntry
+    {
+        String id;
+        String preview;
+        long created;
+        ScreenList parent;
+        boolean isDeleting = false;
+        public BlockShotHistoryEntry(ScreenList list, String id, String preview, long created) {
+            super(list);
+            parent = list;
+            this.id = id;
+            this.preview = preview;
+            this.created = created;
+        }
+        @Override
+        public void render(PoseStack poseStack, int slotIndex, int y, int x, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float p_render_9_)
+        {
+            Date date = new java.util.Date(this.created*1000L);
+            SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+            this.mc.font.draw(poseStack, sdf.format(date), x + 35, y, 16777215);
+            if(isDeleting) {
+                this.mc.font.draw(poseStack, "Pending deletion...", x + 35, y + 10, 8421504);
+            } else {
+                this.mc.font.draw(poseStack, "https://blockshot.ch/"+this.id, x + 35, y + 10, 8421504);
+            }
+            this.drawIcon(poseStack, x, y, getPreview());
+        }
+        public void delete()
+        {
+            isDeleting = true;
+            WebUtils.getWebResponse("https://blockshot.ch/delete/"+this.id);
+        }
+        public void openUrl()
+        {
+            URL url = null;
+            try {
+                url = new URL("https://blockshot.ch/"+this.id);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return;
+            }
+            String[] cmdLine;
+            Util.OS os = Util.getPlatform();
+            switch (os)
+            {
+                case WINDOWS:
+                    cmdLine = new String[]{"rundll32", "url.dll,FileProtocolHandler", url.toString()};
+                    break;
+                case OSX:
+                    cmdLine = new String[]{"open", url.toString()};
+                    break;
+                default:
+                    cmdLine = new String[]{"xdg-open", url.toString()};
+            }
+            try
+            {
+                Process browserProcess = AccessController.doPrivileged((PrivilegedExceptionAction<Process>) () -> Runtime.getRuntime().exec(cmdLine));
+                browserProcess.getInputStream().close();
+                browserProcess.getErrorStream().close();
+                browserProcess.getOutputStream().close();
+            } catch (IOException | PrivilegedActionException var5)
+            {
+            }
+        }
+        public void copyUrl()
+        {
+            Minecraft.getInstance().keyboardHandler.setClipboard("https://blockshot.ch/"+this.id);
+        }
+        private boolean previewLoading = false;
+        private boolean previewLoaded = false;
+        private ResourceLocation _resource;
+        public ResourceLocation getPreview()
+        {
+            try {
+                if (previewLoading) return null;
+                if (!previewLoaded) {
+                    previewLoading = true;
+                    NativeImage image = NativeImage.fromBase64(this.preview);
+                    DynamicTexture i = (new DynamicTexture(image));
+                    _resource = Minecraft.getInstance().getTextureManager().register("blockshot/", i);
+                    previewLoaded = true;
+                    previewLoading = false;
+                } else {
+                    return _resource;
+                }
+            } catch(Throwable t) {
+                t.printStackTrace();
+                previewLoading = false;
+                previewLoaded = false;
+            }
+            return null;
+        }
+        protected void drawIcon(PoseStack poseStack, int i, int j, ResourceLocation resourceLocation) {
+            if(resourceLocation == null) resourceLocation = new ResourceLocation("textures/misc/unknown_server.png");
+            RenderSystem.setShaderTexture(0, resourceLocation);
+            RenderSystem.enableBlend();
+            GuiComponent.blit(poseStack, i, j, 0.0F, 0.0F, 32, 32, 32, 32);
+            RenderSystem.disableBlend();
+        }
+    }
+
+}
