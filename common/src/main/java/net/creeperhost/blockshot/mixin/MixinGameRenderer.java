@@ -15,7 +15,8 @@ import java.time.Instant;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getMainRenderTarget()Lcom/mojang/blaze3d/pipeline/RenderTarget;"), cancellable = false)
+    //@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getMainRenderTarget()Lcom/mojang/blaze3d/pipeline/RenderTarget;"), cancellable = false)
+    @Inject(method = "render", at = @At(value = "TAIL"), cancellable = false)
     public void render(float f, long l, boolean bl, CallbackInfo ci) {
         if(BlockShot.isRecording)
         {
