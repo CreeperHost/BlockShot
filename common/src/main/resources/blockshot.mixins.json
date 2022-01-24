@@ -4,7 +4,8 @@
   "mixins": [
   ],
   "client": [
-    "MixinScreenshot"
+    "MixinScreenshot",
+    "MixinGameRenderer"
   ],
   "server": [
   ],

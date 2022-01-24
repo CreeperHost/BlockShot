@@ -10,6 +10,7 @@ import net.creeperhost.blockshot.WebUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -37,6 +38,11 @@ public abstract class MixinScreenshot
     @Inject(method = "_grab", at = @At("HEAD"), cancellable = true)
     private static void takeScreenShot(File file, String string, RenderTarget renderTarget, Consumer<Component> consumer, CallbackInfo ci)
     {
+        if(BlockShot.isRecording || Screen.hasControlDown())
+        {
+            ci.cancel();
+            return;
+        }
         if(Config.INSTANCE.uploadMode != 0)
         {
             NativeImage nativeImage = takeScreenshot(renderTarget);

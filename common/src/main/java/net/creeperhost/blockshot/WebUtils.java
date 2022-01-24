@@ -109,7 +109,7 @@ public class WebUtils
         return postWebResponse(urlString, mapToFormString(postDataMap));
     }
 
-    public static String methodWebResponse(String urlString, String postDataString, String method, boolean isJson, boolean silent)
+    public static String methodWebResponse(String urlString, String postDataString, String method, boolean isJson, boolean silent, boolean gif)
     {
         try
         {
@@ -138,6 +138,12 @@ public class WebUtils
                 {
                     conn.addRequestProperty("Cookie", cookie.split(";", 2)[0]);
                 }
+            }
+            if(gif)
+            {
+                conn.setRequestProperty("Screencap-Type", "image/gif");
+            } else {
+                conn.setRequestProperty("Screencap-Type", "image/jpeg");
             }
             conn.setRequestProperty("Content-Type", isJson ? "application/json" : "application/x-www-form-urlencoded");
             conn.setRequestProperty("charset", "utf-8");
@@ -176,11 +182,15 @@ public class WebUtils
 
     public static String postWebResponse(String urlString, String postDataString)
     {
-        return methodWebResponse(urlString, postDataString, "POST", false, false);
+        return methodWebResponse(urlString, postDataString, "POST", false, false, false);
     }
 
     public static String putWebResponse(String urlString, String body, boolean isJson, boolean isSilent)
     {
-        return methodWebResponse(urlString, body, "PUT", isJson, isSilent);
+        return methodWebResponse(urlString, body, "PUT", isJson, isSilent, false);
+    }
+    public static String putWebResponse(String urlString, String body, boolean isJson, boolean isSilent, boolean isAnimated)
+    {
+        return methodWebResponse(urlString, body, "PUT", isJson, isSilent, true);
     }
 }

@@ -1,21 +1,27 @@
 package net.creeperhost.blockshot;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.exceptions.AuthenticationException;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.squareup.gifencoder.*;
+import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.platform.Platform;
+import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.ChatComponent;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.controls.ControlsScreen;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -27,10 +33,16 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.*;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class BlockShot
 {
@@ -39,10 +51,14 @@ public class BlockShot
     public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
     public static byte[] latest;
 
+    public static final KeyMapping recordKey = new KeyMapping("Screen recording", InputConstants.Type.KEYSYM, 80, "what");
+
     public static void init()
     {
-        CommandRegistrationEvent.EVENT.register(BlockShot::registerCommands);
         Config.init(configLocation.toFile());
+        CommandRegistrationEvent.EVENT.register(BlockShot::registerCommands);
+        ClientRawInputEvent.KEY_PRESSED.register(BlockShot::onRawInput);
+        KeyMappingRegistry.register(recordKey);
         ClientGuiEvent.INIT_POST.register((screen, access) ->
         {
             if(screen instanceof ControlsScreen)
@@ -91,7 +107,185 @@ public class BlockShot
             }
         });
     }
+    private static long keybindLast = 0;
+    private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers)
+    {
+        if(Screen.hasControlDown())
+        {
+            if(Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode))
+            {
+                if(keybindLast+5 > Instant.now().getEpochSecond()) return EventResult.pass();
+                keybindLast = Instant.now().getEpochSecond();
+                if (isRecording) {
+                    isRecording = false;
+                } else if (processedFrames.get() == 0 && addedFrames.get() == 0) {
+                    recordGif();
+                }
+                return EventResult.interrupt(true);
+            }
+        }
+        return EventResult.pass();
+    }
+
+    private static ExecutorService rendering = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("blockshot-framerenderer-%d").build());
+    private static ExecutorService encoding = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("blockshot-imageencoder-%d").build());
+    public static AtomicInteger addedFrames = new AtomicInteger();
+    public static AtomicInteger processedFrames = new AtomicInteger();
+    public static void addFrameAndClose(NativeImage screenImage)
+    {
+        CompletableFuture.runAsync(() -> {
+            addedFrames.incrementAndGet();
+            try {
+                int i = screenImage.getWidth();
+                int j = screenImage.getHeight();
+                int k = 0;
+                int l = 0;
+                screenImage.flipY();
+                int newx = 856;
+                int newy = 482;
+                int scaleFactor = 2;
+                newx = newx - (((newx/2)/3)*scaleFactor);
+                newy = newy - (((newy/2)/3)*scaleFactor);
+                NativeImage nativeImage = new NativeImage(newx,newy, false);
+                screenImage.resizeSubRectTo(k, l, i, j, nativeImage);
+                screenImage.close();
+                int w = nativeImage.getWidth();
+                int h = nativeImage.getHeight();
+                Color[][] colours = new Color[h][w];
+                for (int y = 0; y < h; ++y) {
+                    for (int x = 0; x < w; ++x) {
+                        colours[y][x] = fromRgbMc(nativeImage.getPixelRGBA(x, y));
+                    }
+                }
+                nativeImage.close();
+                Image frame = Image.fromColors(colours);
+                BlockShot._frames.getAndUpdate((a) -> {
+                    a.add(frame);
+                    return a;
+                });
+            } catch (Throwable t)
+            {
+                t.printStackTrace();
+            } finally {
+                screenImage.close();
+            }
+            processedFrames.incrementAndGet();
+        }, rendering);
+    }
+    //Minecraft's r and b channels work inverted-ly...
+    private static Color fromRgbMc(int rgb) {
+        int redComponent = rgb & 0xFF;
+        int greenComponent = rgb >>> 8 & 0xFF;
+        int blueComponent = rgb >>> 16 & 0xFF;
+        return new Color(redComponent / 255.0, greenComponent / 255.0, blueComponent / 255.0);
+    }
+    public static boolean isRecording = false;
+    public static long lastTimestamp;
+    public static long frames;
+    public static long totalSeconds;
+    public static long lastfps = 0;
+    public static long curfps = 0;
+    private static AtomicReference<List<Image>> _frames = new AtomicReference<>();
+    public static void recordGif()
+    {
+        if(_frames == null || _frames.get() == null)
+        {
+            _frames.set(new ArrayList<Image>());
+        }
+        if(isRecording == true) return;
+        lastTimestamp = 0;
+        frames = 0;
+        totalSeconds = 0;
+        isRecording = true;
+        CompletableFuture.runAsync(() -> {
+            Component message = new TextComponent("You are now recording gameplay! ");
+            if(Minecraft.getInstance() != null && Minecraft.getInstance().player != null) {
+                Minecraft.getInstance().player.sendMessage(message, Util.NIL_UUID);
+            }
+            while(isRecording) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {}
+            }
+            message = new TextComponent("Gameplay recording complete, encoding... ");
+            if(Minecraft.getInstance() != null && Minecraft.getInstance().player != null) {
+                Minecraft.getInstance().player.sendMessage(message, Util.NIL_UUID);
+            }
+            while(addedFrames.get() > processedFrames.get()) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {}
+            }
+            GifEncoder encoder = null;
+            ImageOptions imageOptions = new ImageOptions();
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            if(BlockShot._frames.get() != null) {
+                List<Image> frames = BlockShot._frames.get();
+                Image firstFrame = frames.get(0);
+                try {
+                    encoder = new GifEncoder(os, firstFrame.getWidth(), firstFrame.getHeight(), 0);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                int duration = (int) (BlockShot.totalSeconds / frames.size());
+                int f = 0;
+                for (Image frame : frames) {
+                    try {
+                        f++;
+                        imageOptions.setDelay(duration, TimeUnit.MILLISECONDS);
+                        encoder.addImage(frame, imageOptions);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                try {
+                    encoder.finishEncoding();
+                    frames.clear();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                BlockShot._frames.set(new ArrayList<Image>());
+                message = new TextComponent("Encoding complete... Uploading... ");
+                if(Minecraft.getInstance() != null && Minecraft.getInstance().player != null) {
+                    Minecraft.getInstance().player.sendMessage(message, Util.NIL_UUID);
+                }
+                try {
+                    byte[] bytes = os.toByteArray();
+                    String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false, true);
+                    if(!rsp.equals("error")) {
+                        JsonElement jsonElement = new JsonParser().parse(rsp);
+                        String status = jsonElement.getAsJsonObject().get("status").getAsString();
+                        if (!status.equals("error")) {
+                            String url = jsonElement.getAsJsonObject().get("url").getAsString();
+                            Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
+                            if (Minecraft.getInstance().player != null) {
+                                Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
+                                Minecraft.getInstance().player.sendMessage(finished, Util.NIL_UUID);
+                            }
+                        } else {
+                            String mssage = jsonElement.getAsJsonObject().get("message").getAsString();
+                            Component failMessage = new TextComponent(mssage);
+                            if (Minecraft.getInstance().player != null) {
+                                Minecraft.getInstance().player.sendMessage(failMessage, Util.NIL_UUID);
+                            }
+                        }
+                    } else {
+                        if (Minecraft.getInstance().player != null) {
+                            Component finished = new TextComponent("An error occurred uploading your content to BlockShot.");
+                            Minecraft.getInstance().player.sendMessage(finished, Util.NIL_UUID);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            addedFrames.set(0);
+            processedFrames.set(0);
+            isRecording = false;
+        }, encoding);
+    }
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, Commands.CommandSelection selection) {
+        //TODO: Switch from triggering a command on click to some kind of ephermeral message system which we can execute code directly in
         Command uploadLatest = new Command() {
             @Override
             public int run(CommandContext context) {
@@ -147,12 +341,9 @@ public class BlockShot
                 return 1;
             }
         };
-        LiteralCommandNode<CommandSourceStack> command = dispatcher.register(
+        dispatcher.register(
                 Commands.literal("blockshot")
-                        .then(
-                                Commands.literal("upload").executes(uploadLatest)
-                        )
-        );
+                        .then(Commands.literal("upload").executes(uploadLatest)));
     }
     public static String getServerIDAndVerify()
     {

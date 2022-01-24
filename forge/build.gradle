@@ -28,6 +28,8 @@ dependencies {
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+    implementation 'com.squareup:gifencoder:0.10.1'
+    shadowCommon 'com.squareup:gifencoder:0.10.1'
 }
 
 processResources {
@@ -42,6 +44,7 @@ shadowJar {
     exclude "fabric.mod.json"
 
     configurations = [project.configurations.shadowCommon]
+    relocate 'com.squareup.gifencoder', 'net.creeperhost.minetogether.com.squareup.gifencoder'
     classifier "dev-shadow"
 }
 
