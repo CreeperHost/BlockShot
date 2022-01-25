@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.BlockShotClickEvent;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
 import net.minecraft.ChatFormatting;
@@ -91,7 +92,7 @@ public abstract class MixinScreenshot
                 if(BlockShot.latest != null && BlockShot.latest.length > 0)
                 {
                     TextComponent confirmMessage = new TextComponent("Click here to upload this screenshot to BlockShot");
-                    confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
+                    confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
                     consumer.accept(confirmMessage);
                 }
             }

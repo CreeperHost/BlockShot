@@ -56,7 +56,6 @@ public class BlockShot
     public static void init()
     {
         Config.init(configLocation.toFile());
-        CommandRegistrationEvent.EVENT.register(BlockShot::registerCommands);
         ClientRawInputEvent.KEY_PRESSED.register(BlockShot::onRawInput);
         KeyMappingRegistry.register(recordKey);
         ClientGuiEvent.INIT_POST.register((screen, access) ->
@@ -283,67 +282,6 @@ public class BlockShot
             processedFrames.set(0);
             isRecording = false;
         }, encoding);
-    }
-    public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, Commands.CommandSelection selection) {
-        //TODO: Switch from triggering a command on click to some kind of ephermeral message system which we can execute code directly in
-        Command uploadLatest = new Command() {
-            @Override
-            public int run(CommandContext context) {
-                if(BlockShot.latest == null || BlockShot.latest.length == 0) return 0;
-                //TODO: Figure out how to remove our "Click here to upload" message.
-                /*if(Minecraft.getInstance().gui != null && Minecraft.getInstance().gui.getChat() != null) {
-                    List<String> chat = Minecraft.getInstance().gui.getChat().getRecentChat();
-                    for(String msg : chat)
-                    {
-                        if(msg.equals("Click here to upload this screenshot to BlockShot"))
-                        {
-                            Minecraft.getInstance().gui.getChat();
-                        }
-                    }
-                }*/
-                Util.ioPool().execute(() ->
-                {
-                    try {
-                        byte[] bytes = BlockShot.latest;
-                        try {
-                            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false);
-                            if(rsp.equals("error")) return;
-                            JsonElement jsonElement = new JsonParser().parse(rsp);
-                            String status = jsonElement.getAsJsonObject().get("status").getAsString();
-                            if (!status.equals("error")) {
-                                String url = jsonElement.getAsJsonObject().get("url").getAsString();
-                                Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
-                                if(Minecraft.getInstance().player != null)
-                                {
-                                    Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
-                                    Minecraft.getInstance().player.sendMessage(finished, Util.NIL_UUID);
-                                }
-                            } else {
-                                String message = jsonElement.getAsJsonObject().get("message").getAsString();
-                                Component failMessage = new TextComponent(message);
-                                if(Minecraft.getInstance().player != null)
-                                {
-                                    Minecraft.getInstance().player.sendMessage(failMessage, Util.NIL_UUID);
-                                }
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } catch (Exception var7) {
-                        TranslatableComponent err = new TranslatableComponent("Failed to create screenshot ", new Object[]{var7.getMessage()});
-                        if(Minecraft.getInstance().player != null)
-                        {
-                            Minecraft.getInstance().player.sendMessage(err, Util.NIL_UUID);
-                        }
-                    }
-                    BlockShot.latest = null;
-                });
-                return 1;
-            }
-        };
-        dispatcher.register(
-                Commands.literal("blockshot")
-                        .then(Commands.literal("upload").executes(uploadLatest)));
     }
     public static String getServerIDAndVerify()
     {
