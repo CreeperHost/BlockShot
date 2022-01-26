@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.exceptions.AuthenticationException;
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.squareup.gifencoder.*;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
@@ -17,9 +18,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.controls.ControlsScreen;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -161,6 +164,20 @@ public class BlockShot
             }
             processedFrames.incrementAndGet();
         }, rendering);
+    }
+    public static void loadingSpin(PoseStack poseStack, float partialTicks, int ticks, int x, int y, ItemStack stack)
+    {
+        int rotateTickMax = 30;
+        int throbTickMax = 20;
+        int rotateTicks = ticks % rotateTickMax;
+        int throbTicks = ticks % throbTickMax;
+        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+        poseStack.pushPose();
+        poseStack.translate(0, 0, rotateTicks);
+        float scale = 1F + ((throbTicks >= (throbTickMax / 2) ? (throbTickMax - (throbTicks + partialTicks)) : (throbTicks + partialTicks)) * (2F / throbTickMax));
+        poseStack.scale(scale, scale, scale);
+        itemRenderer.renderGuiItem(stack, x-8, y-8);
+        poseStack.popPose();
     }
     //Minecraft's r and b channels work inverted-ly...
     private static Color fromRgbMc(int rgb) {

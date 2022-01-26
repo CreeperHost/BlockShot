@@ -37,7 +37,7 @@ processResources {
 
 shadowJar {
     configurations = [project.configurations.shadowCommon]
-    relocate 'com.squareup.gifencoder', 'net.creeperhost.minetogether.com.squareup.gifencoder'
+    relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     classifier "dev-shadow"
 }
 

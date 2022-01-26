@@ -11,7 +11,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.*;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.TextComponent;
@@ -25,6 +24,9 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static net.creeperhost.blockshot.BlockShot.loadingSpin;
 
 public class BlockShotHistoryScreen extends Screen {
 
@@ -36,6 +38,7 @@ public class BlockShotHistoryScreen extends Screen {
     public BlockShotHistoryScreen(Screen parent) {
         super(new TextComponent("BlockShot Upload History"));
         this.parent = parent;
+        if(caps.get() == null) caps.getAndSet(new ArrayList<ScreencapListItem>());
     }
 
     boolean isLoading = true;
@@ -55,7 +58,10 @@ public class BlockShotHistoryScreen extends Screen {
                 CompletableFuture.runAsync(() -> {
                     isLoading = true;
                     list.getCurrSelected().delete();
-                    caps.clear();
+                    caps.getAndUpdate((a) -> {
+                        a.clear();
+                        return a;
+                    });
                     this.loadRemote().thenRun(() -> isLoading = false);
                 }).thenRun(() -> {});
             } catch(Exception ignored) {}
@@ -85,32 +91,18 @@ public class BlockShotHistoryScreen extends Screen {
         }
         if(isLoading) {
             ticks++;
-            loadingSpin(poseStack, f, ticks, width / 2, height / 2 - 80 , new ItemStack(Items.COOKED_BEEF));
+            loadingSpin(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
         }
         drawCenteredString(poseStack, font, this.getTitle(), width / 2, 18, 0xFFFFFF);
     }
-    public static void loadingSpin(PoseStack poseStack, float partialTicks, int ticks, int x, int y, ItemStack stack)
-    {
-        int rotateTickMax = 30;
-        int throbTickMax = 20;
-        int rotateTicks = ticks % rotateTickMax;
-        int throbTicks = ticks % throbTickMax;
-        poseStack.pushPose();
-        poseStack.translate(x, y, 0);
-        float scale = 1F + ((throbTicks >= (throbTickMax / 2) ? (throbTickMax - (throbTicks + partialTicks)) : (throbTicks + partialTicks)) * (2F / throbTickMax));
-        poseStack.scale(scale, scale, scale);
-
-        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
-        itemRenderer.renderGuiItem(stack, -8, -8);
-
-        poseStack.popPose();
-    }
-    List<ScreencapListItem> caps = new ArrayList<>();
+    AtomicReference<List<ScreencapListItem>> caps = new AtomicReference<>();
+    private boolean hasRequested = false;
     private CompletableFuture<?> loadRemote()
     {
         return CompletableFuture.runAsync(() -> {
-            if(caps.size() == 0) {
+            if(caps.get().size() == 0 && !hasRequested) {
                 isLoading = true;
+                hasRequested = true;
                 String rsp = WebUtils.getWebResponse("https://blockshot.ch/list");
                 if (!rsp.equals("error")) {
                     JsonElement jsonElement = new JsonParser().parse(rsp);
@@ -120,19 +112,29 @@ public class BlockShotHistoryScreen extends Screen {
                         item.id = obj.getAsJsonObject().get("id").getAsString();
                         item.preview = obj.getAsJsonObject().get("preview").getAsString();
                         item.created = obj.getAsJsonObject().get("created").getAsLong();
-                        caps.add(item);
+                        caps.getAndUpdate((a) -> {
+                            a.add(item);
+                            return a;
+                        });
                     }
                 } else {
-                    ScreencapListItem item = new ScreencapListItem();
-                    item.id = "BlockShot not available in offline mode.";
-                    item.preview = "";
-                    item.isDeleting = true;
-                    item.created = 0;
-                    caps.add(item);
+                    //Used only in dev to help, as the list should stay 0 in prod otherwise it'll break for strange reasons.
+                    if(caps.get().size() == 0) {
+                        ScreencapListItem item = new ScreencapListItem();
+                        item.id = "BlockShot not available in offline mode.";
+                        item.preview = "";
+                        item.isDeleting = true;
+                        item.created = 0;
+                        caps.getAndUpdate((a) -> {
+                            a.add(item);
+                            return a;
+                        });
+                    }
                 }
             }
             list.children().clear();
-            for(ScreencapListItem c : caps)
+            List<ScreencapListItem> localCaps = new ArrayList<>(caps.get());
+            for(ScreencapListItem c : localCaps)
             {
                 BlockShotHistoryEntry entry = new BlockShotHistoryEntry(list, c.id, c.preview, c.created, c.isDeleting);
                 list.children().add(entry);
@@ -184,19 +186,18 @@ public class BlockShotHistoryScreen extends Screen {
         public void delete()
         {
             isDeleting = true;
-            List<ScreencapListItem> localCaps = new ArrayList<>(caps);
-            for(ScreencapListItem c : caps)
-            {
-                if(c.id == this.id)
+            caps.getAndUpdate((a) -> {
+                for(ScreencapListItem c : a)
                 {
-                    //Can't remember if I can change a list like this without copying it etc, so just gonna do it this way and refactor later
-                    localCaps.remove(c);
-                    c.isDeleting = true;
-                    localCaps.add(c);
+                    if(c.id == this.id)
+                    {
+                        c.isDeleting = true;
+                        break;
+                    }
                 }
-            }
+                return a;
+            });
             WebUtils.getWebResponse("https://blockshot.ch/delete/"+this.id);
-            caps = localCaps;
         }
         public void openUrl()
         {
@@ -220,13 +221,13 @@ public class BlockShotHistoryScreen extends Screen {
         {
             if(this.preview == null || this.preview.length() == 0 || this.created == 0) return new ResourceLocation("textures/misc/unknown_server.png");
             try {
-                if (previewLoading) return null;
+                if (previewLoading) return new ResourceLocation("textures/misc/unknown_server.png");
                 if (!previewLoaded) {
                     previewLoading = true;
                     NativeImage image = NativeImage.fromBase64(this.preview);
                     DynamicTexture i = (new DynamicTexture(image));
                     _resource = Minecraft.getInstance().getTextureManager().register("blockshot/", i);
-                    i.close();
+                    //i.close();
                     previewLoaded = true;
                     previewLoading = false;
                 } else {
@@ -237,7 +238,7 @@ public class BlockShotHistoryScreen extends Screen {
                 previewLoading = false;
                 previewLoaded = true;//Let's not retry...
             }
-            return null;
+            return new ResourceLocation("textures/misc/unknown_server.png");
         }
         protected void drawIcon(PoseStack poseStack, int i, int j, ResourceLocation resourceLocation) {
             if(resourceLocation == null) resourceLocation = new ResourceLocation("textures/misc/unknown_server.png");
