@@ -62,6 +62,7 @@ public class BlockShotHistoryScreen extends Screen {
                         a.clear();
                         return a;
                     });
+                    hasRequested = false;
                     this.loadRemote().thenRun(() -> isLoading = false);
                 }).thenRun(() -> {});
             } catch(Exception ignored) {}
