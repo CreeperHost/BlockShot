@@ -18,7 +18,7 @@ public abstract class MixinGameRenderer {
         if(BlockShot.isRecording)
         {
             //TODO: Switch to Minecraft.getInstance().fps - but private
-            if(BlockShot.lastTimestamp == System.currentTimeMillis())
+            if(BlockShot.lastTimestamp == (System.currentTimeMillis()/1000))
             {
                 BlockShot.curfps++;
             } else {
@@ -29,10 +29,10 @@ public abstract class MixinGameRenderer {
             if(BlockShot.lastfps > 20) {
                 skipFrames = (int) (BlockShot.lastfps / 10);
             }
-            if(BlockShot.frames > skipFrames || (BlockShot.lastTimestamp != System.currentTimeMillis())) {
+            if(BlockShot.frames > skipFrames || (BlockShot.lastTimestamp != (System.currentTimeMillis()/1000))) {
                 BlockShot.frames = 0;
-                if (BlockShot.lastTimestamp != System.currentTimeMillis()) {
-                    BlockShot.lastTimestamp = System.currentTimeMillis();
+                if (BlockShot.lastTimestamp != (System.currentTimeMillis()/1000)) {
+                    BlockShot.lastTimestamp = (System.currentTimeMillis()/1000);
                     BlockShot.totalSeconds++;
                 }
                 RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();

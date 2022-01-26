@@ -55,6 +55,7 @@ public class BlockShotHistoryScreen extends Screen {
                 CompletableFuture.runAsync(() -> {
                     isLoading = true;
                     list.getCurrSelected().delete();
+                    caps.clear();
                     this.loadRemote().thenRun(() -> isLoading = false);
                 }).thenRun(() -> {});
             } catch(Exception ignored) {}
@@ -130,7 +131,7 @@ public class BlockShotHistoryScreen extends Screen {
                     caps.add(item);
                 }
             }
-            list.clearList();
+            list.children().clear();
             for(ScreencapListItem c : caps)
             {
                 BlockShotHistoryEntry entry = new BlockShotHistoryEntry(list, c.id, c.preview, c.created, c.isDeleting);
@@ -188,6 +189,7 @@ public class BlockShotHistoryScreen extends Screen {
             {
                 if(c.id == this.id)
                 {
+                    //Can't remember if I can change a list like this without copying it etc, so just gonna do it this way and refactor later
                     localCaps.remove(c);
                     c.isDeleting = true;
                     localCaps.add(c);
@@ -216,6 +218,7 @@ public class BlockShotHistoryScreen extends Screen {
         private ResourceLocation _resource;
         public ResourceLocation getPreview()
         {
+            if(this.preview == null || this.preview.length() == 0 || this.created == 0) return new ResourceLocation("textures/misc/unknown_server.png");
             try {
                 if (previewLoading) return null;
                 if (!previewLoaded) {
