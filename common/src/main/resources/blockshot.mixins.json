@@ -6,7 +6,8 @@
   "client": [
     "MixinScreenshot",
     "MixinGameRenderer",
-    "MixinScreen"
+    "MixinScreen",
+    "MixinMinecraft"
   ],
   "server": [
   ],

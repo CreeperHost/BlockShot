@@ -4,31 +4,22 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.exceptions.AuthenticationException;
-import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.context.CommandContext;
 import com.squareup.gifencoder.*;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
-import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.platform.Platform;
-import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
+import net.creeperhost.blockshot.mixin.MixinMinecraft;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.controls.ControlsScreen;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -122,7 +113,10 @@ public class BlockShot
         }
         return EventResult.pass();
     }
-
+    public static int getFPS()
+    {
+        return ((MixinMinecraft) Minecraft.getInstance()).getfps();
+    }
     private static ExecutorService rendering = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("blockshot-framerenderer-%d").build());
     private static ExecutorService encoding = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("blockshot-imageencoder-%d").build());
     public static AtomicInteger addedFrames = new AtomicInteger();
@@ -179,8 +173,6 @@ public class BlockShot
     public static long lastTimestamp;
     public static long frames;
     public static long totalSeconds;
-    public static long lastfps = 0;
-    public static long curfps = 0;
     private static AtomicReference<List<Image>> _frames = new AtomicReference<>();
     public static void recordGif()
     {

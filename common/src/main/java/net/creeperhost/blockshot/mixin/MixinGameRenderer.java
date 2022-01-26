@@ -17,17 +17,9 @@ public abstract class MixinGameRenderer {
     public void render(float f, long l, boolean bl, CallbackInfo ci) {
         if(BlockShot.isRecording)
         {
-            //TODO: Switch to Minecraft.getInstance().fps - but private
-            if(BlockShot.lastTimestamp == (System.currentTimeMillis()/1000))
-            {
-                BlockShot.curfps++;
-            } else {
-                BlockShot.lastfps = BlockShot.curfps;
-                BlockShot.curfps = 0;
-            }
             int skipFrames = 6;
-            if(BlockShot.lastfps > 20) {
-                skipFrames = (int) (BlockShot.lastfps / 10);
+            if(BlockShot.getFPS() > 20) {
+                skipFrames = (BlockShot.getFPS() / 10);
             }
             if(BlockShot.frames > skipFrames || (BlockShot.lastTimestamp != (System.currentTimeMillis()/1000))) {
                 BlockShot.frames = 0;
