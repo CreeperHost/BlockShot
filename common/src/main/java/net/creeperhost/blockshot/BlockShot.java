@@ -51,13 +51,10 @@ public class BlockShot
     public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
     public static byte[] latest;
 
-    public static final KeyMapping recordKey = new KeyMapping("Screen recording", InputConstants.Type.KEYSYM, 80, "what");
-
     public static void init()
     {
         Config.init(configLocation.toFile());
         ClientRawInputEvent.KEY_PRESSED.register(BlockShot::onRawInput);
-        KeyMappingRegistry.register(recordKey);
         ClientGuiEvent.INIT_POST.register((screen, access) ->
         {
             if(screen instanceof ControlsScreen)

@@ -11,16 +11,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.time.Instant;
-
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
-    //@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getMainRenderTarget()Lcom/mojang/blaze3d/pipeline/RenderTarget;"), cancellable = false)
     @Inject(method = "render", at = @At(value = "TAIL"), cancellable = false)
     public void render(float f, long l, boolean bl, CallbackInfo ci) {
         if(BlockShot.isRecording)
         {
-            if(BlockShot.lastTimestamp == Instant.now().getEpochSecond())
+            //TODO: Switch to Minecraft.getInstance().fps - but private
+            if(BlockShot.lastTimestamp == System.currentTimeMillis())
             {
                 BlockShot.curfps++;
             } else {
@@ -31,10 +29,10 @@ public abstract class MixinGameRenderer {
             if(BlockShot.lastfps > 20) {
                 skipFrames = (int) (BlockShot.lastfps / 10);
             }
-            if(BlockShot.frames > skipFrames || (BlockShot.lastTimestamp != Instant.now().getEpochSecond())) {
+            if(BlockShot.frames > skipFrames || (BlockShot.lastTimestamp != System.currentTimeMillis())) {
                 BlockShot.frames = 0;
-                if (BlockShot.lastTimestamp != Instant.now().getEpochSecond()) {
-                    BlockShot.lastTimestamp = Instant.now().getEpochSecond();
+                if (BlockShot.lastTimestamp != System.currentTimeMillis()) {
+                    BlockShot.lastTimestamp = System.currentTimeMillis();
                     BlockShot.totalSeconds++;
                 }
                 RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();

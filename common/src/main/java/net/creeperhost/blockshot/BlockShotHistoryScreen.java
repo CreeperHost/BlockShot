@@ -3,7 +3,6 @@ package net.creeperhost.blockshot;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -12,7 +11,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.*;
-import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.CommonComponents;
@@ -22,12 +20,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -47,11 +41,8 @@ public class BlockShotHistoryScreen extends Screen {
     boolean isLoading = true;
     @Override
     protected void init() {
-        if(list == null) {
-            list = new ScreenList(this, this.minecraft, this.width, this.height, 56, this.height - 36, 36);
-            isLoading = true;
-            this.loadRemote().thenRun(() -> isLoading = false);
-        }
+        list = new ScreenList(this, this.minecraft, this.width, this.height, 56, this.height - 36, 36);
+        this.loadRemote().thenRun(() -> isLoading = false);
         this.addRenderableWidget(list);
         this.copyButton = (Button)this.addRenderableWidget(new Button(this.width / 2 - (76*2), this.height - 28, 72, 20, new TranslatableComponent("Copy URL"), (arg) -> {
             list.getCurrSelected().copyUrl();
@@ -83,6 +74,7 @@ public class BlockShotHistoryScreen extends Screen {
     @Override
     public void render(PoseStack poseStack, int i, int j, float f) {
         this.renderBackground(poseStack);
+        super.render(poseStack, i, j, f);
         if(list.getCurrSelected() != null && list.getCurrSelected() != lastSelected)
         {
                 this.copyButton.active = !list.getCurrSelected().isDeleting;
@@ -94,7 +86,6 @@ public class BlockShotHistoryScreen extends Screen {
             ticks++;
             loadingSpin(poseStack, f, ticks, width / 2, height / 2 - 80 , new ItemStack(Items.COOKED_BEEF));
         }
-        super.render(poseStack, i, j, f);
         drawCenteredString(poseStack, font, this.getTitle(), width / 2, 18, 0xFFFFFF);
     }
     public static void loadingSpin(PoseStack poseStack, float partialTicks, int ticks, int x, int y, ItemStack stack)
@@ -113,26 +104,47 @@ public class BlockShotHistoryScreen extends Screen {
 
         poseStack.popPose();
     }
+    List<ScreencapListItem> caps = new ArrayList<>();
     private CompletableFuture<?> loadRemote()
     {
         return CompletableFuture.runAsync(() -> {
-            String rsp = WebUtils.getWebResponse("https://blockshot.ch/list");
-            if (rsp == "error") this.minecraft.setScreen(this.parent);
-            JsonElement jsonElement = new JsonParser().parse(rsp);
-            JsonArray images = jsonElement.getAsJsonArray();
-            list.children().clear();
-            int i = 0;
-            for (JsonElement obj : images) {
-                String iid = obj.getAsJsonObject().get("id").getAsString();
-                String preview = obj.getAsJsonObject().get("preview").getAsString();
-                long created = obj.getAsJsonObject().get("created").getAsLong();
-                BlockShotHistoryEntry entry = new BlockShotHistoryEntry(list, iid, preview, created);
+            if(caps.size() == 0) {
+                isLoading = true;
+                String rsp = WebUtils.getWebResponse("https://blockshot.ch/list");
+                if (!rsp.equals("error")) {
+                    JsonElement jsonElement = new JsonParser().parse(rsp);
+                    JsonArray images = jsonElement.getAsJsonArray();
+                    for (JsonElement obj : images) {
+                        ScreencapListItem item = new ScreencapListItem();
+                        item.id = obj.getAsJsonObject().get("id").getAsString();
+                        item.preview = obj.getAsJsonObject().get("preview").getAsString();
+                        item.created = obj.getAsJsonObject().get("created").getAsLong();
+                        caps.add(item);
+                    }
+                } else {
+                    ScreencapListItem item = new ScreencapListItem();
+                    item.id = "BlockShot not available in offline mode.";
+                    item.preview = "";
+                    item.isDeleting = true;
+                    item.created = 0;
+                    caps.add(item);
+                }
+            }
+            list.clearList();
+            for(ScreencapListItem c : caps)
+            {
+                BlockShotHistoryEntry entry = new BlockShotHistoryEntry(list, c.id, c.preview, c.created, c.isDeleting);
                 list.children().add(entry);
-                i++;
             }
         });
     }
-
+    class ScreencapListItem
+    {
+        String id;
+        String preview;
+        long created;
+        boolean isDeleting;
+    }
 
     class BlockShotHistoryEntry extends ScreenListEntry
     {
@@ -141,30 +153,48 @@ public class BlockShotHistoryScreen extends Screen {
         long created;
         ScreenList parent;
         boolean isDeleting = false;
-        public BlockShotHistoryEntry(ScreenList list, String id, String preview, long created) {
+        public BlockShotHistoryEntry(ScreenList list, String id, String preview, long created, boolean isDeleting) {
             super(list);
             parent = list;
             this.id = id;
+            this.isDeleting = isDeleting;
             this.preview = preview;
             this.created = created;
         }
         @Override
         public void render(PoseStack poseStack, int slotIndex, int y, int x, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float p_render_9_)
         {
-            Date date = new java.util.Date(this.created*1000L);
+            Date date = this.created > 0 ? new java.util.Date(this.created*1000L) : new java.util.Date();
             SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
             this.mc.font.draw(poseStack, sdf.format(date), x + 35, y, 16777215);
-            if(isDeleting) {
-                this.mc.font.draw(poseStack, "Pending deletion...", x + 35, y + 10, 8421504);
+            if(this.isDeleting) {
+                if(this.id.length() < 10) {
+                    this.mc.font.draw(poseStack, "Pending deletion...", x + 35, y + 10, 8421504);
+                } else {
+                    this.mc.font.draw(poseStack, this.id, x + 35, y + 10, 8421504);
+                }
             } else {
-                this.mc.font.draw(poseStack, "https://blockshot.ch/"+this.id, x + 35, y + 10, 8421504);
+                if(this.id.length() < 10) {
+                    this.mc.font.draw(poseStack, "https://blockshot.ch/" + this.id, x + 35, y + 10, 8421504);
+                }
             }
             this.drawIcon(poseStack, x, y, getPreview());
         }
         public void delete()
         {
             isDeleting = true;
+            List<ScreencapListItem> localCaps = new ArrayList<>(caps);
+            for(ScreencapListItem c : caps)
+            {
+                if(c.id == this.id)
+                {
+                    localCaps.remove(c);
+                    c.isDeleting = true;
+                    localCaps.add(c);
+                }
+            }
             WebUtils.getWebResponse("https://blockshot.ch/delete/"+this.id);
+            caps = localCaps;
         }
         public void openUrl()
         {
@@ -175,28 +205,7 @@ public class BlockShotHistoryScreen extends Screen {
                 e.printStackTrace();
                 return;
             }
-            String[] cmdLine;
-            Util.OS os = Util.getPlatform();
-            switch (os)
-            {
-                case WINDOWS:
-                    cmdLine = new String[]{"rundll32", "url.dll,FileProtocolHandler", url.toString()};
-                    break;
-                case OSX:
-                    cmdLine = new String[]{"open", url.toString()};
-                    break;
-                default:
-                    cmdLine = new String[]{"xdg-open", url.toString()};
-            }
-            try
-            {
-                Process browserProcess = AccessController.doPrivileged((PrivilegedExceptionAction<Process>) () -> Runtime.getRuntime().exec(cmdLine));
-                browserProcess.getInputStream().close();
-                browserProcess.getErrorStream().close();
-                browserProcess.getOutputStream().close();
-            } catch (IOException | PrivilegedActionException var5)
-            {
-            }
+            if(url != null) Util.getPlatform().openUrl(url);
         }
         public void copyUrl()
         {
@@ -214,6 +223,7 @@ public class BlockShotHistoryScreen extends Screen {
                     NativeImage image = NativeImage.fromBase64(this.preview);
                     DynamicTexture i = (new DynamicTexture(image));
                     _resource = Minecraft.getInstance().getTextureManager().register("blockshot/", i);
+                    i.close();
                     previewLoaded = true;
                     previewLoading = false;
                 } else {
@@ -222,7 +232,7 @@ public class BlockShotHistoryScreen extends Screen {
             } catch(Throwable t) {
                 t.printStackTrace();
                 previewLoading = false;
-                previewLoaded = false;
+                previewLoaded = true;//Let's not retry...
             }
             return null;
         }
