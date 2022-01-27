@@ -35,6 +35,7 @@ public class BlockShot
     public static Logger logger = LogManager.getLogger();
     public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
     public static final int CHAT_UPLOAD_ID = 360360;
+    public static final int CHAT_ENCODING_ID = 420420;
     public static byte[] latest;
     private static boolean _active = false;
 
@@ -126,6 +127,10 @@ public class BlockShot
     }
     public static void uploadAndAddToChat(byte[] imageBytes)
     {
+        if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+            Component finished = new TextComponent("Uploading to BlockShot...");
+            ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+        }
         String result = BlockShot.uploadImage(imageBytes);
         if(result == null)
         {

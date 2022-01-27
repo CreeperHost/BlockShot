@@ -30,7 +30,6 @@ public abstract class MixinScreen {
                     Util.ioPool().execute(() ->
                     {
                         if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.CHAT_UPLOAD_ID);
                             byte[] bytes = BlockShot.latest;
                             BlockShot.uploadAndAddToChat(bytes);
                         }
