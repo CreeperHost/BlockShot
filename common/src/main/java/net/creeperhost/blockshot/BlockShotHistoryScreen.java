@@ -106,7 +106,7 @@ public class BlockShotHistoryScreen extends Screen {
                 hasRequested = true;
                 String rsp = WebUtils.getWebResponse("https://blockshot.ch/list");
                 if (!rsp.equals("error")) {
-                    JsonElement jsonElement = new JsonParser().parse(rsp);
+                    JsonElement jsonElement = JsonParser.parseString(rsp);
                     JsonArray images = jsonElement.getAsJsonArray();
                     for (JsonElement obj : images) {
                         ScreencapListItem item = new ScreencapListItem();

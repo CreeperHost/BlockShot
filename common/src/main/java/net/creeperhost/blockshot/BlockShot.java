@@ -369,7 +369,7 @@ public class BlockShot
                     byte[] bytes = os.toByteArray();
                     String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false, true);
                     if(!rsp.equals("error")) {
-                        JsonElement jsonElement = new JsonParser().parse(rsp);
+                        JsonElement jsonElement = JsonParser.parseString(rsp);
                         String status = jsonElement.getAsJsonObject().get("status").getAsString();
                         if (!status.equals("error")) {
                             String url = jsonElement.getAsJsonObject().get("url").getAsString();

@@ -69,7 +69,7 @@ public abstract class MixinScreenshot
                             String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(BlockShot.latest), false, false);
                             BlockShot.latest = null;
                             if(rsp.equals("error")) return;
-                            JsonElement jsonElement = new JsonParser().parse(rsp);
+                            JsonElement jsonElement = JsonParser.parseString(rsp);
                             String status = jsonElement.getAsJsonObject().get("status").getAsString();
                             if (!status.equals("error")) {
                                 String url = jsonElement.getAsJsonObject().get("url").getAsString();
