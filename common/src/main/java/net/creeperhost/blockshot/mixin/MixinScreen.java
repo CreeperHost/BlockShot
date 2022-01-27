@@ -33,6 +33,7 @@ public abstract class MixinScreen {
                 }
                 Util.ioPool().execute(() ->
                 {
+                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.BLOCKSHOT_UPLOAD_ID);
                     try {
                         byte[] bytes = BlockShot.latest;
                         try {
@@ -41,7 +42,7 @@ public abstract class MixinScreen {
                                 cir.setReturnValue(true);
                                 return;
                             }
-                            JsonElement jsonElement = new JsonParser().parse(rsp);
+                            JsonElement jsonElement = JsonParser.parseString(rsp);
                             String status = jsonElement.getAsJsonObject().get("status").getAsString();
                             if (!status.equals("error")) {
                                 String url = jsonElement.getAsJsonObject().get("url").getAsString();

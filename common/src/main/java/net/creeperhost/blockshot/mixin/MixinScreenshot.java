@@ -10,6 +10,7 @@ import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
@@ -93,7 +94,8 @@ public abstract class MixinScreenshot
                 {
                     TextComponent confirmMessage = new TextComponent("Click here to upload this screenshot to BlockShot");
                     confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
-                    consumer.accept(confirmMessage);
+                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(confirmMessage, BlockShot.BLOCKSHOT_UPLOAD_ID);
+                    //consumer.accept(confirmMessage);
                 }
             }
             ci.cancel();
