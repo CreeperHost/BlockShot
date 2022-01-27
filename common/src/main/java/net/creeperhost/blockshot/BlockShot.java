@@ -2,7 +2,6 @@ package net.creeperhost.blockshot;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.mojang.authlib.Environment;
 import com.mojang.authlib.exceptions.AuthenticationException;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
@@ -29,8 +28,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Random;
 
-public class BlockShot
-{
+public class BlockShot {
     public static final String MOD_ID = "blockshot";
     public static Logger logger = LogManager.getLogger();
     public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
@@ -39,17 +37,15 @@ public class BlockShot
     public static byte[] latest;
     private static boolean _active = false;
 
-    public static void init()
-    {
-        if(Platform.getEnvironment().equals(Env.CLIENT)) {
+    public static void init() {
+        if (Platform.getEnvironment().equals(Env.CLIENT)) {
             if (getServerIDAndVerify() != null || Platform.isDevelopmentEnvironment()) {
                 _active = true;
             } else {
                 logger.error("BlockShot will not run in offline mode.");
             }
         }
-        if(BlockShot.isActive())
-        {
+        if (BlockShot.isActive()) {
             Config.init(configLocation.toFile());
             ClientRawInputEvent.KEY_PRESSED.register(BlockShot::onRawInput);
             ClientGuiEvent.INIT_POST.register((screen, access) ->
@@ -98,18 +94,17 @@ public class BlockShot
             });
         }
     }
-    public static boolean isActive()
-    {
+
+    public static boolean isActive() {
         return _active;
     }
+
     private static long keybindLast = 0;
-    private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers)
-    {
-        if(Screen.hasControlDown())
-        {
-            if(Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode))
-            {
-                if(keybindLast+5 > Instant.now().getEpochSecond()) return EventResult.pass();
+
+    private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers) {
+        if (Screen.hasControlDown()) {
+            if (Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode)) {
+                if (keybindLast + 5 > Instant.now().getEpochSecond()) return EventResult.pass();
                 keybindLast = Instant.now().getEpochSecond();
                 if (GifEncoder.isRecording) {
                     GifEncoder.isRecording = false;
@@ -121,33 +116,31 @@ public class BlockShot
         }
         return EventResult.pass();
     }
-    public static int getFPS()
-    {
+
+    public static int getFPS() {
         return ((MixinMinecraft) Minecraft.getInstance()).getfps();
     }
-    public static void uploadAndAddToChat(byte[] imageBytes)
-    {
-        if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+
+    public static void uploadAndAddToChat(byte[] imageBytes) {
+        if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
             Component finished = new TextComponent("Uploading to BlockShot...");
-            ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
         }
         String result = BlockShot.uploadImage(imageBytes);
-        if(result == null)
-        {
-            if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+        if (result == null) {
+            if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                 Component finished = new TextComponent("An error occurred uploading your content to BlockShot.");
-                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+                ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
             }
-        } else if(result.startsWith("http"))
-        {
+        } else if (result.startsWith("http")) {
             Component link = (new TextComponent(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
             Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
-            ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.CHAT_UPLOAD_ID);
+            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.CHAT_UPLOAD_ID);
             Minecraft.getInstance().gui.getChat().addMessage(finished);
         }
     }
-    public static String uploadImage(byte[] imageBytes)
-    {
+
+    public static String uploadImage(byte[] imageBytes) {
         try {
             String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), false, false, true);
             if (!rsp.equals("error")) {
@@ -163,22 +156,19 @@ public class BlockShot
                     return null;
                 }
             }
-        } catch(Throwable t)
-        {
+        } catch (Throwable t) {
             t.printStackTrace();
             return null;
         }
         return null;
     }
-    public static String getServerIDAndVerify()
-    {
+
+    public static String getServerIDAndVerify() {
         Minecraft mc = Minecraft.getInstance();
         String serverId = DigestUtils.sha1Hex(String.valueOf(new Random().nextInt()));
-        try
-        {
+        try {
             mc.getMinecraftSessionService().joinServer(mc.getUser().getGameProfile(), mc.getUser().getAccessToken(), serverId);
-        } catch (AuthenticationException e)
-        {
+        } catch (AuthenticationException e) {
             logger.error("Failed to validate with Mojang: " + e.getMessage());
             return null;
         }

@@ -19,8 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public class LoadingSpinner {
-    public static void render(PoseStack poseStack, float partialTicks, int ticks, int x, int y, ItemStack stack)
-    {
+    public static void render(PoseStack poseStack, float partialTicks, int ticks, int x, int y, ItemStack stack) {
         int rotateTickMax = 60;
         int throbTickMax = 20;
         int rotateTicks = ticks % rotateTickMax;
@@ -35,6 +34,7 @@ public class LoadingSpinner {
         drawItem(poseStack, stack, 0, true, null);
         poseStack.popPose();
     }
+
     public static void drawItem(PoseStack poseStack, ItemStack stack, int hash, boolean renderOverlay, @Nullable String text) {
         if (stack.isEmpty()) {
             return;

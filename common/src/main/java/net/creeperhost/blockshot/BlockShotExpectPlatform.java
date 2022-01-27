@@ -5,8 +5,7 @@ import dev.architectury.platform.Platform;
 
 import java.nio.file.Path;
 
-public class BlockShotExpectPlatform
-{
+public class BlockShotExpectPlatform {
     /**
      * We can use {@link Platform#getConfigFolder()} but this is just an example of {@link ExpectPlatform}.
      * <p>

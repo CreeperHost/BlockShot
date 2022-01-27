@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface MixinChatComponent {
     @Invoker("addMessage")
     void invokeaddMessage(Component component, int i);
+
     @Invoker("removeById")
     void invokeremoveById(int i);
 }

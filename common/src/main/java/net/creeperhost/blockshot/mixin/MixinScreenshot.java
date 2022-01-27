@@ -24,14 +24,15 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 @Mixin(Screenshot.class)
-public abstract class MixinScreenshot
-{
-    @Shadow public static NativeImage takeScreenshot(RenderTarget arg) {return null;}
+public abstract class MixinScreenshot {
+    @Shadow
+    public static NativeImage takeScreenshot(RenderTarget arg) {
+        return null;
+    }
 
     @Inject(method = "_grab", at = @At("HEAD"), cancellable = true)
-    private static void takeScreenShot(File file, String string, RenderTarget renderTarget, Consumer<Component> consumer, CallbackInfo ci)
-    {
-        if(BlockShot.isActive()) {
+    private static void takeScreenShot(File file, String string, RenderTarget renderTarget, Consumer<Component> consumer, CallbackInfo ci) {
+        if (BlockShot.isActive()) {
             if (GifEncoder.isRecording || Screen.hasControlDown()) {
                 ci.cancel();
                 return;
@@ -60,7 +61,7 @@ public abstract class MixinScreenshot
                     if (BlockShot.latest != null && BlockShot.latest.length > 0) {
                         TextComponent confirmMessage = new TextComponent("Click here to upload this screenshot to BlockShot");
                         confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
-                        if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                        if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                             ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(confirmMessage, BlockShot.CHAT_UPLOAD_ID);
                         }
                     }
