@@ -5,7 +5,7 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import java.nio.file.Path;
 
-public class BlockShotPlatformImpl
+public class BlockShotExpectPlatformImpl
 {
     /**
      * This is our actual method to {@link BlockShotExpectPlatform#getConfigDirectory()}.
