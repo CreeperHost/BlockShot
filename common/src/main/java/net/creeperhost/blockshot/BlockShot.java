@@ -18,6 +18,7 @@ import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.platform.Platform;
+import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.creeperhost.blockshot.mixin.MixinMinecraft;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -315,8 +316,8 @@ public class BlockShot
         isRecording = true;
         CompletableFuture.runAsync(() -> {
             Component message = new TextComponent("You are now recording gameplay! ");
-            if(Minecraft.getInstance() != null && Minecraft.getInstance().player != null) {
-                Minecraft.getInstance().player.sendMessage(message, Util.NIL_UUID);
+            if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.BLOCKSHOT_UPLOAD_ID);
             }
             while(isRecording) {
                 try {
@@ -324,8 +325,8 @@ public class BlockShot
                 } catch (InterruptedException e) {}
             }
             message = new TextComponent("Gameplay recording complete, encoding... ");
-            if(Minecraft.getInstance() != null && Minecraft.getInstance().player != null) {
-                Minecraft.getInstance().player.sendMessage(message, Util.NIL_UUID);
+            if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.BLOCKSHOT_UPLOAD_ID);
             }
             while(addedFrames.get() > processedFrames.get()) {
                 try {
@@ -362,8 +363,8 @@ public class BlockShot
                 }
                 BlockShot._frames.set(new ArrayList<Image>());
                 message = new TextComponent("Encoding complete... Uploading... ");
-                if(Minecraft.getInstance() != null && Minecraft.getInstance().player != null) {
-                    Minecraft.getInstance().player.sendMessage(message, Util.NIL_UUID);
+                if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                    ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.BLOCKSHOT_UPLOAD_ID);
                 }
                 try {
                     byte[] bytes = os.toByteArray();
@@ -374,21 +375,23 @@ public class BlockShot
                         if (!status.equals("error")) {
                             String url = jsonElement.getAsJsonObject().get("url").getAsString();
                             Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
-                            if (Minecraft.getInstance().player != null) {
+                            if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                                 Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
-                                Minecraft.getInstance().player.sendMessage(finished, Util.NIL_UUID);
+                                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.BLOCKSHOT_UPLOAD_ID);
+                                Minecraft.getInstance().gui.getChat().addMessage(finished);
                             }
                         } else {
                             String mssage = jsonElement.getAsJsonObject().get("message").getAsString();
                             Component failMessage = new TextComponent(mssage);
-                            if (Minecraft.getInstance().player != null) {
-                                Minecraft.getInstance().player.sendMessage(failMessage, Util.NIL_UUID);
+                            if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(failMessage, BlockShot.BLOCKSHOT_UPLOAD_ID);
                             }
                         }
                     } else {
-                        if (Minecraft.getInstance().player != null) {
+
+                        if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                             Component finished = new TextComponent("An error occurred uploading your content to BlockShot.");
-                            Minecraft.getInstance().player.sendMessage(finished, Util.NIL_UUID);
+                            ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.BLOCKSHOT_UPLOAD_ID);
                         }
                     }
                 } catch (Exception e) {
