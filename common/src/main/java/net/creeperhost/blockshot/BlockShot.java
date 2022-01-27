@@ -368,31 +368,19 @@ public class BlockShot
                 }
                 try {
                     byte[] bytes = os.toByteArray();
-                    String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false, true);
-                    if(!rsp.equals("error")) {
-                        JsonElement jsonElement = JsonParser.parseString(rsp);
-                        String status = jsonElement.getAsJsonObject().get("status").getAsString();
-                        if (!status.equals("error")) {
-                            String url = jsonElement.getAsJsonObject().get("url").getAsString();
-                            Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
-                            if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                                Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
-                                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.BLOCKSHOT_UPLOAD_ID);
-                                Minecraft.getInstance().gui.getChat().addMessage(finished);
-                            }
-                        } else {
-                            String mssage = jsonElement.getAsJsonObject().get("message").getAsString();
-                            Component failMessage = new TextComponent(mssage);
-                            if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(failMessage, BlockShot.BLOCKSHOT_UPLOAD_ID);
-                            }
-                        }
-                    } else {
-
+                    String result = BlockShot.uploadImage(bytes);
+                    if(result == null)
+                    {
                         if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                             Component finished = new TextComponent("An error occurred uploading your content to BlockShot.");
                             ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.BLOCKSHOT_UPLOAD_ID);
                         }
+                    } else if(result.startsWith("http"))
+                    {
+                        Component link = (new TextComponent(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
+                        Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
+                        ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.BLOCKSHOT_UPLOAD_ID);
+                        Minecraft.getInstance().gui.getChat().addMessage(finished);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -402,6 +390,30 @@ public class BlockShot
             processedFrames.set(0);
             isRecording = false;
         }, encoding);
+    }
+    public static String uploadImage(byte[] imageBytes)
+    {
+        try {
+            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), false, false, true);
+            if (!rsp.equals("error")) {
+                JsonElement jsonElement = JsonParser.parseString(rsp);
+                String status = jsonElement.getAsJsonObject().get("status").getAsString();
+                if (!status.equals("error")) {
+                    String url = jsonElement.getAsJsonObject().get("url").getAsString();
+                    if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                        return url;
+                    }
+                } else {
+                    System.out.println(jsonElement.getAsJsonObject().get("message").getAsString());
+                    return null;
+                }
+            }
+        } catch(Throwable t)
+        {
+            t.printStackTrace();
+            return null;
+        }
+        return null;
     }
     public static String getServerIDAndVerify()
     {

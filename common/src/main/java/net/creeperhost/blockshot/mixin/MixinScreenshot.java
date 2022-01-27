@@ -66,21 +66,22 @@ public abstract class MixinScreenshot
                     try {
                         try {
                             if(BlockShot.latest == null || BlockShot.latest.length == 0) return;
-                            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(BlockShot.latest), false, false);
-                            BlockShot.latest = null;
-                            if(rsp.equals("error")) return;
-                            JsonElement jsonElement = JsonParser.parseString(rsp);
-                            String status = jsonElement.getAsJsonObject().get("status").getAsString();
-                            if (!status.equals("error")) {
-                                String url = jsonElement.getAsJsonObject().get("url").getAsString();
-                                Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
+
+                            String result = BlockShot.uploadImage(BlockShot.latest);
+                            if(result == null)
+                            {
+                                if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                                    Component finished = new TextComponent("An error occurred uploading your content to BlockShot.");
+                                    ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.BLOCKSHOT_UPLOAD_ID);
+                                }
+                            } else if(result.startsWith("http"))
+                            {
+                                Component link = (new TextComponent(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
                                 Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
-                                consumer.accept(finished);
-                            } else {
-                                String message = jsonElement.getAsJsonObject().get("message").getAsString();
-                                Component failMessage = new TextComponent(message);
-                                consumer.accept(failMessage);
+                                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.BLOCKSHOT_UPLOAD_ID);
+                                Minecraft.getInstance().gui.getChat().addMessage(finished);
                             }
+                            BlockShot.latest = null;
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -95,7 +96,6 @@ public abstract class MixinScreenshot
                     TextComponent confirmMessage = new TextComponent("Click here to upload this screenshot to BlockShot");
                     confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
                     ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(confirmMessage, BlockShot.BLOCKSHOT_UPLOAD_ID);
-                    //consumer.accept(confirmMessage);
                 }
             }
             ci.cancel();

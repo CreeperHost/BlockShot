@@ -37,26 +37,19 @@ public abstract class MixinScreen {
                     try {
                         byte[] bytes = BlockShot.latest;
                         try {
-                            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(bytes), false, false);
-                            if (rsp.equals("error")) {
-                                cir.setReturnValue(true);
-                                return;
-                            }
-                            JsonElement jsonElement = JsonParser.parseString(rsp);
-                            String status = jsonElement.getAsJsonObject().get("status").getAsString();
-                            if (!status.equals("error")) {
-                                String url = jsonElement.getAsJsonObject().get("url").getAsString();
-                                Component link = (new TextComponent(url)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
-                                if (Minecraft.getInstance().player != null) {
-                                    Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
-                                    Minecraft.getInstance().player.sendMessage(finished, Util.NIL_UUID);
+                            String result = BlockShot.uploadImage(bytes);
+                            if(result == null)
+                            {
+                                if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                                    Component finished = new TextComponent("An error occurred uploading your content to BlockShot.");
+                                    ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.BLOCKSHOT_UPLOAD_ID);
                                 }
-                            } else {
-                                String message = jsonElement.getAsJsonObject().get("message").getAsString();
-                                Component failMessage = new TextComponent(message);
-                                if (Minecraft.getInstance().player != null) {
-                                    Minecraft.getInstance().player.sendMessage(failMessage, Util.NIL_UUID);
-                                }
+                            } else if(result.startsWith("http"))
+                            {
+                                Component link = (new TextComponent(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
+                                Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
+                                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.BLOCKSHOT_UPLOAD_ID);
+                                Minecraft.getInstance().gui.getChat().addMessage(finished);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
