@@ -90,7 +90,7 @@ public class BlockShotHistoryScreen extends Screen {
                 this.viewButton.active = !list.getCurrSelected().isDeleting;
                 lastSelected = list.getCurrSelected();
         }
-        if(isLoading == isLoading) {
+        if(isLoading) {
             ticks++;
             loadingSpin(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
         }
