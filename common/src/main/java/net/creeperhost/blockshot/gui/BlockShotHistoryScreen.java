@@ -47,11 +47,11 @@ public class BlockShotHistoryScreen extends Screen {
     protected void init() {
         list = new ScreenList(this, this.minecraft, this.width, this.height, 56, this.height - 36, 36);
         this.loadRemote().thenRun(() -> isLoading = false);
-        this.addRenderableWidget(list);
-        this.copyButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - (76 * 2), this.height - 28, 72, 20, new TranslatableComponent("Copy URL"), (arg) -> {
+        this.addWidget(list);
+        this.copyButton = (Button) this.addButton(new Button(this.width / 2 - (76 * 2), this.height - 28, 72, 20, new TranslatableComponent("Copy URL"), (arg) -> {
             list.getCurrSelected().copyUrl();
         }));
-        this.deleteButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - 76, this.height - 28, 72, 20, new TranslatableComponent("selectWorld.delete"), (arg) -> {
+        this.deleteButton = (Button) this.addButton(new Button(this.width / 2 - 76, this.height - 28, 72, 20, new TranslatableComponent("selectWorld.delete"), (arg) -> {
             try {
                 this.copyButton.active = false;
                 this.deleteButton.active = false;
@@ -70,10 +70,10 @@ public class BlockShotHistoryScreen extends Screen {
             } catch (Exception ignored) {
             }
         }));
-        this.viewButton = (Button) this.addRenderableWidget(new Button(this.width / 2, this.height - 28, 72, 20, new TextComponent("View"), (arg) -> {
+        this.viewButton = (Button) this.addButton(new Button(this.width / 2, this.height - 28, 72, 20, new TextComponent("View"), (arg) -> {
             list.getCurrSelected().openUrl();
         }));
-        this.addRenderableWidget(new Button(this.width / 2 + 76, this.height - 28, 72, 20, CommonComponents.GUI_CANCEL, (arg) -> {
+        this.addButton(new Button(this.width / 2 + 76, this.height - 28, 72, 20, CommonComponents.GUI_CANCEL, (arg) -> {
             this.minecraft.setScreen(this.parent);
         }));
         this.copyButton.active = false;
@@ -96,7 +96,7 @@ public class BlockShotHistoryScreen extends Screen {
         }
         if (isLoading) {
             ticks++;
-            LoadingSpinner.render(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
+            LoadingSpinner.render(f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
         }
         drawCenteredString(poseStack, font, this.getTitle(), width / 2, 18, 0xFFFFFF);
     }
@@ -111,7 +111,7 @@ public class BlockShotHistoryScreen extends Screen {
                 hasRequested = true;
                 String rsp = WebUtils.getWebResponse("https://blockshot.ch/list");
                 if (!rsp.equals("error")) {
-                    JsonElement jsonElement = JsonParser.parseString(rsp);
+                    JsonElement jsonElement = new JsonParser().parse(rsp);
                     JsonArray images = jsonElement.getAsJsonArray();
                     for (JsonElement obj : images) {
                         ScreencapListItem item = new ScreencapListItem();
@@ -248,7 +248,7 @@ public class BlockShotHistoryScreen extends Screen {
 
         protected void drawIcon(PoseStack poseStack, int i, int j, ResourceLocation resourceLocation) {
             if (resourceLocation == null) resourceLocation = new ResourceLocation("textures/misc/unknown_server.png");
-            RenderSystem.setShaderTexture(0, resourceLocation);
+            //RenderSystem.setShaderTexture(0, resourceLocation);
             RenderSystem.enableBlend();
             GuiComponent.blit(poseStack, i, j, 0.0F, 0.0F, 32, 32, 32, 32);
             RenderSystem.disableBlend();

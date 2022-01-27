@@ -1,8 +1,8 @@
 package net.creeperhost.blockshot.forge;
 
-import dev.architectury.platform.Platform;
-import dev.architectury.platform.forge.EventBuses;
-import dev.architectury.utils.Env;
+import me.shedaniel.architectury.platform.Platform;
+import me.shedaniel.architectury.platform.forge.EventBuses;
+import me.shedaniel.architectury.utils.Env;
 import net.creeperhost.blockshot.BlockShot;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;

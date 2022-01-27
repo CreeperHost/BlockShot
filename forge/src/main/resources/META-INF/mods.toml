@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[38,)"
+loaderVersion = "[36,)"
 #issueTrackerURL = ""
 license = "Insert License Here"
 
@@ -16,20 +16,20 @@ Upload your screenshots for easy sharing
 [[dependencies.blockshot]]
 modId = "forge"
 mandatory = true
-versionRange = "[38,)"
+versionRange = "[36,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.blockshot]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.18,)"
+versionRange = "[1.16,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.blockshot]]
 modId = "architectury"
 mandatory = true
-versionRange = "[3.4.9,)"
+versionRange = "[1.26.37,)"
 ordering = "AFTER"
 side = "BOTH"
