@@ -59,7 +59,7 @@ public abstract class MixinScreenshot {
                     });
                 } else {
                     if (BlockShot.latest != null && BlockShot.latest.length > 0) {
-                        TextComponent confirmMessage = new TextComponent("Click here to upload this screenshot to BlockShot");
+                        TextComponent confirmMessage = new TextComponent("[BlockShot] Click here to upload this screenshot to BlockShot");
                         confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
                         if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                             ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(confirmMessage, BlockShot.CHAT_UPLOAD_ID);

@@ -123,18 +123,18 @@ public class BlockShot {
 
     public static void uploadAndAddToChat(byte[] imageBytes) {
         if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-            Component finished = new TextComponent("Uploading to BlockShot...");
+            Component finished = new TextComponent("[BlockShot] Uploading to BlockShot...");
             ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
         }
         String result = BlockShot.uploadImage(imageBytes);
         if (result == null) {
             if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                Component finished = new TextComponent("An error occurred uploading your content to BlockShot.");
+                Component finished = new TextComponent("[BlockShot] An error occurred uploading your content to BlockShot.");
                 ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
             }
         } else if (result.startsWith("http")) {
             Component link = (new TextComponent(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
-            Component finished = new TextComponent("Your content is now available on BlockShot! ").append(link);
+            Component finished = new TextComponent("[BlockShot] Your content is now available on BlockShot! ").append(link);
             ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.CHAT_UPLOAD_ID);
             Minecraft.getInstance().gui.getChat().addMessage(finished);
         }
