@@ -93,7 +93,7 @@ public class GifEncoder {
         CompletableFuture.runAsync(() -> {
             Component message = new TextComponent("You are now recording gameplay! ");
             if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.BLOCKSHOT_UPLOAD_ID);
+                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_UPLOAD_ID);
             }
             while(isRecording) {
                 try {
@@ -102,7 +102,7 @@ public class GifEncoder {
             }
             message = new TextComponent("Gameplay recording complete, encoding... ");
             if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.BLOCKSHOT_UPLOAD_ID);
+                ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_UPLOAD_ID);
             }
             while(addedFrames.get() > processedFrames.get()) {
                 try {
@@ -138,7 +138,7 @@ public class GifEncoder {
                 GifEncoder._frames.set(new ArrayList<Image>());
                 message = new TextComponent("Encoding complete... Uploading... ");
                 if(Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                    ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.BLOCKSHOT_UPLOAD_ID);
+                    ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_UPLOAD_ID);
                 }
                 try {
                     byte[] bytes = os.toByteArray();

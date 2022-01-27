@@ -18,24 +18,26 @@ public abstract class MixinGameRenderer {
     public void render(float f, long l, boolean bl, CallbackInfo ci) {
         if(GifEncoder.isRecording)
         {
-            int skipFrames = 6;
-            if(BlockShot.getFPS() > 20) {
-                skipFrames = (BlockShot.getFPS() / 10);
-            }
-            if(GifEncoder.frames > skipFrames || (GifEncoder.lastTimestamp != (System.currentTimeMillis()/1000))) {
-                GifEncoder.frames = 0;
-                if (GifEncoder.lastTimestamp != (System.currentTimeMillis()/1000)) {
-                    GifEncoder.lastTimestamp = (System.currentTimeMillis()/1000);
-                    GifEncoder.totalSeconds++;
+            if(BlockShot.isActive()) {
+                int skipFrames = 6;
+                if (BlockShot.getFPS() > 20) {
+                    skipFrames = (BlockShot.getFPS() / 10);
                 }
-                RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();
-                NativeImage nativeImage = new NativeImage(renderTarget.width, renderTarget.height, false);
-                RenderSystem.bindTexture(renderTarget.getColorTextureId());
-                nativeImage.downloadTexture(0, true);
-                GifEncoder.addFrameAndClose(nativeImage);
-                if(GifEncoder.totalSeconds > 30) GifEncoder.isRecording = false;
-            } else {
-                GifEncoder.frames++;
+                if (GifEncoder.frames > skipFrames || (GifEncoder.lastTimestamp != (System.currentTimeMillis() / 1000))) {
+                    GifEncoder.frames = 0;
+                    if (GifEncoder.lastTimestamp != (System.currentTimeMillis() / 1000)) {
+                        GifEncoder.lastTimestamp = (System.currentTimeMillis() / 1000);
+                        GifEncoder.totalSeconds++;
+                    }
+                    RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();
+                    NativeImage nativeImage = new NativeImage(renderTarget.width, renderTarget.height, false);
+                    RenderSystem.bindTexture(renderTarget.getColorTextureId());
+                    nativeImage.downloadTexture(0, true);
+                    GifEncoder.addFrameAndClose(nativeImage);
+                    if (GifEncoder.totalSeconds > 30) GifEncoder.isRecording = false;
+                } else {
+                    GifEncoder.frames++;
+                }
             }
         }
     }

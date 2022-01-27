@@ -16,23 +16,28 @@ public abstract class MixinScreen {
     @Inject(method = "handleComponentClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasShiftDown()Z"), cancellable = true)
     public void handleComponentClicked(Style _style, CallbackInfoReturnable<Boolean> cir)
     {
-        if (!Screen.hasShiftDown()) {
-            ClickEvent clickEvent = _style.getClickEvent();
-            if (clickEvent == null) return;
-            if (clickEvent instanceof BlockShotClickEvent) {
-                cir.cancel();
-                if (BlockShot.latest == null || BlockShot.latest.length == 0) {
+        if(BlockShot.isActive())
+        {
+            if (!Screen.hasShiftDown()) {
+                ClickEvent clickEvent = _style.getClickEvent();
+                if (clickEvent == null) return;
+                if (clickEvent instanceof BlockShotClickEvent) {
+                    cir.cancel();
+                    if (BlockShot.latest == null || BlockShot.latest.length == 0) {
+                        cir.setReturnValue(true);
+                        return;
+                    }
+                    Util.ioPool().execute(() ->
+                    {
+                        if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
+                            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.CHAT_UPLOAD_ID);
+                            byte[] bytes = BlockShot.latest;
+                            BlockShot.uploadAndAddToChat(bytes);
+                        }
+                        BlockShot.latest = null;
+                    });
                     cir.setReturnValue(true);
-                    return;
                 }
-                Util.ioPool().execute(() ->
-                {
-                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.BLOCKSHOT_UPLOAD_ID);
-                    byte[] bytes = BlockShot.latest;
-                    BlockShot.uploadAndAddToChat(bytes);
-                    BlockShot.latest = null;
-                });
-                cir.setReturnValue(true);
             }
         }
     }
