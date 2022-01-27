@@ -1,4 +1,4 @@
-package net.creeperhost.blockshot;
+package net.creeperhost.blockshot.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractSelectionList;

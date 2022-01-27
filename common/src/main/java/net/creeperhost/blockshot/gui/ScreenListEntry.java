@@ -1,4 +1,4 @@
-package net.creeperhost.blockshot;
+package net.creeperhost.blockshot.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;

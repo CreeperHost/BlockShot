@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.GifEncoder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,26 +16,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGameRenderer {
     @Inject(method = "render", at = @At(value = "TAIL"), cancellable = false)
     public void render(float f, long l, boolean bl, CallbackInfo ci) {
-        if(BlockShot.isRecording)
+        if(GifEncoder.isRecording)
         {
             int skipFrames = 6;
             if(BlockShot.getFPS() > 20) {
                 skipFrames = (BlockShot.getFPS() / 10);
             }
-            if(BlockShot.frames > skipFrames || (BlockShot.lastTimestamp != (System.currentTimeMillis()/1000))) {
-                BlockShot.frames = 0;
-                if (BlockShot.lastTimestamp != (System.currentTimeMillis()/1000)) {
-                    BlockShot.lastTimestamp = (System.currentTimeMillis()/1000);
-                    BlockShot.totalSeconds++;
+            if(GifEncoder.frames > skipFrames || (GifEncoder.lastTimestamp != (System.currentTimeMillis()/1000))) {
+                GifEncoder.frames = 0;
+                if (GifEncoder.lastTimestamp != (System.currentTimeMillis()/1000)) {
+                    GifEncoder.lastTimestamp = (System.currentTimeMillis()/1000);
+                    GifEncoder.totalSeconds++;
                 }
                 RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();
                 NativeImage nativeImage = new NativeImage(renderTarget.width, renderTarget.height, false);
                 RenderSystem.bindTexture(renderTarget.getColorTextureId());
                 nativeImage.downloadTexture(0, true);
-                BlockShot.addFrameAndClose(nativeImage);
-                if(BlockShot.totalSeconds > 30) BlockShot.isRecording = false;
+                GifEncoder.addFrameAndClose(nativeImage);
+                if(GifEncoder.totalSeconds > 30) GifEncoder.isRecording = false;
             } else {
-                BlockShot.frames++;
+                GifEncoder.frames++;
             }
         }
     }

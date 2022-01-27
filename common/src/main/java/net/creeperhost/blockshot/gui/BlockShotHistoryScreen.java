@@ -1,4 +1,4 @@
-package net.creeperhost.blockshot;
+package net.creeperhost.blockshot.gui;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.creeperhost.blockshot.WebUtils;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
@@ -25,8 +26,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static net.creeperhost.blockshot.BlockShot.loadingSpin;
 
 public class BlockShotHistoryScreen extends Screen {
 
@@ -92,7 +91,7 @@ public class BlockShotHistoryScreen extends Screen {
         }
         if(isLoading) {
             ticks++;
-            loadingSpin(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
+            LoadingSpinner.render(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
         }
         drawCenteredString(poseStack, font, this.getTitle(), width / 2, 18, 0xFFFFFF);
     }
