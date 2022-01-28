@@ -173,9 +173,6 @@ public class BlockShot
                             Minecraft.getMinecraft().displayGuiScreen(history);
                             break;
                     }
-                } else if(screen instanceof BlockShotHistoryScreen)
-                {
-                    ((BlockShotHistoryScreen)screen).handleButton(event);
                 }
             }
         }

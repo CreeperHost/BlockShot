@@ -10,16 +10,26 @@ import io.netty.handler.codec.base64.Base64;
 import net.creeperhost.blockshot.WebUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.GuiScreenEvent;
-import org.apache.commons.lang3.Validate;
+import net.minecraftforge.fml.client.GuiScrollingList;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -28,7 +38,6 @@ public class BlockShotHistoryScreen extends GuiScreen {
     private GuiButton deleteButton;
     private GuiButton viewButton;
     private GuiButton copyButton;
-    private GuiButton cancelButton;
     private BlockShotHistoryList list;
     public GuiScreen parent;
 
@@ -41,12 +50,13 @@ public class BlockShotHistoryScreen extends GuiScreen {
 
     @Override
     public void initGui() {
-        list = new BlockShotHistoryList(Minecraft.getMinecraft(), this.width, this.height, 56, this.height - 36, 36);
+        int pad = (this.width/3);
+        list = new BlockShotHistoryList(Minecraft.getMinecraft(), this, this.width-pad, this.height, 56, this.height - 36, pad/2, 36);
         this.loadRemote().thenRun(() -> isLoading = false);
         this.copyButton = (GuiButton) this.addButton(new GuiButton(8008135, this.width / 2 - (76 * 2), this.height - 28, 72, 20, "Copy URL"));
         this.deleteButton = (GuiButton) this.addButton(new GuiButton(8008136, this.width / 2 - 76, this.height - 28, 72, 20, "Delete"));
         this.viewButton = (GuiButton) this.addButton(new GuiButton(8008137,this.width / 2, this.height - 28, 72, 20, "View"));
-        this.cancelButton = (GuiButton) this.addButton(new GuiButton(8008138,this.width / 2 + 76, this.height - 28, 72, 20, "Cancel"));
+        this.addButton(new GuiButton(8008138,this.width / 2 + 76, this.height - 28, 72, 20, "Cancel"));
         this.copyButton.enabled = false;
         this.deleteButton.enabled = false;
         this.viewButton.enabled = false;
@@ -66,26 +76,56 @@ public class BlockShotHistoryScreen extends GuiScreen {
         }
         if (isLoading) {
             ticks++;
-            //LoadingSpinner.render(f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
+            LoadingSpinner.render(partialTicks, ticks, width, height-20, new ItemStack(Items.COOKED_BEEF));
         }
         super.drawScreen(mouseX,mouseY,partialTicks);
     }
     private long whenClick;
-    public void handleButton(GuiScreenEvent.ActionPerformedEvent event)
+    private ScreencapListItem lastSelected;
+    private void openWebLink(URI url)
     {
-        GuiButton button = event.getButton();
+        try
+        {
+            Class<?> oclass = Class.forName("java.awt.Desktop");
+            Object object = oclass.getMethod("getDesktop").invoke((Object)null);
+            oclass.getMethod("browse", URI.class).invoke(object, url);
+        }
+        catch (Throwable throwable)
+        {
+            throwable.printStackTrace();
+        }
+    }
+    @Override
+    protected void actionPerformed(GuiButton button)
+    {
         if(whenClick == (System.currentTimeMillis() / 1000)) return;
         whenClick = (System.currentTimeMillis() / 1000);
         switch(button.id)
         {
             case 8008135:
-                //TODO: Copy URL to clipboard
+                list.getCurrSelected().copyUrl();
                 break;
             case 8008136:
-                //TODO: Delete image via API
+                try {
+                    this.copyButton.enabled = false;
+                    this.deleteButton.enabled = false;
+                    this.viewButton.enabled = false;
+                    CompletableFuture.runAsync(() -> {
+                        isLoading = true;
+                        list.getCurrSelected().delete();
+                        caps.getAndUpdate((a) -> {
+                            a.clear();
+                            return a;
+                        });
+                        hasRequested = false;
+                        this.loadRemote().thenRun(() -> isLoading = false);
+                    }).thenRun(() -> {
+                    });
+                } catch (Exception ignored) {
+                }
                 break;
             case 8008137:
-                //TODO: Open url
+                list.getCurrSelected().openUrl(this);
                 break;
             case 8008138:
                 Minecraft.getMinecraft().displayGuiScreen(parent);
@@ -94,8 +134,6 @@ public class BlockShotHistoryScreen extends GuiScreen {
     }
 
     int ticks = 0;
-    BlockShotHistoryEntry lastSelected;
-
 
     AtomicReference<List<ScreencapListItem>> caps = new AtomicReference<>();
     private boolean hasRequested = false;
@@ -134,12 +172,6 @@ public class BlockShotHistoryScreen extends GuiScreen {
                     }
                 }
             }
-            list.children().clear();
-            List<ScreencapListItem> localCaps = new ArrayList<ScreencapListItem>(caps.get());
-            for (ScreencapListItem c : localCaps) {
-                BlockShotHistoryEntry entry = new BlockShotHistoryEntry(list, c.id, c.preview, c.created, c.isDeleting);
-                list.add(entry);
-            }
         });
     }
     class ScreencapListItem {
@@ -147,127 +179,136 @@ public class BlockShotHistoryScreen extends GuiScreen {
         String preview;
         long created;
         boolean isDeleting;
+        boolean selected;
+        DynamicTexture icon;
+        ResourceLocation resource;
+        public void delete() {
+            isDeleting = true;
+            caps.getAndUpdate((a) -> {
+                for (ScreencapListItem c : a) {
+                    if (c.id == this.id) {
+                        c.isDeleting = true;
+                        break;
+                    }
+                }
+                return a;
+            });
+            WebUtils.getWebResponse("https://blockshot.ch/delete/" + this.id);
+        }
+        public void openUrl(BlockShotHistoryScreen screen) {
+            URL url = null;
+            try {
+                url = new URL("https://blockshot.ch/" + this.id);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return;
+            }
+            if (url != null)
+            {
+                try {
+                    screen.openWebLink(url.toURI());
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+        public void copyUrl() {
+            GuiScreen.setClipboardString("https://blockshot.ch/" + this.id);
+        }
     }
-    class BlockShotHistoryList extends GuiListExtended {
-        List<BlockShotHistoryEntry> l = new ArrayList<BlockShotHistoryEntry>();
-        public BlockShotHistoryList(Minecraft mcIn, int widthIn, int heightIn, int topIn, int bottomIn, int slotHeightIn) {
-            super(mcIn, widthIn, heightIn, topIn, bottomIn, slotHeightIn);
+    class BlockShotHistoryList extends GuiScrollingList {
+        BlockShotHistoryScreen parent;
+        public BlockShotHistoryList(Minecraft client, BlockShotHistoryScreen parent, int width, int height, int top, int bottom, int left, int entryHeight) {
+            super(client, width, height, top, bottom, left, entryHeight);
+            this.parent = parent;
         }
 
         @Override
-        public BlockShotHistoryEntry getListEntry(int index) {
-            return l.get(index);
+        protected int getSize() {
+            return parent.caps.get().size();
         }
 
-        public List<BlockShotHistoryEntry> children()
-        {
-            return l;
+        @Override
+        protected void elementClicked(int index, boolean doubleClick) {
+            parent.caps.getAndUpdate((a) -> {
+                ScreencapListItem wanted = a.get(index);
+                for(ScreencapListItem i : a)
+                {
+                    if(i.id != wanted.id)
+                    {
+                        i.selected = false;
+                    }
+                }
+                wanted.selected = true;
+                return a;
+            });
         }
 
-        public boolean add(BlockShotHistoryEntry e)
-        {
-            l.add(e);
-            return true;
+        @Override
+        protected boolean isSelected(int index) {
+            return parent.caps.get().get(index).selected;
         }
 
-        public boolean remove(int index)
-        {
-            l.remove(index);
-            return true;
-        }
-        public boolean remove(BlockShotHistoryEntry e)
-        {
-            return l.remove(e);
+        @Override
+        protected void drawBackground() {
         }
 
-        public BlockShotHistoryEntry getCurrSelected()
+        @Override
+        protected void drawSlot(int slotIdx, int entryRight, int slotTop, int slotBuffer, Tessellator tess) {
+
+
+            drawIcon(parent.caps.get().get(slotIdx), this.left+5, slotTop);
+            Date date = parent.caps.get().get(slotIdx).created > 0 ? new java.util.Date(parent.caps.get().get(slotIdx).created * 1000L) : new java.util.Date();
+            SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+            drawString(Minecraft.getMinecraft().fontRenderer, sdf.format(date), this.left+42, slotTop,  0xFFFFFF);
+            drawString(Minecraft.getMinecraft().fontRenderer, "https://blockshot.ch/"+parent.caps.get().get(slotIdx).id, this.left+42, slotTop+10,  0xFFFFFF);
+        }
+
+        public ScreencapListItem getCurrSelected()
         {
-            for(BlockShotHistoryEntry i : l)
+            List<ScreencapListItem> l = new ArrayList<ScreencapListItem>(parent.caps.get());
+            for(ScreencapListItem i : l)
             {
-                if(i.selected) return i;
+                if(i.selected == true) return i;
             }
             return null;
         }
-        @Override
-        protected int getSize() {
-            return l.size();
-        }
-    }
-    class BlockShotHistoryEntry implements GuiListExtended.IGuiListEntry
-    {
-        public boolean selected = false;
-        String id;
-        String preview;
-        long created;
-        boolean isDeleting = false;
-        DynamicTexture icon;
-        ResourceLocation rl;
 
-        private BlockShotHistoryList parent;
-        public BlockShotHistoryEntry(BlockShotHistoryList parent, String id, String preview, long created, boolean isDeleting)
-        {
-            super();
-            this.parent = parent;
-            this.id = id;
-            this.isDeleting = isDeleting;
-            this.preview = preview;
-            this.created = created;
-        }
-        @Override
-        public void updatePosition(int slotIndex, int x, int y, float partialTicks) {
-
-        }
-
-        @Override
-        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks) {
-            //Minecraft.getMinecraft().ingameGUI.drawTexturedModalRect(x, y, loadPreview());
-        }
-        private ResourceLocation loadPreview() {
-            if(this.rl == null) {
-                ByteBuf bytebuf = Unpooled.copiedBuffer((CharSequence) this.preview, StandardCharsets.UTF_8);
-                ByteBuf bytebuf1 = null;
-                BufferedImage bufferedimage = null;
+        private void drawIcon(ScreencapListItem item, int slotX, int slotY) {
+            if(item.resource == null) {
                 try {
+                    ByteBuf bytebuf = Unpooled.copiedBuffer((CharSequence) item.preview, StandardCharsets.UTF_8);
+                    ByteBuf bytebuf1 = null;
+                    BufferedImage bufferedimage;
                     bytebuf1 = Base64.decode(bytebuf);
+
                     bufferedimage = TextureUtil.readBufferedImage(new ByteBufInputStream(bytebuf1));
-                    Validate.validState(bufferedimage.getWidth() == 64, "Must be 64 pixels wide");
-                    Validate.validState(bufferedimage.getHeight() == 64, "Must be 64 pixels high");
-                } catch (Throwable throwable) {
-                } finally {
+
                     bytebuf.release();
 
                     if (bytebuf1 != null) {
                         bytebuf1.release();
                     }
+                    item.icon = new DynamicTexture(bufferedimage.getWidth(), bufferedimage.getHeight());
+                    item.resource = new ResourceLocation("blockshot/"+item.id);
+                    Minecraft.getMinecraft().getTextureManager().loadTexture(item.resource, item.icon);
+                    bufferedimage.getRGB(0, 0, bufferedimage.getWidth(), bufferedimage.getHeight(), item.icon.getTextureData(), 0, bufferedimage.getWidth());
+                    item.icon.updateDynamicTexture();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                if (this.icon == null) {
-                    this.icon = new DynamicTexture(bufferedimage.getWidth(), bufferedimage.getHeight());
-                    this.rl = new ResourceLocation(this.id);
-                    Minecraft.getMinecraft().getTextureManager().loadTexture(rl, this.icon);
-                }
-
-                bufferedimage.getRGB(0, 0, bufferedimage.getWidth(), bufferedimage.getHeight(), this.icon.getTextureData(), 0, bufferedimage.getWidth());
-                this.icon.updateDynamicTexture();
-            } else {
-                return this.rl;
             }
-            return null;
-        }
-
-        @Override
-        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
-            return false;
-        }
-
-
-        @Override
-        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) {
-            for(BlockShotHistoryEntry n : parent.l) {
-                if(n != this) {
-                    n.selected = false;
-                }
-                selected = true;
+            if(item.resource == null)
+            {
+                item.resource = new ResourceLocation("textures/misc/unknown_server.png");
             }
+            GlStateManager.pushMatrix();
+            Minecraft.getMinecraft().getTextureManager().bindTexture(item.resource);
+            GlStateManager.enableBlend();
+            Gui.drawModalRectWithCustomSizedTexture(slotX, slotY, 0.0F, 0.0F, 32, 32, 32.0F, 32.0F);
+            GlStateManager.disableBlend();
+            GlStateManager.popMatrix();
         }
     }
 }
