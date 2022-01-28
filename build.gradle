@@ -7,7 +7,6 @@ buildscript {
         classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
     }
 }
-
 plugins {
     id "com.github.johnrengelman.shadow" version "4.0.4"
 }
@@ -35,6 +34,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
         }
     }
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 }
 configurations {
     shadow

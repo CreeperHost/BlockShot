@@ -1,19 +1,18 @@
 package net.creeperhost.blockshot;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.mojang.blaze3d.platform.NativeImage;
 import com.squareup.gifencoder.Color;
 import com.squareup.gifencoder.Image;
 import com.squareup.gifencoder.ImageOptions;
-import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,33 +33,34 @@ public class GifEncoder {
     public static long totalSeconds;
     private static AtomicReference<List<Image>> _frames = new AtomicReference<>();
 
-    public static void addFrameAndClose(NativeImage screenImage) {
-        //TODO: Figure out wtf is used in place of NativeImage
+    public static void addFrameAndClose(int width, int height, IntBuffer pixelBuffer) {
         CompletableFuture.runAsync(() -> {
             addedFrames.incrementAndGet();
             try {
-                int i = screenImage.getWidth();
-                int j = screenImage.getHeight();
-                int k = 0;
-                int l = 0;
-                screenImage.flipY();
+                int[] pixelValues = new int[width * height];
+                pixelBuffer.get(pixelValues);
+                TextureUtil.processPixelValues(pixelValues, width, height);
+                BufferedImage bufferedimage = new BufferedImage(width, height, 1);
+                bufferedimage.setRGB(0, 0, width, height, pixelValues, 0, width);
                 int newx = 856;
                 int newy = 482;
                 int scaleFactor = 2;
                 newx = newx - (((newx / 2) / 3) * scaleFactor);
                 newy = newy - (((newy / 2) / 3) * scaleFactor);
-                NativeImage nativeImage = new NativeImage(newx, newy, false);
-                screenImage.resizeSubRectTo(k, l, i, j, nativeImage);
-                screenImage.close();
-                int w = nativeImage.getWidth();
-                int h = nativeImage.getHeight();
+                BufferedImage screenImage = new BufferedImage(width, height, 1);
+                screenImage.setRGB(0, 0, width, height, pixelValues, 0, width);
+                //TODO: Investigate resizing to ensure we're not breaking aspect ratio...
+                java.awt.Image nativeImage = screenImage.getScaledInstance(newx, newy, java.awt.Image.SCALE_FAST);
+                BufferedImage finalFrame = new BufferedImage(newx, newy, 1);
+                finalFrame.getGraphics().drawImage(nativeImage, 0, 0, null);
+                int w = screenImage.getWidth();
+                int h = screenImage.getHeight();
                 Color[][] colours = new Color[h][w];
                 for (int y = 0; y < h; ++y) {
                     for (int x = 0; x < w; ++x) {
-                        colours[y][x] = fromRgbMc(nativeImage.getPixelRGBA(x, y));
+                        colours[y][x] = fromRgbMc(screenImage.getRGB(x, y));
                     }
                 }
-                nativeImage.close();
                 Image frame = Image.fromColors(colours);
                 GifEncoder._frames.getAndUpdate((a) -> {
                     a.add(frame);
@@ -68,8 +68,6 @@ public class GifEncoder {
                 });
             } catch (Throwable t) {
                 t.printStackTrace();
-            } finally {
-                screenImage.close();
             }
             processedFrames.incrementAndGet();
         }, rendering);
@@ -77,9 +75,9 @@ public class GifEncoder {
 
     //Minecraft's r and b channels work differently to the gif library...
     private static Color fromRgbMc(int rgb) {
-        int redComponent = rgb & 0xFF;
+        int redComponent = rgb >>> 16 & 0xFF;
         int greenComponent = rgb >>> 8 & 0xFF;
-        int blueComponent = rgb >>> 16 & 0xFF;
+        int blueComponent = rgb & 0xFF;
         return new Color(redComponent / 255.0, greenComponent / 255.0, blueComponent / 255.0);
     }
 
