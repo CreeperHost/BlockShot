@@ -207,14 +207,21 @@ public class BlockShot
             }
         }
     }
+    private int lastFPS;
+    private int thisFPS;
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event)
     {
         if (GifEncoder.isRecording) {
             if (BlockShot.isActive()) {
+                if(lastFPS == 0)
+                {
+                    lastFPS = BlockShot.getFPS();
+                }
+                thisFPS++;
                 int skipFrames = 12;
-                if (BlockShot.getFPS() > 20) {
-                    skipFrames = (BlockShot.getFPS() / 10);
+                if (lastFPS > 20) {
+                    skipFrames = (lastFPS / 10);
                 }
                 if (GifEncoder.frames > skipFrames || (GifEncoder.lastTimestamp != (System.currentTimeMillis() / 1000))) {
                     GifEncoder.frames = 0;
@@ -222,6 +229,8 @@ public class BlockShot
 
                         GifEncoder.lastTimestamp = (System.currentTimeMillis() / 1000);
                         GifEncoder.totalSeconds++;
+                        lastFPS = thisFPS;
+                        thisFPS = 0;
                     }
                     Framebuffer framebufferIn = Minecraft.getMinecraft().getFramebuffer();
                     IntBuffer pixelBuffer = null;
@@ -258,7 +267,7 @@ public class BlockShot
         return _active;
     }
     public static int getFPS() {
-        return Minecraft.getMinecraft().getDebugFPS();
+        return Minecraft.getDebugFPS();
     }
     public static void uploadAndAddToChat(byte[] imageBytes) {
         if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
