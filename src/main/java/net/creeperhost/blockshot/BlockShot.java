@@ -4,10 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.exceptions.AuthenticationException;
 import net.creeperhost.blockshot.gui.BlockShotClickEvent;
+import net.creeperhost.blockshot.gui.BlockShotHistoryScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiChat;
-import net.minecraft.client.gui.GuiNewChat;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.shader.Framebuffer;
@@ -39,6 +38,7 @@ import java.io.IOException;
 import java.nio.IntBuffer;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -136,6 +136,77 @@ public class BlockShot
                 }
                 event.setResultMessage(new TextComponentString(" "));
                 event.setCanceled(true);
+            }
+        }
+    }
+    private long whenClick = 0;
+    @SubscribeEvent
+    public void onGuiEvent(GuiScreenEvent.ActionPerformedEvent event)
+    {
+        if(event != null) {
+            GuiScreen screen = event.getGui();
+            if (screen != null) {
+                if (screen instanceof GuiOptions) {
+                    GuiButton button = event.getButton();
+                    if(whenClick == (System.currentTimeMillis() / 1000)) return;
+                    whenClick = (System.currentTimeMillis() / 1000);
+                    switch(button.id)
+                    {
+                        case 8008135:
+                            if (Config.INSTANCE.uploadMode == 2) {
+                                Config.INSTANCE.uploadMode = 0;
+                            } else if (Config.INSTANCE.uploadMode == 1) {
+                                Config.INSTANCE.uploadMode = 2;
+                            } else if (Config.INSTANCE.uploadMode == 0) {
+                                Config.INSTANCE.uploadMode = 1;
+                            }
+                            Config.saveConfigToFile(BlockShot.configLocation.toFile());
+                            Minecraft.getMinecraft().displayGuiScreen(screen);
+                            break;
+                        case 8008136:
+                            Config.INSTANCE.anonymous = Config.INSTANCE.anonymous ? false : true;
+                            Config.saveConfigToFile(BlockShot.configLocation.toFile());
+                            Minecraft.getMinecraft().displayGuiScreen(screen);
+                            break;
+                        case 8008137:
+                            GuiScreen history = new BlockShotHistoryScreen(screen);
+                            Minecraft.getMinecraft().displayGuiScreen(history);
+                            break;
+                    }
+                } else if(screen instanceof BlockShotHistoryScreen)
+                {
+                    ((BlockShotHistoryScreen)screen).handleButton(event);
+                }
+            }
+        }
+    }
+    @SubscribeEvent
+    public void onGuiInit(GuiScreenEvent.InitGuiEvent event)
+    {
+        if(event != null) {
+            GuiScreen screen = event.getGui();
+            if (screen != null) {
+                if (screen instanceof GuiOptions) {
+                    List<GuiButton> buttons = event.getButtonList();
+                    int i = (screen.width / 2 - 155) + 160;
+                    int k = (screen.height / 6 - 12) + 30;
+                    String value = "Auto";
+                    if (Config.INSTANCE.uploadMode == 0) value = "Off";
+                    if (Config.INSTANCE.uploadMode == 1) value = "Prompt";
+                    String name = "BlockShot Upload: " + value;
+                    buttons.add(new GuiButton(8008135, i, k, 150, 20, name));
+                    String value2 = "Anonymous";
+                    if (!Config.INSTANCE.anonymous) value2 = Minecraft.getMinecraft().getSession().getUsername();
+                    String name2 = "BlockShot Owner: " + value2;
+                    i -= 160;
+                    buttons.add(new GuiButton(8008136, i, k, 150, 20, name2));
+                    String name3 = "View BlockShot History";
+                    k += 120;
+                    GuiButton historyBtn = new GuiButton(8008137, i, k, 150, 20, name3);
+                    historyBtn.enabled = (!Config.INSTANCE.anonymous);
+                    buttons.add(historyBtn);
+                    event.setButtonList(buttons);
+                }
             }
         }
     }
