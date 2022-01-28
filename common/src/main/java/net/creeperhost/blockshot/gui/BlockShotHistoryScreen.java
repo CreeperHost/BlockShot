@@ -87,7 +87,9 @@ public class BlockShotHistoryScreen extends Screen {
     @Override
     public void render(PoseStack poseStack, int i, int j, float f) {
         this.renderBackground(poseStack);
+        list.render(poseStack, i, j, f);
         super.render(poseStack, i, j, f);
+
         if (list.getCurrSelected() != null && list.getCurrSelected() != lastSelected) {
             this.copyButton.active = !list.getCurrSelected().isDeleting;
             this.deleteButton.active = !list.getCurrSelected().isDeleting;
@@ -248,7 +250,7 @@ public class BlockShotHistoryScreen extends Screen {
 
         protected void drawIcon(PoseStack poseStack, int i, int j, ResourceLocation resourceLocation) {
             if (resourceLocation == null) resourceLocation = new ResourceLocation("textures/misc/unknown_server.png");
-            //RenderSystem.setShaderTexture(0, resourceLocation);
+            Minecraft.getInstance().getTextureManager().bind(resourceLocation);
             RenderSystem.enableBlend();
             GuiComponent.blit(poseStack, i, j, 0.0F, 0.0F, 32, 32, 32, 32);
             RenderSystem.disableBlend();

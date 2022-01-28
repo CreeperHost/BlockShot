@@ -3,10 +3,9 @@ package net.creeperhost.blockshot;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.exceptions.AuthenticationException;
-import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.NativeImage;
 import me.shedaniel.architectury.event.events.GuiEvent;
 import me.shedaniel.architectury.event.events.client.ClientRawInputEvent;
+import me.shedaniel.architectury.hooks.ScreenHooks;
 import me.shedaniel.architectury.platform.Platform;
 import me.shedaniel.architectury.utils.Env;
 import net.creeperhost.blockshot.gui.BlockShotHistoryScreen;
@@ -16,9 +15,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.OptionsScreen;
-import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.controls.ControlsScreen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -61,8 +58,7 @@ public class BlockShot {
                     if (Config.INSTANCE.uploadMode == 0) value = "Off";
                     if (Config.INSTANCE.uploadMode == 1) value = "Prompt";
                     String name = "BlockShot Upload: " + value;
-
-                    access.add(new Button(i, k, 150, 20, new TextComponent(name), button ->
+                    ScreenHooks.addButton(screen, new Button(i, k, 150, 20, new TextComponent(name), button ->
                     {
                         if (Config.INSTANCE.uploadMode == 2) {
                             Config.INSTANCE.uploadMode = 0;
@@ -78,7 +74,7 @@ public class BlockShot {
                     if (!Config.INSTANCE.anonymous) value2 = Minecraft.getInstance().getUser().getName();
                     String name2 = "BlockShot Owner: " + value2;
                     i -= 160;
-                    access.add(new Button(i, k, 150, 20, new TextComponent(name2), button ->
+                    ScreenHooks.addButton(screen, new Button(i, k, 150, 20, new TextComponent(name2), button ->
                     {
                         Config.INSTANCE.anonymous = Config.INSTANCE.anonymous ? false : true;
                         Config.saveConfigToFile(BlockShot.configLocation.toFile());
@@ -91,7 +87,7 @@ public class BlockShot {
                         Minecraft.getInstance().setScreen(new BlockShotHistoryScreen(screen));
                     });
                     historyBtn.active = (!Config.INSTANCE.anonymous);
-                    access.add(historyBtn);
+                    ScreenHooks.addButton(screen, historyBtn);
                 }
             });
         }
