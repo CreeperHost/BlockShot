@@ -258,7 +258,7 @@ public class BlockShot
         return _active;
     }
     public static int getFPS() {
-        return Minecraft.getMinecraft().debugFPS;
+        return Minecraft.getMinecraft().getDebugFPS();
     }
     public static void uploadAndAddToChat(byte[] imageBytes) {
         if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {

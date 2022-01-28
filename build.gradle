@@ -16,7 +16,7 @@ apply plugin: 'maven-publish'
 
 version = '1.2.4'
 group = 'net.creeperhost.blockshot'
-archivesBaseName = 'blockshot'
+archivesBaseName = "blockshot-forge-1.12.2"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
@@ -48,6 +48,7 @@ dependencies {
 
 }
 jar {
+    classifier 'base'
     manifest {
         attributes([
             "Specification-Title": "blockshot",
@@ -60,25 +61,41 @@ jar {
         ])
     }
 }
-
 shadowJar {
     configurations = [project.configurations.shadow]
-    // Don't shadow netty, we already have it.
     dependencies {
-        exclude(dependency("io.netty::"))
+        include(dependency('com.squareup:gifencoder:0.10.1'))
     }
     relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     classifier ''
 }
 
-// Example configuration to allow publishing using the maven-publish task
-// This is the preferred method to reobfuscate your jar file
-jar.finalizedBy('reobf')
-// However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing
-//publish.dependsOn('reobfJar')
+
 
 reobf {
     shadowJar {} // Reobfuscate the shadowed JAR
+}
+
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property 'version', project.version
+
+    // replace stuff in mods.toml, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'META-INF/mcmod.info'
+
+        // replace version and mcversion
+        expand 'version':project.version
+    }
+
+    // copy everything else except the mods.toml
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'META-INF/mcmod.info'
+    }
+}
+
+artifacts {
+    archives shadowJar
 }
 
 publishing {
