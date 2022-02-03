@@ -14,7 +14,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.2.4'
+version = '1.2.5'
 group = 'net.creeperhost.blockshot'
 archivesBaseName = "blockshot-forge-1.12.2"
 
@@ -43,9 +43,6 @@ configurations {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2859'
 
-    implementation 'com.squareup:gifencoder:0.10.1'
-    shadow 'com.squareup:gifencoder:0.10.1'
-
 }
 jar {
     classifier 'base'
@@ -63,14 +60,8 @@ jar {
 }
 shadowJar {
     configurations = [project.configurations.shadow]
-    dependencies {
-        include(dependency('com.squareup:gifencoder:0.10.1'))
-    }
-    relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     classifier ''
 }
-
-
 
 reobf {
     shadowJar {} // Reobfuscate the shadowed JAR

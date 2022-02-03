@@ -1,7 +1,6 @@
 package net.creeperhost.blockshot;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.squareup.gifencoder.Color;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureUtil;
