@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
+import org.lwjgl.MemoryUtil;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -49,6 +50,8 @@ public class GifEncoder {
                 newy = newy - (((newy / 2) / 3) * scaleFactor);
                 BufferedImage screenImage = new BufferedImage(width, height, 1);
                 screenImage.setRGB(0, 0, width, height, pixelValues, 0, width);
+                bufferedimage.getGraphics().dispose();
+                bufferedimage.flush();
                 //TODO: Investigate resizing to ensure we're not breaking aspect ratio...
                 java.awt.Image nativeImage = screenImage.getScaledInstance(newx, newy, java.awt.Image.SCALE_FAST);
                 BufferedImage finalFrame = new BufferedImage(newx, newy, 1);
@@ -61,6 +64,11 @@ public class GifEncoder {
                         colours[y][x] = fromRgbMc(screenImage.getRGB(x, y));
                     }
                 }
+                nativeImage.flush();
+                finalFrame.getGraphics().dispose();
+                finalFrame.flush();
+                screenImage.getGraphics().dispose();
+                screenImage.flush();
                 Image frame = Image.fromColors(colours);
                 GifEncoder._frames.getAndUpdate((a) -> {
                     a.add(frame);
@@ -165,6 +173,7 @@ public class GifEncoder {
                 try {
                     byte[] bytes = os.toByteArray();
                     BlockShot.uploadAndAddToChat(bytes);
+                    os.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
