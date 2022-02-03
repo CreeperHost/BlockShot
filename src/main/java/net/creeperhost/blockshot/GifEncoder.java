@@ -10,11 +10,15 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import org.lwjgl.MemoryUtil;
 
+import javax.imageio.stream.FileImageOutputStream;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -32,7 +36,7 @@ public class GifEncoder {
     public static long lastTimestamp;
     public static long frames;
     public static long totalSeconds;
-    private static AtomicReference<List<Image>> _frames = new AtomicReference<>();
+    private static AtomicReference<List<BufferedImage>> _frames = new AtomicReference<>();
 
     public static void addFrameAndClose(int width, int height, IntBuffer pixelBuffer) {
         CompletableFuture.runAsync(() -> {
@@ -56,22 +60,22 @@ public class GifEncoder {
                 java.awt.Image nativeImage = screenImage.getScaledInstance(newx, newy, java.awt.Image.SCALE_FAST);
                 BufferedImage finalFrame = new BufferedImage(newx, newy, 1);
                 finalFrame.getGraphics().drawImage(nativeImage, 0, 0, null);
-                int w = screenImage.getWidth();
-                int h = screenImage.getHeight();
-                Color[][] colours = new Color[h][w];
-                for (int y = 0; y < h; ++y) {
-                    for (int x = 0; x < w; ++x) {
-                        colours[y][x] = fromRgbMc(screenImage.getRGB(x, y));
-                    }
-                }
+//                int w = screenImage.getWidth();
+//                int h = screenImage.getHeight();
+//                Color[][] colours = new Color[h][w];
+//                for (int y = 0; y < h; ++y) {
+//                    for (int x = 0; x < w; ++x) {
+//                        colours[y][x] = fromRgbMc(screenImage.getRGB(x, y));
+//                    }
+//                }
                 nativeImage.flush();
                 finalFrame.getGraphics().dispose();
                 finalFrame.flush();
                 screenImage.getGraphics().dispose();
                 screenImage.flush();
-                Image frame = Image.fromColors(colours);
+//                Image frame = Image.fromColors(colours);
                 GifEncoder._frames.getAndUpdate((a) -> {
-                    a.add(frame);
+                    a.add(finalFrame);
                     return a;
                 });
             } catch (Throwable t) {
@@ -91,7 +95,7 @@ public class GifEncoder {
 
     public static void begin() {
         if (_frames == null || _frames.get() == null) {
-            _frames.set(new ArrayList<Image>());
+            _frames.set(new ArrayList<BufferedImage>());
         }
         if (isRecording == true) return;
         lastTimestamp = 0;
@@ -123,25 +127,31 @@ public class GifEncoder {
                 } catch (InterruptedException e) {
                 }
             }
-            com.squareup.gifencoder.GifEncoder encoder = null;
-            ImageOptions imageOptions = new ImageOptions();
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
+//            com.squareup.gifencoder.GifEncoder encoder = null;
+//            ImageOptions imageOptions = new ImageOptions();
+//            ByteArrayOutputStream os = new ByteArrayOutputStream();
             if (GifEncoder._frames.get() != null) {
-                List<Image> frames = GifEncoder._frames.get();
-                Image firstFrame = frames.get(0);
+                List<BufferedImage> frames = GifEncoder._frames.get();
+                BufferedImage firstFrame = frames.get(0);
+                GifSequenceWriter writer = null;
+                ImageOutputStream outputStream = null;
+                int duration = (int) (GifEncoder.totalSeconds / frames.size());
+
                 message = new TextComponentString("[BlockShot] Preparation complete, encoding frames... ");
                 if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
                     Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, BlockShot.CHAT_ENCODING_ID);
                 }
                 try {
-                    encoder = new com.squareup.gifencoder.GifEncoder(os, firstFrame.getWidth(), firstFrame.getHeight(), 0);
+                    outputStream = new FileImageOutputStream(new File(Minecraft.getMinecraft().mcDataDir + File.separator + "screenshots" + File.separator + "test.gif"));
+                    writer = new GifSequenceWriter(outputStream, firstFrame.getType(), duration, true);
+                    writer.writeToSequence(firstFrame);
+//                    encoder = new com.squareup.gifencoder.GifEncoder(os, firstFrame.getWidth(), firstFrame.getHeight(), 0);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                int duration = (int) (GifEncoder.totalSeconds / frames.size());
                 int i = 0;
                 int f = frames.size();
-                for (Image frame : frames) {
+                for (BufferedImage frame : frames) {
                     try {
                         i++;
                         String dots = "";
@@ -152,28 +162,32 @@ public class GifEncoder {
                         if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
                             Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, BlockShot.CHAT_ENCODING_ID);
                         }
-                        imageOptions.setDelay(duration, TimeUnit.MILLISECONDS);
-                        encoder.addImage(frame, imageOptions);
+//                        imageOptions.setDelay(duration, TimeUnit.MILLISECONDS);
+//                        encoder.addImage(frame, imageOptions);
+                        writer.writeToSequence(frame);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
                 try {
-                    encoder.finishEncoding();
+                    writer.close();
+                    outputStream.close();
+//                    encoder.finishEncoding();
                     frames.clear();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                GifEncoder._frames.set(new ArrayList<Image>());
+                GifEncoder._frames.set(new ArrayList<BufferedImage>());
                 message = new TextComponentString("[BlockShot] Encoding complete... Starting upload...");
                 if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
                     Minecraft.getMinecraft().ingameGUI.getChatGUI().deleteChatLine(BlockShot.CHAT_ENCODING_ID);
                     Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, BlockShot.CHAT_UPLOAD_ID);
                 }
                 try {
-                    byte[] bytes = os.toByteArray();
-                    BlockShot.uploadAndAddToChat(bytes);
-                    os.close();
+//                    TODO
+//                    byte[] bytes = outputStream.toByteArray();
+//                    BlockShot.uploadAndAddToChat(bytes);
+//                    os.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
