@@ -2,28 +2,26 @@ package net.creeperhost.blockshot;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.squareup.gifencoder.Color;
-import com.squareup.gifencoder.Image;
-import com.squareup.gifencoder.ImageOptions;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
-import org.lwjgl.MemoryUtil;
 
-import javax.imageio.stream.FileImageOutputStream;
+import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
+
 import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -47,52 +45,42 @@ public class GifEncoder {
                 TextureUtil.processPixelValues(pixelValues, width, height);
                 BufferedImage bufferedimage = new BufferedImage(width, height, 1);
                 bufferedimage.setRGB(0, 0, width, height, pixelValues, 0, width);
-                int newx = 856;
-                int newy = 482;
+                int new_width = 856;
+                int new_height = 482;
                 int scaleFactor = 2;
-                newx = newx - (((newx / 2) / 3) * scaleFactor);
-                newy = newy - (((newy / 2) / 3) * scaleFactor);
+                new_width = new_width - (((new_width / 2) / 3) * scaleFactor);
+                new_height = new_height - (((new_height / 2) / 3) * scaleFactor);
+
+                if(width > height) {
+                    double ratio = (double)height / width;
+                    new_height = (int) Math.round(new_width * ratio);
+                } else {
+                    double ratio = (double)width / height;
+                    new_width = (int) Math.round(new_height * ratio);
+                }
+
                 BufferedImage screenImage = new BufferedImage(width, height, 1);
                 screenImage.setRGB(0, 0, width, height, pixelValues, 0, width);
                 bufferedimage.getGraphics().dispose();
                 bufferedimage.flush();
-                //TODO: Investigate resizing to ensure we're not breaking aspect ratio...
-                java.awt.Image nativeImage = screenImage.getScaledInstance(newx, newy, java.awt.Image.SCALE_FAST);
-                BufferedImage finalFrame = new BufferedImage(newx, newy, 1);
+                java.awt.Image nativeImage = screenImage.getScaledInstance(new_width, new_height, java.awt.Image.SCALE_FAST);
+                BufferedImage finalFrame = new BufferedImage(new_width, new_height, 1);
                 finalFrame.getGraphics().drawImage(nativeImage, 0, 0, null);
-//                int w = screenImage.getWidth();
-//                int h = screenImage.getHeight();
-//                Color[][] colours = new Color[h][w];
-//                for (int y = 0; y < h; ++y) {
-//                    for (int x = 0; x < w; ++x) {
-//                        colours[y][x] = fromRgbMc(screenImage.getRGB(x, y));
-//                    }
-//                }
                 nativeImage.flush();
-                finalFrame.getGraphics().dispose();
-                finalFrame.flush();
-                screenImage.getGraphics().dispose();
-                screenImage.flush();
-//                Image frame = Image.fromColors(colours);
                 GifEncoder._frames.getAndUpdate((a) -> {
                     a.add(finalFrame);
                     return a;
                 });
+                finalFrame.getGraphics().dispose();
+                finalFrame.flush();
+                screenImage.getGraphics().dispose();
+                screenImage.flush();
             } catch (Throwable t) {
                 t.printStackTrace();
             }
             processedFrames.incrementAndGet();
         }, rendering);
     }
-
-    //Minecraft's r and b channels work differently to the gif library...
-    private static Color fromRgbMc(int rgb) {
-        int redComponent = rgb >>> 16 & 0xFF;
-        int greenComponent = rgb >>> 8 & 0xFF;
-        int blueComponent = rgb & 0xFF;
-        return new Color(redComponent / 255.0, greenComponent / 255.0, blueComponent / 255.0);
-    }
-
     public static void begin() {
         if (_frames == null || _frames.get() == null) {
             _frames.set(new ArrayList<BufferedImage>());
@@ -127,14 +115,12 @@ public class GifEncoder {
                 } catch (InterruptedException e) {
                 }
             }
-//            com.squareup.gifencoder.GifEncoder encoder = null;
-//            ImageOptions imageOptions = new ImageOptions();
-//            ByteArrayOutputStream os = new ByteArrayOutputStream();
             if (GifEncoder._frames.get() != null) {
                 List<BufferedImage> frames = GifEncoder._frames.get();
                 BufferedImage firstFrame = frames.get(0);
                 GifSequenceWriter writer = null;
-                ImageOutputStream outputStream = null;
+                ByteArrayOutputStream outputStream = null;
+                ImageOutputStream imageStream = null;
                 int duration = (int) (GifEncoder.totalSeconds / frames.size());
 
                 message = new TextComponentString("[BlockShot] Preparation complete, encoding frames... ");
@@ -142,10 +128,10 @@ public class GifEncoder {
                     Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, BlockShot.CHAT_ENCODING_ID);
                 }
                 try {
-                    outputStream = new FileImageOutputStream(new File(Minecraft.getMinecraft().mcDataDir + File.separator + "screenshots" + File.separator + "test.gif"));
-                    writer = new GifSequenceWriter(outputStream, firstFrame.getType(), duration, true);
+                    outputStream = new ByteArrayOutputStream();
+                    imageStream = ImageIO.createImageOutputStream(outputStream);
+                    writer = new GifSequenceWriter(imageStream, firstFrame.getType(), duration, true);
                     writer.writeToSequence(firstFrame);
-//                    encoder = new com.squareup.gifencoder.GifEncoder(os, firstFrame.getWidth(), firstFrame.getHeight(), 0);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -162,8 +148,6 @@ public class GifEncoder {
                         if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
                             Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, BlockShot.CHAT_ENCODING_ID);
                         }
-//                        imageOptions.setDelay(duration, TimeUnit.MILLISECONDS);
-//                        encoder.addImage(frame, imageOptions);
                         writer.writeToSequence(frame);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -171,8 +155,7 @@ public class GifEncoder {
                 }
                 try {
                     writer.close();
-                    outputStream.close();
-//                    encoder.finishEncoding();
+                    imageStream.close();
                     frames.clear();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -184,10 +167,10 @@ public class GifEncoder {
                     Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, BlockShot.CHAT_UPLOAD_ID);
                 }
                 try {
-//                    TODO
-//                    byte[] bytes = outputStream.toByteArray();
-//                    BlockShot.uploadAndAddToChat(bytes);
-//                    os.close();
+                    byte[] bytes = outputStream.toByteArray();
+                    outputStream.close();
+                    BlockShot.uploadAndAddToChat(bytes);
+                    outputStream.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

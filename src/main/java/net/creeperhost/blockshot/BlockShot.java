@@ -260,6 +260,7 @@ public class BlockShot
                     GifEncoder.frames++;
                 }
             }
+            if(GifEncoder.totalSeconds > 30) GifEncoder.isRecording = false;
         }
 
     }

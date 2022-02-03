@@ -6,6 +6,7 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.RenderedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class GifSequenceWriter
@@ -41,7 +42,7 @@ public class GifSequenceWriter
         graphicsControlExtensionNode.setAttribute("transparentColorIndex", "0");
 
         IIOMetadataNode commentsNode = getNode(root, "CommentExtensions");
-        commentsNode.setAttribute("CommentExtension", "Created by: https://memorynotfound.com");
+        commentsNode.setAttribute("CommentExtension", "Recorded using BlockShot: https://blockshot.ch");
 
         IIOMetadataNode appExtensionsNode = getNode(root, "ApplicationExtensions");
         IIOMetadataNode child = new IIOMetadataNode("ApplicationExtension");
