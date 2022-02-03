@@ -4,11 +4,11 @@
   "mixins": [
   ],
   "client": [
-    "MixinScreenshot",
+    "MixinChatComponent",
     "MixinGameRenderer",
-    "MixinScreen",
     "MixinMinecraft",
-    "MixinChatComponent"
+    "MixinScreen",
+    "MixinScreenshot"
   ],
   "server": [
   ],

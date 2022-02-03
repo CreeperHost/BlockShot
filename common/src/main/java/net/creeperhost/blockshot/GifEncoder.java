@@ -2,9 +2,6 @@ package net.creeperhost.blockshot;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.blaze3d.platform.NativeImage;
-import com.squareup.gifencoder.Color;
-import com.squareup.gifencoder.Image;
-import com.squareup.gifencoder.ImageOptions;
 import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -22,7 +19,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -113,7 +109,6 @@ public class GifEncoder {
                 } catch (InterruptedException e) {
                 }
             }
-            ImageOptions imageOptions = new ImageOptions();
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             if (GifEncoder._frames.get() != null) {
                 List<BufferedImage> frames = GifEncoder._frames.get();
