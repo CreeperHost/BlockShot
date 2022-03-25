@@ -14,9 +14,11 @@ import net.creeperhost.blockshot.mixin.MixinMinecraft;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.controls.ControlsScreen;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -90,6 +92,19 @@ public class BlockShot {
 
                     historyBtn.active = (!Config.INSTANCE.anonymous);
                     access.addRenderableWidget(historyBtn);
+
+                    //Move the "done button down as its currently under out buttons"
+                    for (Widget renderable : access.getRenderables())
+                    {
+                        if(renderable instanceof Button button)
+                        {
+                            if(button.getMessage().equals(CommonComponents.GUI_DONE))
+                            {
+                                button.y += 24;
+                                break;
+                            }
+                        }
+                    }
                 }
             });
         }
