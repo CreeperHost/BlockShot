@@ -1,7 +1,7 @@
 modLoader = "javafml"
 loaderVersion = "[40,)"
 #issueTrackerURL = ""
-license = "Insert License Here"
+license = "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md"
 
 [[mods]]
 modId = "blockshot"
@@ -31,5 +31,12 @@ side = "BOTH"
 modId = "architectury"
 mandatory = true
 versionRange = "[4.1.32,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.blockshot]]
+modId = "polylib"
+mandatory = true
+versionRange = "[1801.0,)"
 ordering = "AFTER"
 side = "BOTH"

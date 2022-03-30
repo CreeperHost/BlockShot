@@ -11,8 +11,8 @@
     "homepage": "https://fabricmc.net/",
     "sources": "https://github.com/FabricMC/fabric-example-mod"
   },
-  "license": "Insert License Here",
-  "icon": "assets/examplemod/icon.png",
+  "license": "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md",
+  "icon": "",
   "environment": "*",
   "entrypoints": {
     "main": [

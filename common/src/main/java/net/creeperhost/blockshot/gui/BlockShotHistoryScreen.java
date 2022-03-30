@@ -7,6 +7,9 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.creeperhost.blockshot.WebUtils;
+import net.creeperhost.polylib.client.screen.widget.LoadingSpinner;
+import net.creeperhost.polylib.client.screen.widget.ScreenList;
+import net.creeperhost.polylib.client.screen.widget.ScreenListEntry;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
@@ -30,7 +33,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class BlockShotHistoryScreen extends Screen {
-
     private Button deleteButton;
     private Button viewButton;
     private Button copyButton;
@@ -156,7 +158,8 @@ public class BlockShotHistoryScreen extends Screen {
         boolean isDeleting;
     }
 
-    class BlockShotHistoryEntry extends ScreenListEntry {
+    public class BlockShotHistoryEntry extends ScreenListEntry
+    {
         String id;
         String preview;
         long created;

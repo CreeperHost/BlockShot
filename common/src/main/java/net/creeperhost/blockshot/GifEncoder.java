@@ -3,6 +3,7 @@ package net.creeperhost.blockshot;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.creeperhost.blockshot.mixin.MixinChatComponent;
+import net.creeperhost.polylib.client.gif.GifSequenceWriter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
