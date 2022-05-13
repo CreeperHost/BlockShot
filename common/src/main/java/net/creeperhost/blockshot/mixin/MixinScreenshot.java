@@ -57,6 +57,7 @@ public abstract class MixinScreenshot {
                         BlockShot.uploadAndAddToChat(BlockShot.latest);
                         BlockShot.latest = null;
                     });
+                    ci.cancel();
                 } else {
                     if (BlockShot.latest != null && BlockShot.latest.length > 0) {
                         TextComponent confirmMessage = new TextComponent("[BlockShot] Click here to upload this screenshot to BlockShot");
@@ -66,7 +67,6 @@ public abstract class MixinScreenshot {
                         }
                     }
                 }
-                ci.cancel();
             }
         }
     }
