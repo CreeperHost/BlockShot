@@ -17,6 +17,7 @@ public abstract class MixinScreen {
     @Inject(method = "handleComponentClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasShiftDown()Z"), cancellable = true)
     public void handleComponentClicked(Style _style, CallbackInfoReturnable<Boolean> cir) {
         if (BlockShot.isActive()) {
+            if(_style == null) return;
             if (!Screen.hasShiftDown()) {
                 ClickEvent clickEvent = _style.getClickEvent();
                 if (clickEvent == null) return;
