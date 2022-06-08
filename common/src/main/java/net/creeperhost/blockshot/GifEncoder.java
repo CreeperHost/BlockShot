@@ -6,7 +6,6 @@ import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.creeperhost.polylib.client.gif.GifSequenceWriter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageOutputStream;
@@ -86,7 +85,7 @@ public class GifEncoder {
         totalSeconds = 0;
         isRecording = true;
         CompletableFuture.runAsync(() -> {
-            Component message = new TextComponent("[BlockShot] You are now recording gameplay! ");
+            Component message = Component.literal("[BlockShot] You are now recording gameplay! ");
             if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                 ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
             }
@@ -96,13 +95,13 @@ public class GifEncoder {
                 } catch (InterruptedException e) {
                 }
             }
-            message = new TextComponent("[BlockShot] Gameplay recording complete, preparing... ");
+            message = Component.literal("[BlockShot] Gameplay recording complete, preparing... ");
             if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                 ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
             }
             while (addedFrames.get() > processedFrames.get()) {
                 try {
-                    message = new TextComponent("[BlockShot] Preparing frame " + processedFrames + " of " + addedFrames.get());
+                    message = Component.literal("[BlockShot] Preparing frame " + processedFrames + " of " + addedFrames.get());
                     if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                         ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
                     }
@@ -119,7 +118,7 @@ public class GifEncoder {
                 ImageOutputStream imageStream = null;
                 int duration = (int) (GifEncoder.totalSeconds / frames.size());
 
-                message = new TextComponent("[BlockShot] Preparation complete, encoding frames... ");
+                message = Component.literal("[BlockShot] Preparation complete, encoding frames... ");
                 if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                     ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
                 }
@@ -140,7 +139,7 @@ public class GifEncoder {
                         for (int z = 0; z <= (i % 3); z++) {
                             dots += ".";
                         }
-                        message = new TextComponent("[BlockShot] Encoding frame " + i + " of " + f + dots);
+                        message = Component.literal("[BlockShot] Encoding frame " + i + " of " + f + dots);
                         if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                             ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
                         }
@@ -157,7 +156,7 @@ public class GifEncoder {
                     e.printStackTrace();
                 }
                 GifEncoder._frames.set(new ArrayList<BufferedImage>());
-                message = new TextComponent("[BlockShot] Encoding complete... Starting upload...");
+                message = Component.literal("[BlockShot] Encoding complete... Starting upload...");
                 if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                     ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.CHAT_ENCODING_ID);
                     ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_UPLOAD_ID);

@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[40,)"
+loaderVersion = "[41,)"
 #issueTrackerURL = ""
 license = "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md"
 
@@ -16,27 +16,27 @@ Upload your screenshots for easy sharing
 [[dependencies.blockshot]]
 modId = "forge"
 mandatory = true
-versionRange = "[40,)"
+versionRange = "[41,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.blockshot]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.18.2,)"
+versionRange = "[1.19,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.blockshot]]
 modId = "architectury"
 mandatory = true
-versionRange = "[4.1.32,)"
+versionRange = "[5.5.16,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.blockshot]]
 modId = "polylib"
 mandatory = true
-versionRange = "[1801.0,)"
+versionRange = "[1900.0,)"
 ordering = "AFTER"
 side = "BOTH"

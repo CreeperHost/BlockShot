@@ -17,8 +17,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -40,7 +39,7 @@ public class BlockShotHistoryScreen extends Screen {
     public Screen parent;
 
     public BlockShotHistoryScreen(Screen parent) {
-        super(new TextComponent("BlockShot Upload History"));
+        super(Component.literal("BlockShot Upload History"));
         this.parent = parent;
         if (caps.get() == null) caps.getAndSet(new ArrayList<ScreencapListItem>());
     }
@@ -52,10 +51,10 @@ public class BlockShotHistoryScreen extends Screen {
         list = new ScreenList(this, this.minecraft, this.width, this.height, 56, this.height - 36, 36);
         this.loadRemote().thenRun(() -> isLoading = false);
         this.addRenderableWidget(list);
-        this.copyButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - (76 * 2), this.height - 28, 72, 20, new TranslatableComponent("Copy URL"), (arg) -> {
+        this.copyButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - (76 * 2), this.height - 28, 72, 20, Component.translatable("Copy URL"), (arg) -> {
             list.getCurrSelected().copyUrl();
         }));
-        this.deleteButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - 76, this.height - 28, 72, 20, new TranslatableComponent("selectWorld.delete"), (arg) -> {
+        this.deleteButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - 76, this.height - 28, 72, 20, Component.translatable("selectWorld.delete"), (arg) -> {
             try {
                 this.copyButton.active = false;
                 this.deleteButton.active = false;
@@ -74,7 +73,7 @@ public class BlockShotHistoryScreen extends Screen {
             } catch (Exception ignored) {
             }
         }));
-        this.viewButton = (Button) this.addRenderableWidget(new Button(this.width / 2, this.height - 28, 72, 20, new TextComponent("View"), (arg) -> {
+        this.viewButton = (Button) this.addRenderableWidget(new Button(this.width / 2, this.height - 28, 72, 20, Component.literal("View"), (arg) -> {
             list.getCurrSelected().openUrl();
         }));
         this.addRenderableWidget(new Button(this.width / 2 + 76, this.height - 28, 72, 20, CommonComponents.GUI_CANCEL, (arg) -> {

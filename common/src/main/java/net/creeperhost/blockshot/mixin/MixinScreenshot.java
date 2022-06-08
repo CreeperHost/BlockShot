@@ -12,7 +12,6 @@ import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -60,8 +59,7 @@ public abstract class MixinScreenshot {
                     ci.cancel();
                 } else {
                     if (BlockShot.latest != null && BlockShot.latest.length > 0) {
-                        TextComponent confirmMessage = new TextComponent("[BlockShot] Click here to upload this screenshot to BlockShot");
-                        confirmMessage.setStyle(confirmMessage.getStyle().withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
+                        Component confirmMessage = Component.literal("[BlockShot] Click here to upload this screenshot to BlockShot").withStyle(style -> style.withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
                         if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
                             ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(confirmMessage, BlockShot.CHAT_UPLOAD_ID);
                         }

@@ -20,7 +20,6 @@ import net.minecraft.client.gui.screens.controls.ControlsScreen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,7 +59,7 @@ public class BlockShot {
                     if (Config.INSTANCE.uploadMode == 1) value = "Prompt";
                     String name = "BlockShot Upload: " + value;
 
-                    access.addRenderableWidget(new Button(i, k, 150, 20, new TextComponent(name), button ->
+                    access.addRenderableWidget(new Button(i, k, 150, 20, Component.literal(name), button ->
                     {
                         if (Config.INSTANCE.uploadMode == 2) {
                             Config.INSTANCE.uploadMode = 0;
@@ -77,7 +76,7 @@ public class BlockShot {
                     String name2 = "BlockShot Owner: " + value2;
                     i -= 160;
                     k += 24;
-                    access.addRenderableWidget(new Button(i, k, 150, 20, new TextComponent(name2), button ->
+                    access.addRenderableWidget(new Button(i, k, 150, 20, Component.literal(name2), button ->
                     {
                         Config.INSTANCE.anonymous = Config.INSTANCE.anonymous ? false : true;
                         Config.saveConfigToFile(BlockShot.configLocation.toFile());
@@ -85,7 +84,7 @@ public class BlockShot {
                     }));
                     String name3 = "View BlockShot History";
                     i += 160;
-                    Button historyBtn = new Button(i, k, 150, 20, new TextComponent(name3), button ->
+                    Button historyBtn = new Button(i, k, 150, 20, Component.literal(name3), button ->
                     {
                         Minecraft.getInstance().setScreen(new BlockShotHistoryScreen(screen));
                     });
@@ -138,18 +137,18 @@ public class BlockShot {
 
     public static void uploadAndAddToChat(byte[] imageBytes) {
         if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-            Component finished = new TextComponent("[BlockShot] Uploading to BlockShot...");
+            Component finished = Component.literal("[BlockShot] Uploading to BlockShot...");
             ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
         }
         String result = BlockShot.uploadImage(imageBytes);
         if (result == null) {
             if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                Component finished = new TextComponent("[BlockShot] An error occurred uploading your content to BlockShot.");
+                Component finished = Component.literal("[BlockShot] An error occurred uploading your content to BlockShot.");
                 ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID);
             }
         } else if (result.startsWith("http")) {
-            Component link = (new TextComponent(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
-            Component finished = new TextComponent("[BlockShot] Your content is now available on BlockShot! ").append(link);
+            Component link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
+            Component finished = Component.literal("[BlockShot] Your content is now available on BlockShot! ").append(link);
             ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.CHAT_UPLOAD_ID);
             Minecraft.getInstance().gui.getChat().addMessage(finished);
         }
