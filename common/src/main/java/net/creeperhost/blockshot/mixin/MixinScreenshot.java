@@ -61,7 +61,7 @@ public abstract class MixinScreenshot {
                     if (BlockShot.latest != null && BlockShot.latest.length > 0) {
                         Component confirmMessage = Component.literal("[BlockShot] Click here to upload this screenshot to BlockShot").withStyle(style -> style.withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
                         if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(confirmMessage, BlockShot.CHAT_UPLOAD_ID);
+                            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(confirmMessage, BlockShot.CHAT_UPLOAD_ID, null);
                         }
                     }
                 }
