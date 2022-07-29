@@ -158,7 +158,7 @@ public class GifEncoder {
                 GifEncoder._frames.set(new ArrayList<BufferedImage>());
                 message = Component.literal("[BlockShot] Encoding complete... Starting upload...");
                 if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokedeleteMessage(BlockShot.CHAT_ENCODING_ID);
+                    BlockShot.deleteBlockshotMessages(BlockShot.CHAT_ENCODING_ID);
                     ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_UPLOAD_ID, null);
                 }
                 try {
