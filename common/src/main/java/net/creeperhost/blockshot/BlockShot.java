@@ -12,6 +12,7 @@ import net.creeperhost.blockshot.gui.BlockShotHistoryScreen;
 import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.creeperhost.blockshot.mixin.MixinMinecraft;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.GuiMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Widget;
@@ -28,14 +29,15 @@ import org.apache.logging.log4j.Logger;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.Random;
 
 public class BlockShot {
     public static final String MOD_ID = "blockshot";
     public static Logger logger = LogManager.getLogger();
     public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
-    public static final MessageSignature CHAT_UPLOAD_ID = new MessageSignature(new byte[]{69});
-    public static final MessageSignature CHAT_ENCODING_ID = new MessageSignature(new byte[]{70});
+    public static final MessageSignature CHAT_UPLOAD_ID = new MessageSignature(new byte[]{36, 03, 60});
+    public static final MessageSignature CHAT_ENCODING_ID = new MessageSignature(new byte[]{42,04, 20});
     public static byte[] latest;
     private static boolean _active = false;
 
@@ -150,7 +152,7 @@ public class BlockShot {
         } else if (result.startsWith("http")) {
             Component link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
             Component finished = Component.literal("[BlockShot] Your content is now available on BlockShot! ").append(link);
-            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokedeleteMessage(BlockShot.CHAT_UPLOAD_ID);
+            deleteBlockshotMessages(BlockShot.CHAT_UPLOAD_ID);
             Minecraft.getInstance().gui.getChat().addMessage(finished);
         }
     }
@@ -176,6 +178,24 @@ public class BlockShot {
             return null;
         }
         return null;
+    }
+
+    public static void deleteBlockshotMessages(MessageSignature messageSignature)
+    {
+        if(Minecraft.getInstance().gui == null) return;
+        if(Minecraft.getInstance().gui.getChat() == null) return;
+        Iterator<GuiMessage> iterator = ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).getAllMessages().iterator();
+
+        while(iterator.hasNext())
+        {
+            MessageSignature messageSignature2 = (iterator.next()).headerSignature();
+            if (messageSignature2 != null && messageSignature2.equals(messageSignature))
+            {
+                iterator.remove();
+            }
+        }
+
+        ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokerefreshTrimmedMessage();
     }
 
     public static String getServerIDAndVerify() {
