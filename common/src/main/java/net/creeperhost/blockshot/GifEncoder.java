@@ -87,7 +87,7 @@ public class GifEncoder {
         CompletableFuture.runAsync(() -> {
             Component message = Component.literal("[BlockShot] You are now recording gameplay! ");
             if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
+                ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
             }
             while (isRecording) {
                 try {
@@ -97,13 +97,13 @@ public class GifEncoder {
             }
             message = Component.literal("[BlockShot] Gameplay recording complete, preparing... ");
             if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
+                ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
             }
             while (addedFrames.get() > processedFrames.get()) {
                 try {
                     message = Component.literal("[BlockShot] Preparing frame " + processedFrames + " of " + addedFrames.get());
                     if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                        ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
+                        ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
                     }
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -120,7 +120,7 @@ public class GifEncoder {
 
                 message = Component.literal("[BlockShot] Preparation complete, encoding frames... ");
                 if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
+                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
                 }
                 try {
                     outputStream = new ByteArrayOutputStream();
@@ -141,7 +141,7 @@ public class GifEncoder {
                         }
                         message = Component.literal("[BlockShot] Encoding frame " + i + " of " + f + dots);
                         if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID);
+                            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
                         }
                         writer.writeToSequence(frame);
                     } catch (IOException e) {
@@ -158,8 +158,8 @@ public class GifEncoder {
                 GifEncoder._frames.set(new ArrayList<BufferedImage>());
                 message = Component.literal("[BlockShot] Encoding complete... Starting upload...");
                 if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeremoveById(BlockShot.CHAT_ENCODING_ID);
-                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_UPLOAD_ID);
+                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokedeleteMessage(BlockShot.CHAT_ENCODING_ID);
+                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_UPLOAD_ID, null);
                 }
                 try {
                     byte[] bytes = outputStream.toByteArray();
