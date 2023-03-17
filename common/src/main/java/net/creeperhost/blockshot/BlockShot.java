@@ -18,6 +18,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.controls.ControlsScreen;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -37,7 +38,7 @@ public class BlockShot {
     public static Logger logger = LogManager.getLogger();
     public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
     public static final MessageSignature CHAT_UPLOAD_ID = new MessageSignature(new byte[]{36, 03, 60});
-    public static final MessageSignature CHAT_ENCODING_ID = new MessageSignature(new byte[]{42,04, 20});
+    public static final MessageSignature CHAT_ENCODING_ID = new MessageSignature(new byte[]{42, 04, 20});
     public static byte[] latest;
     private static boolean _active = false;
 
@@ -57,10 +58,10 @@ public class BlockShot {
                 if (screen instanceof ControlsScreen) {
                     int i = (screen.width / 2 - 155) + 160;
                     int k = (screen.height / 6 - 12) + 48;
-                    String value = "Auto";
-                    if (Config.INSTANCE.uploadMode == 0) value = "Off";
-                    if (Config.INSTANCE.uploadMode == 1) value = "Prompt";
-                    String name = "BlockShot Upload: " + value;
+                    String value = I18n.get("gui.blockshot.upload_mode.auto");
+                    if (Config.INSTANCE.uploadMode == 0) value = I18n.get("gui.blockshot.upload_mode.off");
+                    if (Config.INSTANCE.uploadMode == 1) value = I18n.get("gui.blockshot.upload_mode.prompt");
+                    String name = I18n.get("gui.blockshot.upload_mode") + " " + value;
 
                     access.addRenderableWidget(new Button(i, k, 150, 20, Component.literal(name), button ->
                     {
@@ -74,9 +75,9 @@ public class BlockShot {
                         Config.saveConfigToFile(BlockShot.configLocation.toFile());
                         Minecraft.getInstance().setScreen(screen);
                     }));
-                    String value2 = "Anonymous";
+                    String value2 = I18n.get("gui.blockshot.upload.anonymous");
                     if (!Config.INSTANCE.anonymous) value2 = Minecraft.getInstance().getUser().getName();
-                    String name2 = "BlockShot Owner: " + value2;
+                    String name2 = I18n.get("gui.blockshot.upload.owner") + " " + value2;
                     i -= 160;
                     k += 24;
                     access.addRenderableWidget(new Button(i, k, 150, 20, Component.literal(name2), button ->
@@ -85,7 +86,7 @@ public class BlockShot {
                         Config.saveConfigToFile(BlockShot.configLocation.toFile());
                         Minecraft.getInstance().setScreen(screen);
                     }));
-                    String name3 = "View BlockShot History";
+                    String name3 = I18n.get("gui.blockshot.upload.history");
                     i += 160;
                     Button historyBtn = new Button(i, k, 150, 20, Component.literal(name3), button ->
                     {
@@ -96,12 +97,9 @@ public class BlockShot {
                     access.addRenderableWidget(historyBtn);
 
                     //Move the "done button down as its currently under out buttons"
-                    for (Widget renderable : access.getRenderables())
-                    {
-                        if(renderable instanceof Button button)
-                        {
-                            if(button.getMessage().equals(CommonComponents.GUI_DONE))
-                            {
+                    for (Widget renderable : access.getRenderables()) {
+                        if (renderable instanceof Button button) {
+                            if (button.getMessage().equals(CommonComponents.GUI_DONE)) {
                                 button.y += 24;
                                 break;
                             }
@@ -139,21 +137,19 @@ public class BlockShot {
     }
 
     public static void uploadAndAddToChat(byte[] imageBytes) {
-        if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-            Component finished = Component.literal("[BlockShot] Uploading to BlockShot...");
-            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID, null);
-        }
+        Component finished = Component.translatable("chat.blockshot.upload.uploading");
+        ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+
         String result = BlockShot.uploadImage(imageBytes);
         if (result == null) {
-            if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                Component finished = Component.literal("[BlockShot] An error occurred uploading your content to BlockShot.");
-                ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(finished, BlockShot.CHAT_UPLOAD_ID, null);
-            }
+            finished = Component.translatable("chat.blockshot.upload.error");
+            ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+
         } else if (result.startsWith("http")) {
             Component link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
-            Component finished = Component.literal("[BlockShot] Your content is now available on BlockShot! ").append(link);
-            deleteBlockshotMessages(BlockShot.CHAT_UPLOAD_ID);
-            Minecraft.getInstance().gui.getChat().addMessage(finished);
+            finished = Component.translatable("chat.blockshot.upload.uploaded").append(" ").append(link);
+            ClientUtil.deleteBlockshotMessages(BlockShot.CHAT_UPLOAD_ID);
+            ClientUtil.sendMessage(finished);
         }
     }
 
@@ -180,23 +176,6 @@ public class BlockShot {
         return null;
     }
 
-    public static void deleteBlockshotMessages(MessageSignature messageSignature)
-    {
-        if(Minecraft.getInstance().gui == null) return;
-        if(Minecraft.getInstance().gui.getChat() == null) return;
-        Iterator<GuiMessage> iterator = ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).getAllMessages().iterator();
-
-        while(iterator.hasNext())
-        {
-            MessageSignature messageSignature2 = (iterator.next()).headerSignature();
-            if (messageSignature2 != null && messageSignature2.equals(messageSignature))
-            {
-                iterator.remove();
-            }
-        }
-
-        ((MixinChatComponent)Minecraft.getInstance().gui.getChat()).invokerefreshTrimmedMessage();
-    }
 
     public static String getServerIDAndVerify() {
         Minecraft mc = Minecraft.getInstance();
