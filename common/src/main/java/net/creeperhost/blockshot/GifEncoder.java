@@ -6,6 +6,9 @@ import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.creeperhost.polylib.client.gif.GifSequenceWriter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageOutputStream;
@@ -23,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GifEncoder {
+    private static Logger LOGGER = LogManager.getLogger();
     private static ExecutorService rendering = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("blockshot-framerenderer-%d").build());
     private static ExecutorService encoding = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("blockshot-imageencoder-%d").build());
     public static AtomicInteger addedFrames = new AtomicInteger();
@@ -67,7 +71,7 @@ public class GifEncoder {
                     return a;
                 });
             } catch (Throwable t) {
-                t.printStackTrace();
+                LOGGER.error("An error occurred while capturing frame", t);
             } finally {
                 screenImage.close();
             }
@@ -85,31 +89,23 @@ public class GifEncoder {
         totalSeconds = 0;
         isRecording = true;
         CompletableFuture.runAsync(() -> {
-            Component message = Component.literal("[BlockShot] You are now recording gameplay! ");
-            if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
-            }
+            Component message = Component.translatable("chat.blockshot.record.recording");
+            ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
             while (isRecording) {
                 try {
                     Thread.sleep(50);
-                } catch (InterruptedException e) {
-                }
+                } catch (InterruptedException ignored) {}
             }
-            message = Component.literal("[BlockShot] Gameplay recording complete, preparing... ");
-            if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
-            }
+            message = Component.translatable("chat.blockshot.record.complete");
+            ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
             while (addedFrames.get() > processedFrames.get()) {
                 try {
-                    message = Component.literal("[BlockShot] Preparing frame " + processedFrames + " of " + addedFrames.get());
-                    if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                        ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
-                    }
+                    message = Component.translatable("chat.blockshot.record.preparing", processedFrames, addedFrames.get());
+                    ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
                     Thread.sleep(50);
-                } catch (InterruptedException e) {
-                }
+                } catch (InterruptedException ignored) {}
             }
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
+
             if (GifEncoder._frames.get() != null) {
                 List<BufferedImage> frames = GifEncoder._frames.get();
                 BufferedImage firstFrame = frames.get(0);
@@ -118,17 +114,17 @@ public class GifEncoder {
                 ImageOutputStream imageStream = null;
                 int duration = (int) (GifEncoder.totalSeconds / frames.size());
 
-                message = Component.literal("[BlockShot] Preparation complete, encoding frames... ");
-                if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
-                }
+                message = Component.translatable("chat.blockshot.record.preparing.complete");
+                ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
                 try {
                     outputStream = new ByteArrayOutputStream();
                     imageStream = ImageIO.createImageOutputStream(outputStream);
                     writer = new GifSequenceWriter(imageStream, firstFrame.getType(), duration, true);
                     writer.writeToSequence(firstFrame);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("An error occurred while writing frames", e);
+                    IOUtils.closeQuietly(outputStream, imageStream);
+                    return;
                 }
                 int i = 0;
                 int f = frames.size();
@@ -139,13 +135,13 @@ public class GifEncoder {
                         for (int z = 0; z <= (i % 3); z++) {
                             dots += ".";
                         }
-                        message = Component.literal("[BlockShot] Encoding frame " + i + " of " + f + dots);
-                        if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_ENCODING_ID, null);
-                        }
+                        message = Component.translatable("chat.blockshot.record.encoding", i, f + dots);
+                        ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
                         writer.writeToSequence(frame);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        LOGGER.error("An error occurred while writing frames", e);
+                        IOUtils.closeQuietly(outputStream, imageStream);
+                        return;
                     }
                 }
                 try {
@@ -153,21 +149,21 @@ public class GifEncoder {
                     imageStream.close();
                     frames.clear();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("An error occurred while writing frames", e);
+                    IOUtils.closeQuietly(outputStream, imageStream);
+                    return;
                 }
                 GifEncoder._frames.set(new ArrayList<BufferedImage>());
-                message = Component.literal("[BlockShot] Encoding complete... Starting upload...");
-                if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                    BlockShot.deleteBlockshotMessages(BlockShot.CHAT_ENCODING_ID);
-                    ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(message, BlockShot.CHAT_UPLOAD_ID, null);
-                }
+                message = Component.translatable("chat.blockshot.record.start.upload");
+                ClientUtil.deleteBlockshotMessages(BlockShot.CHAT_ENCODING_ID);
+                ClientUtil.sendMessage(message, BlockShot.CHAT_UPLOAD_ID);
                 try {
                     byte[] bytes = outputStream.toByteArray();
                     outputStream.close();
                     BlockShot.uploadAndAddToChat(bytes);
                     outputStream.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("An error occurred while writing frames", e);
                 }
             }
             addedFrames.set(0);

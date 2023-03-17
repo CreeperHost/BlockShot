@@ -3,9 +3,11 @@ package net.creeperhost.blockshot.mixin;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.GifEncoder;
 import net.creeperhost.blockshot.gui.BlockShotClickEvent;
+import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
@@ -58,11 +60,17 @@ public abstract class MixinScreenshot {
                     });
                     ci.cancel();
                 } else {
-                    if (BlockShot.latest != null && BlockShot.latest.length > 0) {
-                        Component confirmMessage = Component.literal("[BlockShot] Click here to upload this screenshot to BlockShot").withStyle(style -> style.withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
-                        if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                            ((MixinChatComponent) Minecraft.getInstance().gui.getChat()).invokeaddMessage(confirmMessage, BlockShot.CHAT_UPLOAD_ID, null);
-                        }
+                    if (BlockShot.latest.length > 0) {
+                        Component confirmMessage = Component.translatable("chat.blockshot.prompt.blockshot")
+                                .append(" ")
+                                .append(Component.translatable("chat.blockshot.prompt.click_here")
+                                        .withStyle(ChatFormatting.BLUE, ChatFormatting.UNDERLINE)
+                                )
+                                .append(" ")
+                                .append(Component.translatable("chat.blockshot.prompt.upload_screenshot"))
+                                .withStyle(style -> style.withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
+
+                        ClientUtil.sendMessage(confirmMessage, BlockShot.CHAT_UPLOAD_ID);
                     }
                 }
             }

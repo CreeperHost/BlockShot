@@ -16,6 +16,7 @@ import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -39,7 +40,7 @@ public class BlockShotHistoryScreen extends Screen {
     public Screen parent;
 
     public BlockShotHistoryScreen(Screen parent) {
-        super(Component.literal("BlockShot Upload History"));
+        super(Component.translatable("gui.blockshot.history.title"));
         this.parent = parent;
         if (caps.get() == null) caps.getAndSet(new ArrayList<ScreencapListItem>());
     }
@@ -51,10 +52,10 @@ public class BlockShotHistoryScreen extends Screen {
         list = new ScreenList(this, this.minecraft, this.width, this.height, 56, this.height - 36, 36);
         this.loadRemote().thenRun(() -> isLoading = false);
         this.addRenderableWidget(list);
-        this.copyButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - (76 * 2), this.height - 28, 72, 20, Component.translatable("Copy URL"), (arg) -> {
+        this.copyButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - (76 * 2), this.height - 28, 72, 20, Component.translatable("gui.blockshot.history.copy_url"), (arg) -> {
             list.getCurrSelected().copyUrl();
         }));
-        this.deleteButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - 76, this.height - 28, 72, 20, Component.translatable("selectWorld.delete"), (arg) -> {
+        this.deleteButton = (Button) this.addRenderableWidget(new Button(this.width / 2 - 76, this.height - 28, 72, 20, Component.translatable("gui.blockshot.history.delete"), (arg) -> {
             try {
                 this.copyButton.active = false;
                 this.deleteButton.active = false;
@@ -73,7 +74,7 @@ public class BlockShotHistoryScreen extends Screen {
             } catch (Exception ignored) {
             }
         }));
-        this.viewButton = (Button) this.addRenderableWidget(new Button(this.width / 2, this.height - 28, 72, 20, Component.literal("View"), (arg) -> {
+        this.viewButton = (Button) this.addRenderableWidget(new Button(this.width / 2, this.height - 28, 72, 20, Component.translatable("gui.blockshot.history.view"), (arg) -> {
             list.getCurrSelected().openUrl();
         }));
         this.addRenderableWidget(new Button(this.width / 2 + 76, this.height - 28, 72, 20, CommonComponents.GUI_CANCEL, (arg) -> {
@@ -130,7 +131,7 @@ public class BlockShotHistoryScreen extends Screen {
                     //Used only in dev to help, as the list should stay 0 in prod otherwise it'll break for strange reasons.
                     if (caps.get().size() == 0) {
                         ScreencapListItem item = new ScreencapListItem();
-                        item.id = "BlockShot not available in offline mode.";
+                        item.id = I18n.get("gui.blockshot.history.not_in_offline");
                         item.preview = "";
                         item.isDeleting = true;
                         item.created = 0;
@@ -181,7 +182,7 @@ public class BlockShotHistoryScreen extends Screen {
             this.mc.font.draw(poseStack, sdf.format(date), x + 35, y, 16777215);
             if (this.isDeleting) {
                 if (this.id.length() < 10) {
-                    this.mc.font.draw(poseStack, "Pending deletion...", x + 35, y + 10, 8421504);
+                    this.mc.font.draw(poseStack, I18n.get("gui.blockshot.history.delete.pending"), x + 35, y + 10, 8421504);
                 } else {
                     this.mc.font.draw(poseStack, this.id, x + 35, y + 10, 8421504);
                 }
