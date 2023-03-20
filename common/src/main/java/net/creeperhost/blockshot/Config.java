@@ -9,23 +9,26 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.charset.Charset;
+import java.util.Locale;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class Config {
     public static Config INSTANCE;
 
-    public int uploadMode;
+    public Mode uploadMode = Mode.PROMPT;
+    public ButtonPos buttonPos = ButtonPos.BOTTOM_LEFT;
     public boolean anonymous;
 
     public Config() {
-        this.uploadMode = 1;
         this.anonymous = true;
     }
 
-    public Config(int mode) {
+    public Config(Mode mode) {
         this.uploadMode = mode;
     }
 
-    public Config(int mode, boolean anonymous) {
+    public Config(Mode mode, boolean anonymous) {
         this.uploadMode = mode;
         this.anonymous = anonymous;
     }
@@ -40,6 +43,7 @@ public class Config {
         try {
             FileReader fileReader = new FileReader(file);
             INSTANCE = gson.fromJson(fileReader, Config.class);
+            if (INSTANCE.uploadMode == null) INSTANCE.uploadMode = Mode.PROMPT; //Fixes null pointer due to loading previous config format.
         } catch (Exception ignored) {
         }
     }
@@ -63,6 +67,46 @@ public class Config {
                 Config.loadFromFile(file);
             }
         } catch (Exception ignored) {
+        }
+    }
+
+    public enum Mode {
+        OFF,
+        PROMPT,
+        AUTO;
+
+        public Mode next() { return values()[(ordinal() + 1) % values().length]; }
+
+        public String translatableName() {
+            return "gui.blockshot.upload_mode." + name().toLowerCase(Locale.ENGLISH);
+        }
+    }
+
+    public enum ButtonPos {
+        TOP_LEFT((sw, bw) -> 10, (sh, bh) -> 10),
+        TOP_RIGHT((sw, bw) -> sw - bw - 10, (sh, bh) -> 10),
+        BOTTOM_LEFT((sw, bw) -> 10, (sh, bh) -> sh - bh - 10),
+        BOTTOM_RIGHT((sw, bw) -> sw - bw - 10, (sh, bh) -> sh - bh - 10);
+
+        private final BiFunction<Integer, Integer, Integer> xGetter;
+        private final BiFunction<Integer, Integer, Integer> yGetter;
+
+        ButtonPos(BiFunction<Integer, Integer, Integer> xGetter, BiFunction<Integer, Integer, Integer> yGetter) {
+            this.xGetter = xGetter;
+            this.yGetter = yGetter;
+        }
+
+        public ButtonPos next() { return values()[(ordinal() + 1) % values().length]; }
+
+        public String translatableName() {
+            return "gui.blockshot.button_pos." + name().toLowerCase(Locale.ENGLISH);
+        }
+
+        public int getX(int screenWidth, int buttonWidth) {
+            return xGetter.apply(screenWidth, buttonWidth);
+        }
+        public int getY(int screenHeight, int buttonHeight) {
+            return yGetter.apply(screenHeight, buttonHeight);
         }
     }
 }

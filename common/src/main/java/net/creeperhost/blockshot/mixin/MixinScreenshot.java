@@ -38,7 +38,7 @@ public abstract class MixinScreenshot {
                 ci.cancel();
                 return;
             }
-            if (Config.INSTANCE.uploadMode != 0) {
+            if (Config.INSTANCE.uploadMode != Config.Mode.OFF) {
                 NativeImage nativeImage = takeScreenshot(renderTarget);
                 if (nativeImage == null) return;
                 byte[] bytes;
@@ -51,7 +51,7 @@ public abstract class MixinScreenshot {
                     nativeImage.close();
                 }
                 BlockShot.latest = bytes;
-                if (Config.INSTANCE.uploadMode == 2) {
+                if (Config.INSTANCE.uploadMode == Config.Mode.AUTO) {
                     Util.ioPool().execute(() ->
                     {
                         if (BlockShot.latest == null || BlockShot.latest.length == 0) return;
