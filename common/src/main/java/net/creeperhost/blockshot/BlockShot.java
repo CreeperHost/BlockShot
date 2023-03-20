@@ -9,6 +9,7 @@ import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
 import net.creeperhost.blockshot.gui.BlockShotHistoryScreen;
+import net.creeperhost.blockshot.gui.GuiEvents;
 import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.creeperhost.blockshot.mixin.MixinMinecraft;
 import net.minecraft.ChatFormatting;
@@ -52,84 +53,16 @@ public class BlockShot {
         }
         if (BlockShot.isActive()) {
             Config.init(configLocation.toFile());
-            ClientRawInputEvent.KEY_PRESSED.register(BlockShot::onRawInput);
-            ClientGuiEvent.INIT_POST.register((screen, access) ->
-            {
-                if (screen instanceof ControlsScreen) {
-                    int i = (screen.width / 2 - 155) + 160;
-                    int k = (screen.height / 6 - 12) + 48;
-                    String value = I18n.get("gui.blockshot.upload_mode.auto");
-                    if (Config.INSTANCE.uploadMode == 0) value = I18n.get("gui.blockshot.upload_mode.off");
-                    if (Config.INSTANCE.uploadMode == 1) value = I18n.get("gui.blockshot.upload_mode.prompt");
-                    String name = I18n.get("gui.blockshot.upload_mode") + " " + value;
-
-                    access.addRenderableWidget(new Button(i, k, 150, 20, Component.literal(name), button ->
-                    {
-                        if (Config.INSTANCE.uploadMode == 2) {
-                            Config.INSTANCE.uploadMode = 0;
-                        } else if (Config.INSTANCE.uploadMode == 1) {
-                            Config.INSTANCE.uploadMode = 2;
-                        } else if (Config.INSTANCE.uploadMode == 0) {
-                            Config.INSTANCE.uploadMode = 1;
-                        }
-                        Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                        Minecraft.getInstance().setScreen(screen);
-                    }));
-                    String value2 = I18n.get("gui.blockshot.upload.anonymous");
-                    if (!Config.INSTANCE.anonymous) value2 = Minecraft.getInstance().getUser().getName();
-                    String name2 = I18n.get("gui.blockshot.upload.owner") + " " + value2;
-                    i -= 160;
-                    k += 24;
-                    access.addRenderableWidget(new Button(i, k, 150, 20, Component.literal(name2), button ->
-                    {
-                        Config.INSTANCE.anonymous = Config.INSTANCE.anonymous ? false : true;
-                        Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                        Minecraft.getInstance().setScreen(screen);
-                    }));
-                    String name3 = I18n.get("gui.blockshot.upload.history");
-                    i += 160;
-                    Button historyBtn = new Button(i, k, 150, 20, Component.literal(name3), button ->
-                    {
-                        Minecraft.getInstance().setScreen(new BlockShotHistoryScreen(screen));
-                    });
-
-                    historyBtn.active = (!Config.INSTANCE.anonymous);
-                    access.addRenderableWidget(historyBtn);
-
-                    //Move the "done button down as its currently under out buttons"
-                    for (Widget renderable : access.getRenderables()) {
-                        if (renderable instanceof Button button) {
-                            if (button.getMessage().equals(CommonComponents.GUI_DONE)) {
-                                button.y += 24;
-                                break;
-                            }
-                        }
-                    }
-                }
-            });
+            GuiEvents.init();
+            Keybindings.init();
         }
     }
 
+    /**
+     * Set on startup if in online mode.
+     * */
     public static boolean isActive() {
         return _active;
-    }
-
-    private static long keybindLast = 0;
-
-    private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers) {
-        if (Screen.hasControlDown()) {
-            if (Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode)) {
-                if (keybindLast + 5 > Instant.now().getEpochSecond()) return EventResult.pass();
-                keybindLast = Instant.now().getEpochSecond();
-                if (GifEncoder.isRecording) {
-                    GifEncoder.isRecording = false;
-                } else if (GifEncoder.processedFrames.get() == 0 && GifEncoder.addedFrames.get() == 0) {
-                    GifEncoder.begin();
-                }
-                return EventResult.interrupt(true);
-            }
-        }
-        return EventResult.pass();
     }
 
     public static int getFPS() {
