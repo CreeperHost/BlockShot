@@ -14,6 +14,9 @@
     "chat.blockshot.record.encoding":                           "[BlockShot] Encoding frame %s of %s",
     "chat.blockshot.record.start.upload":                       "[BlockShot] Encoding complete... Starting upload...",
 
+    "chat.blockshot.fallback.success":                          "[BlockShot] Upload Failed, Capture saved locally as %s",
+    "chat.blockshot.fallback.failure":                          "[BlockShot] Upload Failed, Also unable to save locally: %s",
+
     "gui.blockshot.blockshot_button":                           "Open BlockShot",
 
     "gui.blockshot.settings.title":                             "Block Shot Settings",

@@ -3,11 +3,13 @@ package net.creeperhost.blockshot.gui;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.polylib.client.screen.widget.LoadingSpinner;
 import net.creeperhost.polylib.client.screen.widget.ScreenList;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
@@ -75,6 +77,15 @@ public class BlockShotHistoryScreen extends Screen {
         activeTasks.add(CompletableFuture.supplyAsync(() -> new DownloadTask().runOffThread()));
     }
 
+    @Override
+    public boolean keyPressed(int i, int j, int k) {
+        if (i == InputConstants.KEY_DELETE && deleteButton.active) {
+            deleteSelected();
+            return true;
+        }
+        return super.keyPressed(i, j, k);
+    }
+
     private void deleteSelected() {
         setButtons(false);
         ScreenCapInfo capInfo = screenList.getCurrSelected().capInfo;
@@ -83,10 +94,11 @@ public class BlockShotHistoryScreen extends Screen {
     }
 
     private void loadCaptures() {
-        screenList.children().clear();
+        screenList.clearList();
         for (ScreenCapInfo capInfo : captureList) {
             screenList.add(new BlockShotListEntry(screenList, capInfo));
         }
+        screenList.setScrollAmount(0);
     }
 
     @Override
