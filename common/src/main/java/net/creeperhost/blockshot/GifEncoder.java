@@ -2,9 +2,7 @@ package net.creeperhost.blockshot;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.blaze3d.platform.NativeImage;
-import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.creeperhost.polylib.client.gif.GifSequenceWriter;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -40,7 +38,7 @@ public class GifEncoder {
     public static void addFrameAndClose(NativeImage screenImage) {
         CompletableFuture.runAsync(() -> {
             addedFrames.incrementAndGet();
-            try {
+            try (screenImage) {
                 int width = screenImage.getWidth();
                 int height = screenImage.getHeight();
                 int k = 0;
@@ -52,28 +50,26 @@ public class GifEncoder {
                 new_width = new_width - (((new_width / 2) / 3) * scaleFactor);
                 new_height = new_height - (((new_height / 2) / 3) * scaleFactor);
 
-                if(width > height) {
-                    double ratio = (double)height / width;
+                if (width > height) {
+                    double ratio = (double) height / width;
                     new_height = (int) Math.round(new_width * ratio);
                 } else {
-                    double ratio = (double)width / height;
+                    double ratio = (double) width / height;
                     new_width = (int) Math.round(new_height * ratio);
                 }
-                NativeImage nativeImage = new NativeImage(new_width, new_height, false);
-                screenImage.resizeSubRectTo(k, l, width, height, nativeImage);
-                screenImage.close();
-                InputStream is = new ByteArrayInputStream(nativeImage.asByteArray());
-                BufferedImage finalFrame = new BufferedImage(new_width, new_height, 1);
-                finalFrame.getGraphics().drawImage(ImageIO.read(is), 0, 0, null);
-                nativeImage.close();
-                GifEncoder._frames.getAndUpdate((a) -> {
-                    a.add(finalFrame);
-                    return a;
-                });
+
+                try (NativeImage nativeImage = new NativeImage(new_width, new_height, false)) {
+                    screenImage.resizeSubRectTo(k, l, width, height, nativeImage);
+                    InputStream is = new ByteArrayInputStream(nativeImage.asByteArray());
+                    BufferedImage finalFrame = new BufferedImage(new_width, new_height, 1);
+                    finalFrame.getGraphics().drawImage(ImageIO.read(is), 0, 0, null);
+                    GifEncoder._frames.getAndUpdate((a) -> {
+                        a.add(finalFrame);
+                        return a;
+                    });
+                }
             } catch (Throwable t) {
                 LOGGER.error("An error occurred while capturing frame", t);
-            } finally {
-                screenImage.close();
             }
             processedFrames.incrementAndGet();
         }, rendering);
@@ -81,7 +77,7 @@ public class GifEncoder {
 
     public static void begin() {
         if (_frames == null || _frames.get() == null) {
-            _frames.set(new ArrayList<BufferedImage>());
+            _frames.set(new ArrayList<>());
         }
         if (isRecording == true) return;
         lastTimestamp = 0;
@@ -155,12 +151,12 @@ public class GifEncoder {
                 }
                 GifEncoder._frames.set(new ArrayList<BufferedImage>());
                 message = Component.translatable("chat.blockshot.record.start.upload");
-                ClientUtil.deleteBlockshotMessages(BlockShot.CHAT_ENCODING_ID);
+                ClientUtil.deleteMessage(BlockShot.CHAT_ENCODING_ID);
                 ClientUtil.sendMessage(message, BlockShot.CHAT_UPLOAD_ID);
                 try {
                     byte[] bytes = outputStream.toByteArray();
                     outputStream.close();
-                    BlockShot.uploadAndAddToChat(bytes);
+                    ScreenshotHandler.uploadAndAddToChat(bytes, true, "gif");
                     outputStream.close();
                 } catch (Exception e) {
                     LOGGER.error("An error occurred while writing frames", e);

@@ -7,6 +7,7 @@ import dev.architectury.hooks.client.screen.ScreenAccess;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.GifEncoder;
+import net.creeperhost.blockshot.ScreenshotHandler;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -65,18 +66,8 @@ public class GuiEvents {
         ClickEvent clickEvent = style.getClickEvent();
         if (!(clickEvent instanceof BlockShotClickEvent)) return false;
 
-        if (BlockShot.latest == null || BlockShot.latest.length == 0) {
-            return true;
-        }
-
-        Util.ioPool().execute(() ->
-        {
-            if (Minecraft.getInstance() != null && Minecraft.getInstance().gui.getChat() != null) {
-                byte[] bytes = BlockShot.latest;
-                BlockShot.uploadAndAddToChat(bytes);
-            }
-            BlockShot.latest = null;
-        });
+        //If we fail to upload here there is no need to write to disk because this image is already on disk.
+        ScreenshotHandler.uploadLast(false);
         return true;
     }
 }
