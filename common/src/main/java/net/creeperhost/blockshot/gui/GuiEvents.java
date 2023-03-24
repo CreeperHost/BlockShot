@@ -46,18 +46,22 @@ public class GuiEvents {
     }
 
     private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers) {
-        if (Screen.hasControlDown()) {
-            if (Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode)) {
-                if (keybindLast + 5 > Instant.now().getEpochSecond()) return EventResult.pass();
-                keybindLast = Instant.now().getEpochSecond();
-                if (GifEncoder.isRecording) {
-                    GifEncoder.isRecording = false;
-                } else if (GifEncoder.processedFrames.get() == 0 && GifEncoder.addedFrames.get() == 0) {
-                    GifEncoder.begin();
-                }
-                return EventResult.interrupt(true);
-            }
+        if (!Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode)) {
+            return EventResult.pass();
         }
+
+        if (keybindLast + 5 > Instant.now().getEpochSecond()) {
+            return EventResult.pass();
+        }
+        keybindLast = Instant.now().getEpochSecond();
+
+        if (Screen.hasControlDown()) {
+            GifEncoder.startStopRecording();
+            return EventResult.interrupt(true);
+        } else if (Screen.hasShiftDown()) {
+            GifEncoder.cancelRecording();
+        }
+
         return EventResult.pass();
     }
 

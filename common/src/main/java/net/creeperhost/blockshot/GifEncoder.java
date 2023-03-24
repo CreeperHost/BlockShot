@@ -30,6 +30,7 @@ public class GifEncoder {
     public static AtomicInteger addedFrames = new AtomicInteger();
     public static AtomicInteger processedFrames = new AtomicInteger();
     public static boolean isRecording = false;
+    private static boolean isCanceled = false;
     public static long lastTimestamp;
     public static long frames;
     public static long totalSeconds;
@@ -79,92 +80,119 @@ public class GifEncoder {
         if (_frames == null || _frames.get() == null) {
             _frames.set(new ArrayList<>());
         }
-        if (isRecording == true) return;
+        if (isRecording) return;
         lastTimestamp = 0;
         frames = 0;
         totalSeconds = 0;
         isRecording = true;
         CompletableFuture.runAsync(() -> {
-            Component message = Component.translatable("chat.blockshot.record.recording");
-            ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
-            while (isRecording) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException ignored) {}
-            }
-            message = Component.translatable("chat.blockshot.record.complete");
-            ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
-            while (addedFrames.get() > processedFrames.get()) {
-                try {
-                    message = Component.translatable("chat.blockshot.record.preparing", processedFrames, addedFrames.get());
-                    ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
-                    Thread.sleep(50);
-                } catch (InterruptedException ignored) {}
+            waitForFinish();
+
+            if (isCanceled) {
+                isCanceled = false;
+                ClientUtil.sendMessage(Component.translatable("chat.blockshot.record.canceled"), BlockShot.CHAT_ENCODING_ID);
+            } else {
+                ClientUtil.sendMessage(Component.translatable("chat.blockshot.record.complete"), BlockShot.CHAT_ENCODING_ID);
+                generateGif();
             }
 
-            if (GifEncoder._frames.get() != null) {
-                List<BufferedImage> frames = GifEncoder._frames.get();
-                BufferedImage firstFrame = frames.get(0);
-                GifSequenceWriter writer = null;
-                ByteArrayOutputStream outputStream = null;
-                ImageOutputStream imageStream = null;
-                int duration = (int) (GifEncoder.totalSeconds / frames.size());
-
-                message = Component.translatable("chat.blockshot.record.preparing.complete");
-                ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
-                try {
-                    outputStream = new ByteArrayOutputStream();
-                    imageStream = ImageIO.createImageOutputStream(outputStream);
-                    writer = new GifSequenceWriter(imageStream, firstFrame.getType(), duration, true);
-                    writer.writeToSequence(firstFrame);
-                } catch (IOException e) {
-                    LOGGER.error("An error occurred while writing frames", e);
-                    IOUtils.closeQuietly(outputStream, imageStream);
-                    return;
-                }
-                int i = 0;
-                int f = frames.size();
-                for (BufferedImage frame : frames) {
-                    try {
-                        i++;
-                        String dots = "";
-                        for (int z = 0; z <= (i % 3); z++) {
-                            dots += ".";
-                        }
-                        message = Component.translatable("chat.blockshot.record.encoding", i, f + dots);
-                        ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
-                        writer.writeToSequence(frame);
-                    } catch (IOException e) {
-                        LOGGER.error("An error occurred while writing frames", e);
-                        IOUtils.closeQuietly(outputStream, imageStream);
-                        return;
-                    }
-                }
-                try {
-                    writer.close();
-                    imageStream.close();
-                    frames.clear();
-                } catch (IOException e) {
-                    LOGGER.error("An error occurred while writing frames", e);
-                    IOUtils.closeQuietly(outputStream, imageStream);
-                    return;
-                }
-                GifEncoder._frames.set(new ArrayList<BufferedImage>());
-                message = Component.translatable("chat.blockshot.record.start.upload");
-                ClientUtil.deleteMessage(BlockShot.CHAT_ENCODING_ID);
-                ClientUtil.sendMessage(message, BlockShot.CHAT_UPLOAD_ID);
-                try {
-                    byte[] bytes = outputStream.toByteArray();
-                    outputStream.close();
-                    ScreenshotHandler.uploadAndAddToChat(bytes, true, "gif");
-                    outputStream.close();
-                } catch (Exception e) {
-                    LOGGER.error("An error occurred while writing frames", e);
-                }
-            }
             addedFrames.set(0);
             processedFrames.set(0);
             isRecording = false;
         }, encoding);
+    }
+
+    private static void waitForFinish() {
+        //Combined frame wait here because realistically it should not take more than a fraction of a second.
+        //So do we really need to give the user a progress indicator?
+        while (isRecording || addedFrames.get() > processedFrames.get()) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) { }
+        }
+    }
+
+    private static void generateGif() {
+        if (GifEncoder._frames.get() == null) {
+            return;
+        }
+        List<BufferedImage> frames = GifEncoder._frames.get();
+        BufferedImage firstFrame = frames.get(0);
+        GifSequenceWriter writer = null;
+        ByteArrayOutputStream outputStream = null;
+        ImageOutputStream imageStream = null;
+        int duration = (int) (GifEncoder.totalSeconds / frames.size());
+
+        Component message = Component.translatable("chat.blockshot.record.preparing.complete");
+        ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
+        try {
+            outputStream = new ByteArrayOutputStream();
+            imageStream = ImageIO.createImageOutputStream(outputStream);
+            writer = new GifSequenceWriter(imageStream, firstFrame.getType(), duration, true);
+            writer.writeToSequence(firstFrame);
+        } catch (IOException e) {
+            LOGGER.error("An error occurred while writing frames", e);
+            IOUtils.closeQuietly(outputStream, imageStream);
+            return;
+        }
+        int i = 0;
+        int f = frames.size();
+        for (BufferedImage frame : frames) {
+            try {
+                i++;
+                String dots = "";
+                for (int z = 0; z <= (i % 3); z++) {
+                    dots += ".";
+                }
+                message = Component.translatable("chat.blockshot.record.encoding", i, f + dots);
+                ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
+                writer.writeToSequence(frame);
+            } catch (IOException e) {
+                LOGGER.error("An error occurred while writing frames", e);
+                IOUtils.closeQuietly(outputStream, imageStream);
+                return;
+            }
+        }
+        try {
+            writer.close();
+            imageStream.close();
+            frames.clear();
+        } catch (IOException e) {
+            LOGGER.error("An error occurred while writing frames", e);
+            IOUtils.closeQuietly(outputStream, imageStream);
+            return;
+        }
+        GifEncoder._frames.set(new ArrayList<>());
+        message = Component.translatable("chat.blockshot.record.start.upload");
+        ClientUtil.deleteMessage(BlockShot.CHAT_ENCODING_ID);
+        ClientUtil.sendMessage(message, BlockShot.CHAT_UPLOAD_ID);
+        try {
+            byte[] bytes = outputStream.toByteArray();
+            outputStream.close();
+            ScreenshotHandler.uploadAndAddToChat(bytes, true, "gif");
+            outputStream.close();
+        } catch (Exception e) {
+            LOGGER.error("An error occurred while writing frames", e);
+        }
+    }
+
+
+    public static void startStopRecording() {
+        if (isRecording) {
+            isRecording = false;
+        } else if (GifEncoder.canRecord()) {
+            begin();
+        }
+    }
+
+    public static void cancelRecording() {
+        if (isRecording) {
+            isCanceled = true;
+            isRecording = false;
+        }
+    }
+
+    private static boolean canRecord() {
+        return GifEncoder.processedFrames.get() == 0 && GifEncoder.addedFrames.get() == 0;
     }
 }
