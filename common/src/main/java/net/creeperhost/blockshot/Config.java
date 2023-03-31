@@ -2,6 +2,10 @@ package net.creeperhost.blockshot;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.creeperhost.blockshot.capture.Encoder;
+import net.creeperhost.blockshot.capture.GifEncoder;
+import net.creeperhost.blockshot.capture.RecordingHandler;
+import net.creeperhost.blockshot.capture.VideoEncoder;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
@@ -11,13 +15,14 @@ import java.io.FileWriter;
 import java.nio.charset.Charset;
 import java.util.Locale;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Config {
     public static Config INSTANCE;
 
     public Mode uploadMode = Mode.PROMPT;
     public ButtonPos buttonPos = ButtonPos.BOTTOM_LEFT;
+    private EncoderType encoderType = EncoderType.GIF;
     public boolean anonymous;
 
     public Config() {
@@ -31,6 +36,16 @@ public class Config {
     public Config(Mode mode, boolean anonymous) {
         this.uploadMode = mode;
         this.anonymous = anonymous;
+    }
+
+    public void setEncoderType(EncoderType encoderType) {
+        if (RecordingHandler.setEncoder(encoderType.createEncoder())) {
+            this.encoderType = encoderType;
+        }
+    }
+
+    public EncoderType getEncoderType() {
+        return encoderType;
     }
 
     public static String saveConfig() {
@@ -107,6 +122,27 @@ public class Config {
         }
         public int getY(int screenHeight, int buttonHeight) {
             return yGetter.apply(screenHeight, buttonHeight);
+        }
+    }
+
+    public enum EncoderType {
+        GIF(GifEncoder::new, false),
+        MOV(VideoEncoder::new, false);
+
+        private final Supplier<Encoder> getEncoder;
+        private final boolean requiresPremium;
+
+        EncoderType(Supplier<Encoder> getEncoder, boolean requiresPremium) {
+            this.getEncoder = getEncoder;
+            this.requiresPremium = requiresPremium;
+        }
+
+        public Encoder createEncoder() {
+            return getEncoder.get();
+        }
+
+        public boolean requiresPremium() {
+            return requiresPremium;
         }
     }
 }

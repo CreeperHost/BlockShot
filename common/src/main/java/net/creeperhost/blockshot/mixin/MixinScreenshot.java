@@ -2,7 +2,11 @@ package net.creeperhost.blockshot.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
-import net.creeperhost.blockshot.*;
+import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.ClientUtil;
+import net.creeperhost.blockshot.Config;
+import net.creeperhost.blockshot.capture.RecordingHandler;
+import net.creeperhost.blockshot.capture.ScreenshotHandler;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -29,7 +33,7 @@ public abstract class MixinScreenshot {
             return;
         }
 
-        if (GifEncoder.isRecording || Screen.hasControlDown()) {
+        if (RecordingHandler.getEncoder().isWorking() || Screen.hasControlDown()) {
             ci.cancel();
             return;
         }

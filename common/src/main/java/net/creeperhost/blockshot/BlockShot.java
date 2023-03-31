@@ -1,24 +1,17 @@
 package net.creeperhost.blockshot;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.mojang.authlib.exceptions.AuthenticationException;
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
+import net.creeperhost.blockshot.capture.Encoder;
+import net.creeperhost.blockshot.capture.VideoEncoder;
 import net.creeperhost.blockshot.gui.GuiEvents;
 import net.creeperhost.blockshot.mixin.MixinMinecraft;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MessageSignature;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
-import java.util.Base64;
-import java.util.Random;
 
 public class BlockShot {
     public static final String MOD_ID = "blockshot";
@@ -30,14 +23,15 @@ public class BlockShot {
 
     public static void init() {
         if (Platform.getEnvironment().equals(Env.CLIENT)) {
-            if (Auth.checkVerification() || Platform.isDevelopmentEnvironment()) {
+            Config.init(configLocation.toFile());
+            Auth.init();
+            if (Auth.checkMojangAuth() || Platform.isDevelopmentEnvironment()) {
                 _active = true;
             } else {
                 LOGGER.error("BlockShot will not run in offline mode.");
             }
         }
         if (BlockShot.isActive()) {
-            Config.init(configLocation.toFile());
             GuiEvents.init();
             Keybindings.init();
         }

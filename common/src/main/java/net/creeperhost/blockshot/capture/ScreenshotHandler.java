@@ -1,8 +1,14 @@
-package net.creeperhost.blockshot;
+package net.creeperhost.blockshot.capture;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.mojang.blaze3d.platform.NativeImage;
 import dev.architectury.platform.Platform;
+import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.ClientUtil;
+import net.creeperhost.blockshot.Config;
+import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.blockshot.gui.BlockShotClickEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -59,14 +65,15 @@ public class ScreenshotHandler {
         byte [] bytes = Arrays.copyOf(latest, latest.length);
         latest = null;
 
-        Util.ioPool().execute(() -> uploadAndAddToChat(bytes, writeOnFail, "png"));
+        Util.ioPool().execute(() -> uploadAndAddToChat(bytes, writeOnFail, "png", null, WebUtils.MediaType.JPEG));
     }
 
-    public static void uploadAndAddToChat(byte[] imageBytes, boolean writeOnFail, String fallbackExt) {
+    //TODO Clean up this upload code.
+    public static void uploadAndAddToChat(byte[] imageBytes, boolean writeOnFail, String fallbackExt, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
         Component finished = Component.translatable("chat.blockshot.upload.uploading");
         ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
 
-        String result = uploadImage(imageBytes);
+        String result = uploadImage(imageBytes, progress, type);
         if (result == null) {
             finished = Component.translatable("chat.blockshot.upload.error");
             ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
@@ -83,9 +90,10 @@ public class ScreenshotHandler {
         }
     }
 
-    public static String uploadImage(byte[] imageBytes) {
+    public static String uploadImage(byte[] imageBytes, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
         try {
-            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), false, false, true);
+//            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), false, false, true, progress);
+            String rsp = WebUtils.upload(Base64.getEncoder().encodeToString(imageBytes), type, progress);
             if (rsp.equals("error")) {
                 return null;
             }
