@@ -1,6 +1,6 @@
 package net.creeperhost.blockshot.mixin;
 
-import net.creeperhost.blockshot.RecordingHandler;
+import net.creeperhost.blockshot.capture.RecordingHandler;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

@@ -6,18 +6,13 @@ import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.hooks.client.screen.ScreenAccess;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
-import net.creeperhost.blockshot.GifEncoder;
-import net.creeperhost.blockshot.ScreenshotHandler;
-import net.minecraft.Util;
+import net.creeperhost.blockshot.capture.GifEncoder;
+import net.creeperhost.blockshot.capture.RecordingHandler;
+import net.creeperhost.blockshot.capture.ScreenshotHandler;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.controls.ControlsScreen;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -46,20 +41,21 @@ public class GuiEvents {
     }
 
     private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers) {
-        if (!Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode)) {
+        if (!Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode) || action != 1) {
             return EventResult.pass();
         }
 
-        if (keybindLast + 5 > Instant.now().getEpochSecond()) {
+        long elapsed = System.currentTimeMillis() - keybindLast;
+        if (elapsed < 5000 && !RecordingHandler.getEncoder().isWorking()) {
             return EventResult.pass();
         }
-        keybindLast = Instant.now().getEpochSecond();
+        keybindLast = System.currentTimeMillis();
 
         if (Screen.hasControlDown()) {
-            GifEncoder.startStopRecording();
+            RecordingHandler.getEncoder().startOrStopRecording();
             return EventResult.interrupt(true);
         } else if (Screen.hasShiftDown()) {
-            GifEncoder.cancelRecording();
+            RecordingHandler.getEncoder().cancelRecording();
         }
 
         return EventResult.pass();

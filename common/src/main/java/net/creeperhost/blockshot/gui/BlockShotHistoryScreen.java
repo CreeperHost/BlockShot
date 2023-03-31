@@ -6,12 +6,16 @@ import com.google.gson.JsonParser;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.polylib.client.screen.widget.LoadingSpinner;
 import net.creeperhost.polylib.client.screen.widget.ScreenList;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -20,10 +24,18 @@ import net.minecraft.world.item.Items;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.zip.InflaterInputStream;
 
 public class BlockShotHistoryScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -40,6 +52,7 @@ public class BlockShotHistoryScreen extends Screen {
     private boolean isLoading = true;
     //True if captures have been downloaded and do not need to be updated.
     private boolean capturesValid = false;
+    private boolean downloadError = false;
 
     private List<CompletableFuture<FutureTask>> activeTasks = new ArrayList<>();
 
@@ -66,6 +79,11 @@ public class BlockShotHistoryScreen extends Screen {
     }
 
     private void loadRemote(boolean forceUpdate) {
+        if (Config.INSTANCE.anonymous) {
+            capturesValid = false;
+            isLoading = false;
+            return;
+        }
         if (capturesValid && !forceUpdate) {
             if (!isLoading && !captureList.isEmpty()) {
                 loadCaptures();
@@ -74,6 +92,7 @@ public class BlockShotHistoryScreen extends Screen {
         }
         isLoading = true;
         capturesValid = true;
+        downloadError = false;
         activeTasks.add(CompletableFuture.supplyAsync(() -> new DownloadTask().runOffThread()));
     }
 
@@ -137,18 +156,27 @@ public class BlockShotHistoryScreen extends Screen {
             setButtons(!screenList.getCurrSelected().capInfo.deleting);
             lastSelected = screenList.getCurrSelected();
         }
+
         if (isLoading) {
             ticks++;
             LoadingSpinner.render(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
         }
         drawCenteredString(poseStack, font, this.getTitle(), width / 2, 15 - 4, 0xFFFFFF);
 
-        poseStack.pushPose();
-        poseStack.translate(5, 15, 0);
-        poseStack.scale(0.75F, 0.75F, 0.75F);
-        drawString(poseStack, font, Component.translatable("gui.blockshot.history.how_to_screenshot", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0xFFFFFF);
-        drawString(poseStack, font, Component.translatable("gui.blockshot.history.how_to_record", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0xFFFFFF);
-        poseStack.popPose();
+        if (downloadError) {
+            drawCenteredString(poseStack, font, Component.translatable("gui.blockshot.history.download_error"), width / 2, 11 + 10, 0xFF0000);
+        } else {
+            poseStack.pushPose();
+            poseStack.translate(5, 15, 0);
+            poseStack.scale(0.75F, 0.75F, 0.75F);
+            drawString(poseStack, font, Component.translatable("gui.blockshot.history.how_to_screenshot", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0xFFFFFF);
+            drawString(poseStack, font, Component.translatable("gui.blockshot.history.how_to_record", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0xFFFFFF);
+            poseStack.popPose();
+        }
+
+        if (Config.INSTANCE.anonymous) {
+            drawCenteredString(poseStack, font, Component.translatable("gui.blockshot.history.not_in_anon_mode"), width / 2, 11 + 50, 0xFF0000);
+        }
     }
 
     private abstract static class FutureTask {
@@ -159,6 +187,7 @@ public class BlockShotHistoryScreen extends Screen {
 
     private class DownloadTask extends FutureTask {
         private List<ScreenCapInfo> captures = new ArrayList<>();
+        private boolean errored = false;
 
         @Override
         public DownloadTask runOffThread() {
@@ -171,16 +200,14 @@ public class BlockShotHistoryScreen extends Screen {
                     captures.add(new ScreenCapInfo(obj.getAsJsonObject()));
                 }
             } else {
-//                //Used only in dev to help, as the list should stay 0 in prod otherwise it'll break for strange reasons.
-//                if (captures.isEmpty()) {
-//                    captures.add(new ScreenCapInfo(I18n.get("gui.blockshot.history.not_in_offline"), "", 0, true));
-//                }
+                errored = true;
             }
             return this;
         }
 
         @Override
         public void completeOnThread() {
+            downloadError = errored;
             isLoading = false;
             captureList.clear();
             captureList.addAll(captures);

@@ -22,6 +22,9 @@
 
     "gui.blockshot.settings.title":                             "Block Shot Settings",
     "gui.blockshot.settings.open.info":                         "Open BlockShot settings screen",
+    "gui.blockshot.settings.encoder":                           "Video Encoder",
+    "gui.blockshot.settings.encoder.gif":                       "Gif 360p",
+    "gui.blockshot.settings.encoder.mov":                       "MOV 720p",
 
     "gui.blockshot.history.title":                              "BlockShot Upload History",
     "gui.blockshot.history.copy_url":                           "Copy URL",
@@ -31,6 +34,8 @@
     "gui.blockshot.history.not_in_offline":                     "BlockShot not available in offline mode.",
     "gui.blockshot.history.how_to_screenshot":                  "%s to take a screenshot",
     "gui.blockshot.history.how_to_record":                      "Ctrl + %s to start / stop recording",
+    "gui.blockshot.history.download_error":                     "An error occurred while downloading history...",
+    "gui.blockshot.history.not_in_anon_mode":                   "Capture history is not available in anonymous mode.",
 
 
     "gui.blockshot.upload_mode.auto":                           "BlockShot Upload: Auto",
@@ -47,6 +52,9 @@
     "gui.blockshot.upload.history":                             "View BlockShot History",
 
     "overlay.blockshot.recording":                              "Recording with BlockShot",
+    "overlay.blockshot.encoding":                               "Encoding: %s frames remaining",
+    "overlay.blockshot.encoding_frame_of":                      "Encoding frame %s of %s",
+    "overlay.blockshot.uploading":                              "Uploading",
     "overlay.blockshot.finish":                                 "Press Ctrl + %s to finish recording.",
     "overlay.blockshot.cancel":                                 "Press Shift + %s to cancel recording."
 }

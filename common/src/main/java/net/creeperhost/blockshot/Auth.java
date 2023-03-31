@@ -1,24 +1,42 @@
 package net.creeperhost.blockshot;
 
+import com.google.common.hash.Hashing;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
+import dev.architectury.platform.Platform;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Created by brandon3055 on 23/03/2023
  */
 public class Auth {
+
+    private static final String CH_API = "https://api.creeper.host/";
     private static final Logger LOGGER = LogManager.getLogger();
     private static boolean verified = false;
     private static String serverId = null;
+    private static String uuidHash = null;
+    private static boolean hasPremium = false;
 
-    public static boolean checkVerification() {
+    public static void init() {
+        checkMojangAuth();
+        checkMTPremiumStatus();
+    }
+
+    public static boolean checkMojangAuth() {
         if (serverId == null) {
-            join();
+            doMojangAuth();
         } else {
             check();
         }
@@ -26,11 +44,11 @@ public class Auth {
     }
 
     public static String checkAndGetServerID() {
-        checkVerification();
+        checkMojangAuth();
         return serverId;
     }
 
-    private static void join() {
+    private static void doMojangAuth() {
         verified = false;
         Minecraft mc = Minecraft.getInstance();
         serverId = DigestUtils.sha1Hex(String.valueOf(new Random().nextInt()));
@@ -38,6 +56,13 @@ public class Auth {
         try {
             mc.getMinecraftSessionService().joinServer(mc.getUser().getGameProfile(), mc.getUser().getAccessToken(), serverId);
             verified = true;
+            if (uuidHash == null) {
+                GameProfile profile = mc.getUser().getGameProfile();
+                UUID uuid = profile.getId();
+                if (uuid != null){
+                    uuidHash = Hashing.sha256().hashString(uuid.toString(), UTF_8).toString().toUpperCase(Locale.ROOT);
+                }
+            }
         } catch (Throwable e) {
             LOGGER.error("Failed to validate with Mojang", e);
         }
@@ -55,6 +80,34 @@ public class Auth {
             }
         } catch (Throwable ignored) {}
 
-        join();
+        doMojangAuth();
+    }
+
+    public static void checkMTPremiumStatus() {
+        hasPremium = false;
+        if (uuidHash == null) {
+            return;
+        }
+
+        String profile = WebUtils.putWebResponse(CH_API + "minetogether/profile", "{\"target\":\""+uuidHash+"\"}", true, true, null);
+        if ("error".equals(profile)) {
+            return;
+        }
+
+        try {
+            JsonObject response = JsonParser.parseString(profile).getAsJsonObject();
+            if (!"success".equals(response.get("status").getAsString())) {
+                return;
+            }
+
+            JsonObject data = response.getAsJsonObject("profileData").getAsJsonObject(uuidHash);
+            hasPremium = data.get("premium").getAsBoolean();
+        }catch (Throwable e) {
+            LOGGER.error("An error occurred while retrieving MineTogether profile", e);
+        }
+    }
+
+    public static boolean hasPremium() {
+        return hasPremium || Platform.isDevelopmentEnvironment(); //TODO Will want to do some testing with an actual premium account.
     }
 }
