@@ -26,6 +26,7 @@ configurations {
     common
     shadowLib
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    shadowCommon.extendsFrom shadowLib
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
     developmentForge.extendsFrom common
@@ -60,10 +61,11 @@ shadowJar {
     exclude "architectury.common.json"
 
     configurations = [project.configurations.shadowCommon]
-    relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
-    relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
     classifier "dev-shadow"
     mergeServiceFiles()
+
+    relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
+    relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
 }
 
 remapJar {
