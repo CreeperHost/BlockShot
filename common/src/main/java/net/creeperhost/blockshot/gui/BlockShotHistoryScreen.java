@@ -1,5 +1,6 @@
 package net.creeperhost.blockshot.gui;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -53,6 +54,7 @@ public class BlockShotHistoryScreen extends Screen {
     //True if captures have been downloaded and do not need to be updated.
     private boolean capturesValid = false;
     private boolean downloadError = false;
+    private AtomicDouble downloadProgress = new AtomicDouble(-1);
 
     private List<CompletableFuture<FutureTask>> activeTasks = new ArrayList<>();
 
@@ -160,6 +162,14 @@ public class BlockShotHistoryScreen extends Screen {
         if (isLoading) {
             ticks++;
             LoadingSpinner.render(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
+
+            if (downloadProgress.get() != -1) {
+                if (downloadProgress.get() > 1) {
+                    drawCenteredString(poseStack, font, Component.literal(Math.round(downloadProgress.get() / 1000) + "KB"), width / 2, (height / 2) + 50, 0xFFFFFF);
+                } else {
+                    drawCenteredString(poseStack, font, Component.literal(Math.round(downloadProgress.get() * 100) + "%"), width / 2, (height / 2) + 50, 0xFFFFFF);
+                }
+            }
         }
         drawCenteredString(poseStack, font, this.getTitle(), width / 2, 15 - 4, 0xFFFFFF);
 
@@ -192,7 +202,8 @@ public class BlockShotHistoryScreen extends Screen {
         @Override
         public DownloadTask runOffThread() {
             captures = new ArrayList<>();
-            String rsp = WebUtils.getWebResponse("https://blockshot.ch/list");
+            downloadProgress.set(-1);
+            String rsp = WebUtils.get("https://blockshot.ch/list", downloadProgress);
             if (!rsp.equals("error")) {
                 JsonElement jsonElement = JsonParser.parseString(rsp);
                 JsonArray images = jsonElement.getAsJsonArray();
@@ -202,6 +213,7 @@ public class BlockShotHistoryScreen extends Screen {
             } else {
                 errored = true;
             }
+            downloadProgress.set(-1);
             return this;
         }
 
@@ -224,7 +236,7 @@ public class BlockShotHistoryScreen extends Screen {
 
         @Override
         public DeleteTask runOffThread() {
-            WebUtils.getWebResponse("https://blockshot.ch/delete/" + capInfo.id);
+            WebUtils.get("https://blockshot.ch/delete/" + capInfo.id, null);
             return this;
         }
 

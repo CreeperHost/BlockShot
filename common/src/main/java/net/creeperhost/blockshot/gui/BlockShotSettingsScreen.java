@@ -66,7 +66,7 @@ public class BlockShotSettingsScreen extends Screen {
         setGif.setSelected(() -> Config.INSTANCE.getEncoderType() == Config.EncoderType.GIF);
 
         Button.OnTooltip premiumTooltip = Auth.hasPremium() ? Button.NO_TOOLTIP : (button, poseStack, x, y) -> {
-            List<FormattedCharSequence> list = font.split(Component.literal("Due to high bandwidth requirements this option is currently only available to MineTogether premium supporters"), (int) (width / 2.1));
+            List<FormattedCharSequence> list = font.split(Component.translatable("gui.blockshot.settings.encoder.mov.experimental"), (int) (width / 2.1));
             renderTooltip(poseStack, list, x, y);
         };
 

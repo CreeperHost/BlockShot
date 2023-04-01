@@ -25,6 +25,7 @@
     "gui.blockshot.settings.encoder":                           "Video Encoder",
     "gui.blockshot.settings.encoder.gif":                       "Gif 360p",
     "gui.blockshot.settings.encoder.mov":                       "MOV 720p",
+    "gui.blockshot.settings.encoder.mov.experimental":          "Experimental 720p encoder is currently only available to MineTogether premium supporters",
 
     "gui.blockshot.history.title":                              "BlockShot Upload History",
     "gui.blockshot.history.copy_url":                           "Copy URL",

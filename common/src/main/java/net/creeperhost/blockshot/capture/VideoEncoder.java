@@ -2,8 +2,6 @@ package net.creeperhost.blockshot.capture;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -19,19 +17,14 @@ import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jcodec.api.SequenceEncoder;
-import org.jcodec.api.transcode.AudioFrameWithPacket;
-import org.jcodec.api.transcode.Sink;
-import org.jcodec.api.transcode.SinkImpl;
 import org.jcodec.common.Codec;
 import org.jcodec.common.Format;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.*;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.openal.AL10;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -74,14 +67,6 @@ public class VideoEncoder implements Encoder {
                 isRecording = true;
                 tempFile.getParentFile().mkdirs();
                 activeEncoder = new SequenceEncoder(NIOUtils.writableChannel(tempFile), Rational.R(FPS, 1), Format.MKV, Codec.VP8, null);
-
-//                Sink sink = SinkImpl.createWithStream(NIOUtils.writableChannel(tempFile), Format.MKV, Codec.VP8, Codec.OPUS);
-
-//                Packet pkt = Packet.createPacket((ByteBuffer)null, (long)this.timestamp, this.fps.getNum(), (long)this.fps.getDen(), (long)this.frameNo, Packet.FrameType.KEY, (TapeTimecode)null);
-
-//                sink.outputAudioFrame(new AudioFrame());
-//                Minecraft.getInstance().getSoundManager().
-
                 recordStartTime = lastFrameTime = System.currentTimeMillis();
             }
         } catch (IOException e) {
@@ -179,21 +164,13 @@ public class VideoEncoder implements Encoder {
         uploadProgress.set(0);
         //Upload
         CompletableFuture.runAsync(() -> {
-            try (FileInputStream is = new FileInputStream(tempFile)){
-                uploadAndAddToChat(is.readAllBytes(), true, "mov", uploadProgress);
-            } catch (IOException e) {
-                LOGGER.error("An error occurred while uploading video", e);
-            } finally {
-                tempFile.delete();
-                isRecording = stopping = false;
-            }
+            uploadAndAddToChat(true, "mov", uploadProgress);
+            isRecording = stopping = false;
+            tempFile.delete();
         });
     }
 
-    //########### Testing ###############
-
-
-    public void uploadAndAddToChat(byte[] imageBytes, boolean writeOnFail, String fallbackExt, @Nullable AtomicDouble progress) {
+    public void uploadAndAddToChat(boolean writeOnFail, String fallbackExt, @Nullable AtomicDouble progress) {
         Component finished = Component.translatable("chat.blockshot.upload.uploading");
         ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
 
@@ -204,7 +181,11 @@ public class VideoEncoder implements Encoder {
 
             //Fallback
             if (writeOnFail) {
-                ScreenshotHandler.saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                try (FileInputStream is = new FileInputStream(tempFile)){
+                    ScreenshotHandler.saveLocal(is.readAllBytes(), Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                } catch (IOException e) {
+                    LOGGER.error("An error occurred while uploading image", e);
+                }
             }
         } else if (result.startsWith("http")) {
             Component link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
@@ -216,34 +197,13 @@ public class VideoEncoder implements Encoder {
 
     public String uploadImage(File file, @Nullable AtomicDouble progress) {
         try (InputStream is = new FileInputStream(file)){
-//            String rsp = WebUtils.methodVideoWebResponse("https://blockshot.ch/upload", file, "PUT");
-//            String rsp = WebUtils.upload(file, WebUtils.MediaType.MOV);
-            String rsp = WebUtils.upload(Base64.getEncoder().encodeToString(is.readAllBytes()), MEDIA_TYPE, progress);
-            if (rsp.equals("error")) {
-                return null;
-            }
-
-            JsonElement jsonElement = JsonParser.parseString(rsp);
-            String status = jsonElement.getAsJsonObject().get("status").getAsString();
-            if (!status.equals("error")) {
-                return jsonElement.getAsJsonObject().get("url").getAsString();
-            } else {
-                LOGGER.error(jsonElement.getAsJsonObject().get("message").getAsString());
-                return null;
-            }
+            String rsp = WebUtils.post("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(is.readAllBytes()), MEDIA_TYPE, progress);
+            return ScreenshotHandler.readJsonResponse(rsp);
         } catch (Throwable t) {
-            LOGGER.error("An error occurred while uploading image", t);
+            LOGGER.error("An error occurred while uploading video", t);
         }
         return null;
     }
-
-
-
-
-    //########### Testing ###############
-
-
-
 
     @Override
     public boolean showRecordIcon() {
@@ -263,9 +223,6 @@ public class VideoEncoder implements Encoder {
         if (stopping && !activeFutures.isEmpty()) {
             list.add(Component.translatable("overlay.blockshot.encoding", activeFutures.size()).withStyle(ChatFormatting.RED));
         } else if (stopping && activeEncoder == null) {
-//            String s = "";
-//            for (int i = 0; i < (System.currentTimeMillis() / 500) % 4; i++) s += ".";
-//            list.add(Component.translatable("overlay.blockshot.uploading").append(s).withStyle(ChatFormatting.RED));
             list.add(Component.translatable("overlay.blockshot.uploading").append(": " + Math.round(uploadProgress.get() * 100) + "%").withStyle(ChatFormatting.RED));
         }
 

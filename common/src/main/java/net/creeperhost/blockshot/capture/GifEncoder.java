@@ -238,9 +238,6 @@ public class GifEncoder implements Encoder {
         if (stopping && totalFrames != null) {
             list.add(Component.translatable("overlay.blockshot.encoding_frame_of", currentFrame, totalFrames).withStyle(ChatFormatting.RED));
         } else if (stopping) {
-//            String s = "";
-//            for (int i = 0; i < (System.currentTimeMillis() / 500) % 4; i++) s += ".";
-//            list.add(Component.translatable("overlay.blockshot.uploading").append(s).withStyle(ChatFormatting.RED));
             list.add(Component.translatable("overlay.blockshot.uploading").append(": " + Math.round(uploadProgress.get() * 100) + "%").withStyle(ChatFormatting.RED));
         }
 
