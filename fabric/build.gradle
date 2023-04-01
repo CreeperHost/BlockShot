@@ -50,10 +50,11 @@ processResources {
 
 shadowJar {
     configurations = [project.configurations.shadowCommon]
-    relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
-    relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
     classifier "dev-shadow"
     mergeServiceFiles()
+
+    relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
+    relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
 }
 
 remapJar {
