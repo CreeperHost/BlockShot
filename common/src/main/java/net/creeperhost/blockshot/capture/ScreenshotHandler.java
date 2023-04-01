@@ -3,7 +3,6 @@ package net.creeperhost.blockshot.capture;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.mojang.blaze3d.platform.NativeImage;
 import dev.architectury.platform.Platform;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.ClientUtil;
@@ -62,13 +61,12 @@ public class ScreenshotHandler {
         if (latest == null || latest.length == 0) return;
 
         //Copy the array just in case another screenshot is taken while the previous is being uploaded.
-        byte [] bytes = Arrays.copyOf(latest, latest.length);
+        byte[] bytes = Arrays.copyOf(latest, latest.length);
         latest = null;
 
-        Util.ioPool().execute(() -> uploadAndAddToChat(bytes, writeOnFail, "png", null, WebUtils.MediaType.JPEG));
+        Util.ioPool().execute(() -> uploadAndAddToChat(bytes, writeOnFail, "png", null, WebUtils.MediaType.PNG));
     }
 
-    //TODO Clean up this upload code.
     public static void uploadAndAddToChat(byte[] imageBytes, boolean writeOnFail, String fallbackExt, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
         Component finished = Component.translatable("chat.blockshot.upload.uploading");
         ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
@@ -92,19 +90,23 @@ public class ScreenshotHandler {
 
     public static String uploadImage(byte[] imageBytes, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
         try {
-//            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), false, false, true, progress);
-            String rsp = WebUtils.upload(Base64.getEncoder().encodeToString(imageBytes), type, progress);
-            if (rsp.equals("error")) {
-                return null;
-            }
+            String rsp = WebUtils.post("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), type, progress);
+            return readJsonResponse(rsp);
+        } catch (Throwable t) {
+            LOGGER.error("An error occurred while uploading image", t);
+        }
+        return null;
+    }
 
+    public static String readJsonResponse(String rsp) {
+        try {
+            if (rsp.equals("error")) return null;
             JsonElement jsonElement = JsonParser.parseString(rsp);
             String status = jsonElement.getAsJsonObject().get("status").getAsString();
             if (!status.equals("error")) {
                 return jsonElement.getAsJsonObject().get("url").getAsString();
             } else {
-                LOGGER.error(jsonElement.getAsJsonObject().get("message").getAsString());
-                return null;
+                LOGGER.error("Server Response: {}", jsonElement.getAsJsonObject().get("message").getAsString());
             }
         } catch (Throwable t) {
             LOGGER.error("An error occurred while uploading image", t);
@@ -114,14 +116,14 @@ public class ScreenshotHandler {
 
     /**
      * extension is only used if a file name is not provided.
-     * */
+     */
     public static void saveLocal(byte[] bytes, File gameDir, @Nullable String fileName, String extension, Consumer<Component> consumer, String msgSuccess, String msgFail) {
         File file2 = new File(gameDir, "screenshots");
         file2.mkdir();
         File outputFile = fileName == null ? getFile(file2, extension) : new File(file2, fileName);
 
         Util.ioPool().execute(() -> {
-            try (OutputStream os = new FileOutputStream(outputFile)){
+            try (OutputStream os = new FileOutputStream(outputFile)) {
                 os.write(bytes);
                 Component component = Component.literal(outputFile.getName()).withStyle(ChatFormatting.UNDERLINE).withStyle((style) -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, outputFile.getAbsolutePath())));
                 consumer.accept(Component.translatable(msgSuccess, component));
@@ -135,7 +137,7 @@ public class ScreenshotHandler {
     public static File getFile(File directory, String extension) {
         String dateTimeString = Util.getFilenameFormattedDateTime();
         int i = 1;
-        while(true) {
+        while (true) {
             File result = new File(directory, dateTimeString + (i == 1 ? "" : "_" + i) + "." + extension);
             if (!result.exists()) {
                 return result;

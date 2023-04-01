@@ -41,7 +41,7 @@ public class GuiEvents {
     }
 
     private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers) {
-        if (!Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode) || action != 1) {
+        if (!Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode) || action != 0) { //Have to use key release because key pressed does not get fired on forge for keyScreenshot.
             return EventResult.pass();
         }
 

@@ -4,12 +4,10 @@ import com.google.common.hash.Hashing;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
-import dev.architectury.platform.Platform;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Random;
@@ -89,7 +87,7 @@ public class Auth {
             return;
         }
 
-        String profile = WebUtils.putWebResponse(CH_API + "minetogether/profile", "{\"target\":\""+uuidHash+"\"}", true, true, null);
+        String profile = WebUtils.post(CH_API + "minetogether/profile", "{\"target\":\""+uuidHash+"\"}", WebUtils.MediaType.JSON, null);
         if ("error".equals(profile)) {
             return;
         }
@@ -108,6 +106,6 @@ public class Auth {
     }
 
     public static boolean hasPremium() {
-        return hasPremium || Platform.isDevelopmentEnvironment(); //TODO Will want to do some testing with an actual premium account.
+        return hasPremium;
     }
 }
