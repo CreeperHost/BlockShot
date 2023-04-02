@@ -6,6 +6,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.architectury.platform.Platform;
+import net.creeperhost.blockshot.Auth;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.WebUtils;
@@ -20,11 +21,15 @@ import org.jcodec.api.SequenceEncoder;
 import org.jcodec.common.Codec;
 import org.jcodec.common.Format;
 import org.jcodec.common.io.NIOUtils;
-import org.jcodec.common.model.*;
+import org.jcodec.common.model.Picture;
+import org.jcodec.common.model.Rational;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -163,6 +168,7 @@ public class VideoEncoder implements Encoder {
 
         uploadProgress.set(0);
         //Upload
+        Auth.resetAuth();
         CompletableFuture.runAsync(() -> {
             uploadAndAddToChat(true, "mov", uploadProgress);
             isRecording = stopping = false;

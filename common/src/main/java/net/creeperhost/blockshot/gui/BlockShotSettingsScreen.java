@@ -10,11 +10,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.FormattedCharSequence;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class BlockShotSettingsScreen extends Screen {

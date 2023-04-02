@@ -11,12 +11,8 @@ import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.polylib.client.screen.widget.LoadingSpinner;
 import net.creeperhost.polylib.client.screen.widget.ScreenList;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -25,18 +21,10 @@ import net.minecraft.world.item.Items;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.zip.InflaterInputStream;
 
 public class BlockShotHistoryScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();

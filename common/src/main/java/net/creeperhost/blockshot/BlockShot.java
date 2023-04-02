@@ -2,8 +2,6 @@ package net.creeperhost.blockshot;
 
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
-import net.creeperhost.blockshot.capture.Encoder;
-import net.creeperhost.blockshot.capture.VideoEncoder;
 import net.creeperhost.blockshot.gui.GuiEvents;
 import net.creeperhost.blockshot.mixin.MixinMinecraft;
 import net.minecraft.client.Minecraft;

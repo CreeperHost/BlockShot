@@ -3,7 +3,6 @@ package net.creeperhost.blockshot;
 import com.google.common.util.concurrent.AtomicDouble;
 import net.creeperhost.blockshot.lib.TrackableByteArrayEntity;
 import net.minecraft.client.Minecraft;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.StatusLine;
@@ -19,14 +18,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 
 public class WebUtils {
     public static final Logger LOGGER = LogManager.getLogger();

@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.creeperhost.blockshot.BlockShot;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 
 import javax.imageio.ImageIO;

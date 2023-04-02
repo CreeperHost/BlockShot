@@ -54,6 +54,7 @@ public class Auth {
         try {
             mc.getMinecraftSessionService().joinServer(mc.getUser().getGameProfile(), mc.getUser().getAccessToken(), serverId);
             verified = true;
+            LOGGER.info("New Auth: " + serverId);
             if (uuidHash == null) {
                 GameProfile profile = mc.getUser().getGameProfile();
                 UUID uuid = profile.getId();
@@ -107,5 +108,14 @@ public class Auth {
 
     public static boolean hasPremium() {
         return hasPremium;
+    }
+
+    /**
+     * Mojang auth times out after 2 minutes so calling this before an upload means
+     * the upload will start with a fresh auth and can take up to 2 minutes.
+     */
+    public static void resetAuth() {
+        LOGGER.info("Clear Auth: " + serverId);
+        serverId = null;
     }
 }
