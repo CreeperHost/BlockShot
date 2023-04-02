@@ -1,6 +1,5 @@
 package net.creeperhost.blockshot.gui;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;

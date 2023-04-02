@@ -4,10 +4,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import dev.architectury.platform.Platform;
-import net.creeperhost.blockshot.BlockShot;
-import net.creeperhost.blockshot.ClientUtil;
-import net.creeperhost.blockshot.Config;
-import net.creeperhost.blockshot.WebUtils;
+import net.creeperhost.blockshot.*;
 import net.creeperhost.blockshot.gui.BlockShotClickEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -64,6 +61,7 @@ public class ScreenshotHandler {
         byte[] bytes = Arrays.copyOf(latest, latest.length);
         latest = null;
 
+        Auth.resetAuth();
         Util.ioPool().execute(() -> uploadAndAddToChat(bytes, writeOnFail, "png", null, WebUtils.MediaType.PNG));
     }
 

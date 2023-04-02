@@ -6,7 +6,6 @@ import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.hooks.client.screen.ScreenAccess;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
-import net.creeperhost.blockshot.capture.GifEncoder;
 import net.creeperhost.blockshot.capture.RecordingHandler;
 import net.creeperhost.blockshot.capture.ScreenshotHandler;
 import net.minecraft.client.Minecraft;
@@ -16,8 +15,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
-
-import java.time.Instant;
 
 /**
  * Created by brandon3055 on 18/03/2023
