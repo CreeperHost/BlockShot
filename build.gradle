@@ -21,7 +21,7 @@ subprojects {
         // The following line declares the yarn mappings you may select this one as well.
         // mappings "net.fabricmc:yarn:1.18+build.1:v2"
 
-        runtimeClasspath 'net.covers1624:DevLogin:0.1.+'
+//        implementation 'net.creeperhost:jcodec:0.2.6'
     }
 }
 
@@ -35,6 +35,7 @@ allprojects {
     group = rootProject.maven_group
 
     repositories {
+        mavenLocal()
         maven {
             name "CreeperHost"
             url 'https://maven.creeperhost.net'
