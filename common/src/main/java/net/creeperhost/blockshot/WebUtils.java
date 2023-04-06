@@ -1,169 +1,141 @@
 package net.creeperhost.blockshot;
 
+import com.google.common.util.concurrent.AtomicDouble;
+import net.creeperhost.blockshot.lib.TrackableByteArrayEntity;
 import net.minecraft.client.Minecraft;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 
 public class WebUtils {
-    private static List<String> cookies;
+    public static final Logger LOGGER = LogManager.getLogger();
 
-    public static String getWebResponse(String urlString) {
-        return getWebResponse(urlString, 0, false);
+    public static String get(String url, @Nullable AtomicDouble progress) {
+        return executeWebRequest(new HttpGet(url), null, progress);
     }
 
-    public static String getWebResponse(String urlString, int timeout) {
-        return getWebResponse(urlString, timeout, false);
+    public static String post(String url, String data, MediaType type, @Nullable AtomicDouble progress) {
+        byte[] postData = data.getBytes(StandardCharsets.UTF_8);
+        HttpPost httppost = new HttpPost(url);
+        httppost.setEntity(new TrackableByteArrayEntity(postData, progress));
+        httppost.setHeader("charset", "utf-8");
+        return executeWebRequest(httppost, type, null);
     }
 
-    public static String getWebResponse(String urlString, int timeout, boolean print) {
-        try {
-            if (timeout == 0) timeout = 120000;
+    public static String post(String url, byte[] bytes, MediaType type, @Nullable AtomicDouble progress) {
+        HttpPost httppost = new HttpPost(url);
+        httppost.setEntity(new TrackableByteArrayEntity(bytes, progress));
+        return executeWebRequest(httppost, type, null);
+    }
 
-            URL url = new URL(urlString);
-            URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
-            url = uri.toURL();
-            // lul
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            //            conn.setConnectTimeout(10);
-            conn.setReadTimeout(timeout);
-            conn.setRequestMethod("GET");
+    public static String post(String url, File file, MediaType type) {
+        HttpPost httppost = new HttpPost(url);
+        httppost.setEntity(new FileEntity(file));
+        return executeWebRequest(httppost, type, null);
+    }
 
-            if (cookies != null) {
-                for (String cookie : cookies) {
-                    conn.addRequestProperty("Cookie", cookie.split(";", 2)[0]);
-                }
-            }
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.138 Safari/537.36 Vivaldi/1.8.770.56 MineTogether/0.0.0");
-            //Used only to verify you against Mojang using hasJoined
-            conn.setRequestProperty("Server-Id", BlockShot.getServerIDAndVerify());
-            conn.setRequestProperty("Minecraft-Name", Minecraft.getInstance().getUser().getName());
-            if (!Config.INSTANCE.anonymous) {
-                //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
-                conn.setRequestProperty("Minecraft-Uuid", Minecraft.getInstance().getUser().getUuid());
-            }
-            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            StringBuilder respData = new StringBuilder();
-            while ((line = rd.readLine()) != null) {
-                respData.append(line);
-                respData.append("\n");
+    private static String executeWebRequest(HttpUriRequest message, @Nullable MediaType type, @Nullable AtomicDouble progress) {
+        try (CloseableHttpClient client = buildClient()) {
+            applyHeaders(message, type);
+            CloseableHttpResponse response = client.execute(message);
+            StatusLine status = response.getStatusLine();
+
+            if (status.getStatusCode() != 200) {
+                LOGGER.error("Web Request failed. Returned response code: {}, Reason: {}", status.getStatusCode(), status.getReasonPhrase());
+                return "error";
             }
 
-            List<String> setCookies = conn.getHeaderFields().get("Set-Cookie");
-
-            if (setCookies != null) {
-                cookies = setCookies;
-            }
-
-            rd.close();
-            return respData.toString();
-        } catch (Throwable throwable) {
-//            BlockShot.logger.error(throwable);
+            return handleResponse(response, progress);
+        } catch (IOException e) {
+            LOGGER.error("Something went wrong while executing web request", e);
         }
         return "error";
     }
 
-    private static String mapToFormString(Map<String, String> map) {
-        StringBuilder postDataStringBuilder = new StringBuilder();
-
-        String postDataString;
-
+    private static String handleResponse(CloseableHttpResponse response, @Nullable AtomicDouble progress) throws IOException {
+        HttpEntity entity = response.getEntity();
+        long len = entity.getContentLength();
+        InputStream is = entity.getContent();
         try {
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                postDataStringBuilder.append(URLEncoder.encode(entry.getKey(), "UTF-8")).append("=").append(URLEncoder.encode(entry.getValue(), "UTF-8")).append("&");
+            ByteArrayOutputStream resultBuffer = new ByteArrayOutputStream();
+            byte[] buffer = new byte[512];
+            long count = 0;
+            int n;
+            while (-1 != (n = is.read(buffer))) {
+                resultBuffer.write(buffer, 0, n);
+                count += n;
+                if (progress != null) progress.set(len > 0 ? (count / (double) len) : Math.max(1.1, count));
             }
-        } catch (Exception ignored) {
-        } finally {
-            postDataString = postDataStringBuilder.toString();
+            String res = resultBuffer.toString();
+            if (res.isEmpty()) {
+                //For now this is fine but if we ever need to do a request that expects an empty response then this will have to move.
+                LOGGER.error("Error executing web request, Empty response");
+                return "error";
+            }
+            return res;
         }
-        return postDataString;
-    }
-
-    public static String postWebResponse(String urlString, Map<String, String> postDataMap) {
-        return postWebResponse(urlString, mapToFormString(postDataMap));
-    }
-
-    public static String methodWebResponse(String urlString, String postDataString, String method, boolean isJson, boolean silent, boolean gif) {
-        try {
-            postDataString.substring(0, postDataString.length() - 1);
-
-            byte[] postData = postDataString.getBytes(StandardCharsets.UTF_8);
-            int postDataLength = postData.length;
-
-            URL url = new URL(urlString);
-
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.138 Safari/537.36 Vivaldi/1.8.770.56 BlockShot/1.0.0");
-
-            //Used only to verify you against Mojang using hasJoined
-            conn.setRequestProperty("Server-Id", BlockShot.getServerIDAndVerify());
-            conn.setRequestProperty("Minecraft-Name", Minecraft.getInstance().getUser().getName());
-            if (!Config.INSTANCE.anonymous) {
-                //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
-                conn.setRequestProperty("Minecraft-Uuid", Minecraft.getInstance().getUser().getUuid());
-            }
-            conn.setRequestMethod(method);
-            if (cookies != null) {
-                for (String cookie : cookies) {
-                    conn.addRequestProperty("Cookie", cookie.split(";", 2)[0]);
-                }
-            }
-            if (gif) {
-                conn.setRequestProperty("Screencap-Type", "image/gif");
-            } else {
-                conn.setRequestProperty("Screencap-Type", "image/jpeg");
-            }
-            conn.setRequestProperty("Content-Type", isJson ? "application/json" : "application/x-www-form-urlencoded");
-            conn.setRequestProperty("charset", "utf-8");
-            conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
-            conn.setConnectTimeout(5000);
-            conn.setUseCaches(false);
-            conn.setDoOutput(true);
-            try {
-                DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
-                wr.write(postData);
-            } catch (Throwable ignored) {
-            }
-
-            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            StringBuilder respData = new StringBuilder();
-            while ((line = rd.readLine()) != null) {
-                respData.append(line);
-            }
-
-            List<String> setCookies = conn.getHeaderFields().get("Set-Cookie");
-
-            if (setCookies != null) {
-                cookies = setCookies;
-            }
-
-            rd.close();
-            return respData.toString();
-        } catch (Throwable e) {
-            e.printStackTrace();
+        finally {
+            IOUtils.closeQuietly(response, is);
         }
-        return "error";
     }
 
-    public static String postWebResponse(String urlString, String postDataString) {
-        return methodWebResponse(urlString, postDataString, "POST", false, false, false);
+    private static CloseableHttpClient buildClient() {
+        //TODO Cookies? They dont seem to be used by the current system so do we need them?
+        HttpClientBuilder clientBuilder = HttpClients.custom()
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.138 Safari/537.36 Vivaldi/1.8.770.56 BlockShot/1.0.0");
+        return clientBuilder.build();
     }
 
-    public static String putWebResponse(String urlString, String body, boolean isJson, boolean isSilent) {
-        return methodWebResponse(urlString, body, "PUT", isJson, isSilent, false);
+    private static void applyHeaders(HttpUriRequest message, @Nullable MediaType type) {
+        message.setHeader("Server-Id", Auth.checkAndGetServerID());
+        message.setHeader("Minecraft-Name", Minecraft.getInstance().getUser().getName());
+        if (!Config.INSTANCE.anonymous) {
+            message.setHeader("Minecraft-Uuid", Minecraft.getInstance().getUser().getUuid()); //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
+        }
+        if (type != null) {
+            type.apply(message);
+        }
     }
 
-    public static String putWebResponse(String urlString, String body, boolean isJson, boolean isSilent, boolean isAnimated) {
-        return methodWebResponse(urlString, body, "PUT", isJson, isSilent, true);
+    public enum MediaType {
+        //        JPEG("Screencap-Type", "image/jpeg", HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+        PNG("Screencap-Type", "image/png", HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+        GIF("Screencap-Type", "image/gif", HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+        //        MOV("Screencap-Type", "video/quicktime", HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+//        MP4("Screencap-Type", "video/mp4", HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+        WEBM("Screencap-Type", "video/webm", HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+        //        AVI("Screencap-Type", "video/x-msvideo", HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+//        MKV("Screencap-Type", "video/x-matroska", HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+        JSON(HttpHeaders.CONTENT_TYPE, "application/json");
+
+        private final String[] headers;
+
+        MediaType(String... headers) {
+            this.headers = headers;
+        }
+
+        public void apply(HttpUriRequest message) {
+            for (int i = 0; i < headers.length; i += 2) {
+                message.setHeader(headers[i], headers[i + 1]);
+            }
+        }
     }
 }

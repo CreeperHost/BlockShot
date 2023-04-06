@@ -1,0 +1,7 @@
+accessWidener	v1  named
+#accessible field net/minecraft/client/Options keyMappings [Lnet/minecraft/client/KeyMapping;
+#mutable field net/minecraft/client/Options keyMappings [Lnet/minecraft/client/KeyMapping;
+#
+#accessible method net/minecraft/client/gui/components/ChatComponent addMessage (Lnet/minecraft/network/chat/Component;I)V
+
+#accessible method net/minecraft/client/gui/NewChatGui addMessage (Lnet/minecraft/util/text/ITextComponent;I)V

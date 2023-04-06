@@ -6,8 +6,8 @@ import net.minecraft.client.gui.screens.Screen;
 
 public class ScreenList<T extends ScreenListEntry> extends AbstractSelectionList {
     public final Screen screen;
-    public final int width;
-    public final int height;
+//    public final int field_22742;
+//    public final int field_22743;
     public final int rowWidth;
     public int scrollBarPosition = -1;
 
@@ -55,7 +55,6 @@ public class ScreenList<T extends ScreenListEntry> extends AbstractSelectionList
     public int getHeight() {
         return height;
     }
-
 
     public void setScrollBarPosition(int value) {
         this.scrollBarPosition = value;

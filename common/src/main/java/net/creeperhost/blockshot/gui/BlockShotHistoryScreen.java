@@ -1,262 +1,243 @@
 package net.creeperhost.blockshot.gui;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
-import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ExecutionException;
 
 public class BlockShotHistoryScreen extends Screen {
-
+    private static final Logger LOGGER = LogManager.getLogger();
+    private ScreenList<BlockShotListEntry> screenList;
+    private List<ScreenCapInfo> captureList = new ArrayList<>();
+    private BlockShotListEntry lastSelected;
     private Button deleteButton;
     private Button viewButton;
     private Button copyButton;
-    private ScreenList<BlockShotHistoryEntry> list;
-    public Screen parent;
+    private Screen parent;
+    private int ticks = 0;
+
+    //True if currently downloading captures
+    private boolean isLoading = true;
+    //True if captures have been downloaded and do not need to be updated.
+    private boolean capturesValid = false;
+    private boolean downloadError = false;
+    private AtomicDouble downloadProgress = new AtomicDouble(-1);
+
+    private List<CompletableFuture<FutureTask>> activeTasks = new ArrayList<>();
 
     public BlockShotHistoryScreen(Screen parent) {
-        super(new TextComponent("BlockShot Upload History"));
+        super(new TranslatableComponent("gui.blockshot.history.title"));
         this.parent = parent;
-        if (caps.get() == null) caps.getAndSet(new ArrayList<ScreencapListItem>());
     }
-
-    boolean isLoading = true;
 
     @Override
     protected void init() {
-        list = new ScreenList(this, this.minecraft, this.width, this.height, 56, this.height - 36, 36);
-        this.loadRemote().thenRun(() -> isLoading = false);
-        this.addWidget(list);
-        this.copyButton = (Button) this.addButton(new Button(this.width / 2 - (76 * 2), this.height - 28, 72, 20, new TranslatableComponent("Copy URL"), (arg) -> {
-            list.getCurrSelected().copyUrl();
-        }));
-        this.deleteButton = (Button) this.addButton(new Button(this.width / 2 - 76, this.height - 28, 72, 20, new TranslatableComponent("selectWorld.delete"), (arg) -> {
-            try {
-                this.copyButton.active = false;
-                this.deleteButton.active = false;
-                this.viewButton.active = false;
-                CompletableFuture.runAsync(() -> {
-                    isLoading = true;
-                    list.getCurrSelected().delete();
-                    caps.getAndUpdate((a) -> {
-                        a.clear();
-                        return a;
-                    });
-                    hasRequested = false;
-                    this.loadRemote().thenRun(() -> isLoading = false);
-                }).thenRun(() -> {
-                });
-            } catch (Exception ignored) {
-            }
-        }));
-        this.viewButton = (Button) this.addButton(new Button(this.width / 2, this.height - 28, 72, 20, new TextComponent("View"), (arg) -> {
-            list.getCurrSelected().openUrl();
-        }));
-        this.addButton(new Button(this.width / 2 + 76, this.height - 28, 72, 20, CommonComponents.GUI_CANCEL, (arg) -> {
-            this.minecraft.setScreen(this.parent);
-        }));
-        this.copyButton.active = false;
-        this.deleteButton.active = false;
-        this.viewButton.active = false;
+        screenList = new ScreenList<>(this, minecraft, width, height, 30, height - 36, 36);
+        children.add(screenList);
+
+        copyButton = addButton(new Button(width / 2 - (76 * 2), height - 28, 72, 20, new TranslatableComponent("gui.blockshot.history.copy_url"), e -> screenList.getCurrSelected().copyUrl()));
+        deleteButton = addButton(new Button(width / 2 - 76, height - 28, 72, 20, new TranslatableComponent("gui.blockshot.history.delete"), e -> deleteSelected()));
+        viewButton = addButton(new Button(width / 2, height - 28, 72, 20, new TranslatableComponent("gui.blockshot.history.view"), (arg) -> screenList.getCurrSelected().openUrl()));
+        addButton(new Button(this.width / 2 + 76, this.height - 28, 72, 20, CommonComponents.GUI_BACK, (arg) -> this.minecraft.setScreen(this.parent)));
+
+        setButtons(false);
+
+        IconButton gearButton = addButton(new IconButton(width - 28, height - 28, 20, 20, null, e -> minecraft.setScreen(new BlockShotSettingsScreen(this)), (button, poseStack, i, j) -> renderTooltip(poseStack, new TranslatableComponent("gui.blockshot.settings.open.info"), i, j)));
+        gearButton.setIcon(new ResourceLocation(BlockShot.MOD_ID, "textures/gui/gear_icon.png"), 16, 16);
+
+        loadRemote(false);
     }
 
-    int ticks = 0;
-    BlockShotHistoryEntry lastSelected;
+    private void loadRemote(boolean forceUpdate) {
+        if (Config.INSTANCE.anonymous) {
+            capturesValid = false;
+            isLoading = false;
+            return;
+        }
+        if (capturesValid && !forceUpdate) {
+            if (!isLoading && !captureList.isEmpty()) {
+                loadCaptures();
+            }
+            return;
+        }
+        isLoading = true;
+        capturesValid = true;
+        downloadError = false;
+        activeTasks.add(CompletableFuture.supplyAsync(() -> new DownloadTask().runOffThread()));
+    }
+
+    @Override
+    public boolean keyPressed(int i, int j, int k) {
+        if (i == 261 && deleteButton.active) {
+            deleteSelected();
+            return true;
+        }
+        return super.keyPressed(i, j, k);
+    }
+
+    private void deleteSelected() {
+        setButtons(false);
+        ScreenCapInfo capInfo = screenList.getCurrSelected().capInfo;
+        capInfo.deleting = true;
+        activeTasks.add(CompletableFuture.supplyAsync(() -> new DeleteTask(capInfo).runOffThread()));
+    }
+
+    private void loadCaptures() {
+        screenList.clearList();
+        for (ScreenCapInfo capInfo : captureList) {
+            screenList.add(new BlockShotListEntry(screenList, capInfo));
+        }
+        screenList.setScrollAmount(0);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (activeTasks.isEmpty()) return;
+
+        List<CompletableFuture<FutureTask>> completed = new ArrayList<>();
+        for (CompletableFuture<FutureTask> task : activeTasks) {
+            if (!task.isDone()) continue;
+            completed.add(task);
+        }
+
+        for (CompletableFuture<FutureTask> task : completed) {
+            if (!task.isCompletedExceptionally()) {
+                try {
+                    task.get().completeOnThread();
+                } catch (InterruptedException | ExecutionException e) {
+                    LOGGER.error("An error occurred while processing task", e);
+                }
+            }
+        }
+        activeTasks.removeAll(completed);
+    }
+
+    private void setButtons(boolean active) {
+        this.copyButton.active = active;
+        this.deleteButton.active = active;
+        this.viewButton.active = active;
+    }
 
     @Override
     public void render(PoseStack poseStack, int i, int j, float f) {
-        this.renderBackground(poseStack);
-        list.render(poseStack, i, j, f);
+
+        screenList.render(poseStack, i, j, f);
         super.render(poseStack, i, j, f);
 
-        if (list.getCurrSelected() != null && list.getCurrSelected() != lastSelected) {
-            this.copyButton.active = !list.getCurrSelected().isDeleting;
-            this.deleteButton.active = !list.getCurrSelected().isDeleting;
-            this.viewButton.active = !list.getCurrSelected().isDeleting;
-            lastSelected = list.getCurrSelected();
+        if (screenList.getCurrSelected() != null && screenList.getCurrSelected() != lastSelected) {
+            setButtons(!screenList.getCurrSelected().capInfo.deleting);
+            lastSelected = screenList.getCurrSelected();
         }
+
         if (isLoading) {
             ticks++;
             LoadingSpinner.render(f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
-        }
-        drawCenteredString(poseStack, font, this.getTitle(), width / 2, 18, 0xFFFFFF);
-    }
 
-    AtomicReference<List<ScreencapListItem>> caps = new AtomicReference<>();
-    private boolean hasRequested = false;
-
-    private CompletableFuture<?> loadRemote() {
-        return CompletableFuture.runAsync(() -> {
-            if (caps.get().size() == 0 && !hasRequested) {
-                isLoading = true;
-                hasRequested = true;
-                String rsp = WebUtils.getWebResponse("https://blockshot.ch/list");
-                if (!rsp.equals("error")) {
-                    JsonElement jsonElement = new JsonParser().parse(rsp);
-                    JsonArray images = jsonElement.getAsJsonArray();
-                    for (JsonElement obj : images) {
-                        ScreencapListItem item = new ScreencapListItem();
-                        item.id = obj.getAsJsonObject().get("id").getAsString();
-                        item.preview = obj.getAsJsonObject().get("preview").getAsString();
-                        item.created = obj.getAsJsonObject().get("created").getAsLong();
-                        caps.getAndUpdate((a) -> {
-                            a.add(item);
-                            return a;
-                        });
-                    }
+            if (downloadProgress.get() != -1) {
+                if (downloadProgress.get() > 1) {
+                    drawCenteredString(poseStack, font, new TextComponent(Math.round(downloadProgress.get() / 1000) + "KB"), width / 2, (height / 2) + 50, 0xFFFFFF);
                 } else {
-                    //Used only in dev to help, as the list should stay 0 in prod otherwise it'll break for strange reasons.
-                    if (caps.get().size() == 0) {
-                        ScreencapListItem item = new ScreencapListItem();
-                        item.id = "BlockShot not available in offline mode.";
-                        item.preview = "";
-                        item.isDeleting = true;
-                        item.created = 0;
-                        caps.getAndUpdate((a) -> {
-                            a.add(item);
-                            return a;
-                        });
-                    }
+                    drawCenteredString(poseStack, font, new TextComponent(Math.round(downloadProgress.get() * 100) + "%"), width / 2, (height / 2) + 50, 0xFFFFFF);
                 }
             }
-            list.children().clear();
-            List<ScreencapListItem> localCaps = new ArrayList<>(caps.get());
-            for (ScreencapListItem c : localCaps) {
-                BlockShotHistoryEntry entry = new BlockShotHistoryEntry(list, c.id, c.preview, c.created, c.isDeleting);
-                list.children().add(entry);
+        }
+        drawCenteredString(poseStack, font, this.getTitle(), width / 2, 15 - 4, 0xFFFFFF);
+
+        if (downloadError) {
+            drawCenteredString(poseStack, font, new TranslatableComponent("gui.blockshot.history.download_error"), width / 2, 11 + 10, 0xFF0000);
+        } else {
+            poseStack.pushPose();
+            poseStack.translate(5, 15, 0);
+            poseStack.scale(0.75F, 0.75F, 0.75F);
+            drawString(poseStack, font, new TranslatableComponent("gui.blockshot.history.how_to_screenshot", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0xFFFFFF);
+            drawString(poseStack, font, new TranslatableComponent("gui.blockshot.history.how_to_record", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0xFFFFFF);
+            poseStack.popPose();
+        }
+
+        if (Config.INSTANCE.anonymous) {
+            drawCenteredString(poseStack, font, new TranslatableComponent("gui.blockshot.history.not_in_anon_mode"), width / 2, 11 + 50, 0xFF0000);
+        }
+    }
+
+    private abstract static class FutureTask {
+        public abstract FutureTask runOffThread();
+
+        public abstract void completeOnThread();
+    }
+
+    private class DownloadTask extends FutureTask {
+        private List<ScreenCapInfo> captures = new ArrayList<>();
+        private boolean errored = false;
+
+        @Override
+        public DownloadTask runOffThread() {
+            captures = new ArrayList<>();
+            downloadProgress.set(-1);
+            String rsp = WebUtils.get("https://blockshot.ch/list", downloadProgress);
+            if (!rsp.equals("error")) {
+                JsonElement jsonElement = new JsonParser().parse(rsp);
+                JsonArray images = jsonElement.getAsJsonArray();
+                for (JsonElement obj : images) {
+                    captures.add(new ScreenCapInfo(obj.getAsJsonObject()));
+                }
+            } else {
+                errored = true;
             }
-        });
-    }
-
-    class ScreencapListItem {
-        String id;
-        String preview;
-        long created;
-        boolean isDeleting;
-    }
-
-    class BlockShotHistoryEntry extends ScreenListEntry {
-        String id;
-        String preview;
-        long created;
-        ScreenList parent;
-        boolean isDeleting = false;
-
-        public BlockShotHistoryEntry(ScreenList list, String id, String preview, long created, boolean isDeleting) {
-            super(list);
-            parent = list;
-            this.id = id;
-            this.isDeleting = isDeleting;
-            this.preview = preview;
-            this.created = created;
+            downloadProgress.set(-1);
+            return this;
         }
 
         @Override
-        public void render(PoseStack poseStack, int slotIndex, int y, int x, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float p_render_9_) {
-            Date date = this.created > 0 ? new java.util.Date(this.created * 1000L) : new java.util.Date();
-            SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-            this.mc.font.draw(poseStack, sdf.format(date), x + 35, y, 16777215);
-            if (this.isDeleting) {
-                if (this.id.length() < 10) {
-                    this.mc.font.draw(poseStack, "Pending deletion...", x + 35, y + 10, 8421504);
-                } else {
-                    this.mc.font.draw(poseStack, this.id, x + 35, y + 10, 8421504);
-                }
-            } else {
-                if (this.id.length() < 10) {
-                    this.mc.font.draw(poseStack, "https://blockshot.ch/" + this.id, x + 35, y + 10, 8421504);
-                }
-            }
-            this.drawIcon(poseStack, x, y, getPreview());
-        }
-
-        public void delete() {
-            isDeleting = true;
-            caps.getAndUpdate((a) -> {
-                for (ScreencapListItem c : a) {
-                    if (c.id == this.id) {
-                        c.isDeleting = true;
-                        break;
-                    }
-                }
-                return a;
-            });
-            WebUtils.getWebResponse("https://blockshot.ch/delete/" + this.id);
-        }
-
-        public void openUrl() {
-            URL url = null;
-            try {
-                url = new URL("https://blockshot.ch/" + this.id);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-                return;
-            }
-            if (url != null) Util.getPlatform().openUrl(url);
-        }
-
-        public void copyUrl() {
-            Minecraft.getInstance().keyboardHandler.setClipboard("https://blockshot.ch/" + this.id);
-        }
-
-        private boolean previewLoading = false;
-        private boolean previewLoaded = false;
-        private ResourceLocation _resource;
-
-        public ResourceLocation getPreview() {
-            if (this.preview == null || this.preview.length() == 0 || this.created == 0)
-                return new ResourceLocation("textures/misc/unknown_server.png");
-            try {
-                if (previewLoading) return new ResourceLocation("textures/misc/unknown_server.png");
-                if (!previewLoaded) {
-                    previewLoading = true;
-                    NativeImage image = NativeImage.fromBase64(this.preview);
-                    DynamicTexture i = (new DynamicTexture(image));
-                    _resource = Minecraft.getInstance().getTextureManager().register("blockshot/", i);
-                    //i.close();
-                    previewLoaded = true;
-                    previewLoading = false;
-                } else {
-                    return _resource;
-                }
-            } catch (Throwable t) {
-                t.printStackTrace();
-                previewLoading = false;
-                previewLoaded = true;//Let's not retry...
-            }
-            return new ResourceLocation("textures/misc/unknown_server.png");
-        }
-
-        protected void drawIcon(PoseStack poseStack, int i, int j, ResourceLocation resourceLocation) {
-            if (resourceLocation == null) resourceLocation = new ResourceLocation("textures/misc/unknown_server.png");
-            Minecraft.getInstance().getTextureManager().bind(resourceLocation);
-            RenderSystem.enableBlend();
-            GuiComponent.blit(poseStack, i, j, 0.0F, 0.0F, 32, 32, 32, 32);
-            RenderSystem.disableBlend();
+        public void completeOnThread() {
+            downloadError = errored;
+            isLoading = false;
+            captureList.clear();
+            captureList.addAll(captures);
+            loadCaptures();
         }
     }
 
+    private class DeleteTask extends FutureTask {
+        private final ScreenCapInfo capInfo;
+
+        public DeleteTask(ScreenCapInfo capInfo) {
+            this.capInfo = capInfo;
+        }
+
+        @Override
+        public DeleteTask runOffThread() {
+            WebUtils.get("https://blockshot.ch/delete/" + capInfo.id, null);
+            return this;
+        }
+
+        @Override
+        public void completeOnThread() {
+            captureList.remove(capInfo);
+            for (ScreenCapInfo screenCapInfo : captureList) {
+                if (screenCapInfo.deleting) return;
+            }
+            loadRemote(true);
+        }
+    }
 }
