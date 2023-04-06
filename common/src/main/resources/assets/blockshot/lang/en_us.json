@@ -1,2 +1,61 @@
 {
+    "chat.blockshot.prompt.blockshot":                          "[BlockShot]",
+    "chat.blockshot.prompt.click_here":                         "Click here",
+    "chat.blockshot.prompt.upload_screenshot":                  "to upload this screenshot to BlockShot",
+
+    "chat.blockshot.upload.uploading":                          "[BlockShot] Uploading to BlockShot...",
+    "chat.blockshot.upload.error":                              "[BlockShot] An error occurred uploading your content to BlockShot.",
+    "chat.blockshot.upload.uploaded":                           "[BlockShot] Your content is now available on BlockShot!",
+
+    "chat.blockshot.record.recording":                          "[BlockShot] You are now recording gameplay!",
+    "chat.blockshot.record.complete":                           "[BlockShot] Gameplay recording complete, preparing...",
+    "chat.blockshot.record.canceled":                           "[BlockShot] Recording Canceled",
+    "chat.blockshot.record.preparing":                          "[BlockShot] Preparing frame %s of %s",
+    "chat.blockshot.record.preparing.complete":                 "[BlockShot] Preparation complete, encoding frames...",
+    "chat.blockshot.record.encoding":                           "[BlockShot] Encoding frame %s of %s",
+    "chat.blockshot.record.start.upload":                       "[BlockShot] Encoding complete... Starting upload...",
+
+    "chat.blockshot.fallback.success":                          "[BlockShot] Upload Failed, Capture saved locally as %s",
+    "chat.blockshot.fallback.failure":                          "[BlockShot] Upload Failed, Also unable to save locally: %s",
+
+    "gui.blockshot.blockshot_button":                           "Open BlockShot",
+
+    "gui.blockshot.settings.title":                             "Block Shot Settings",
+    "gui.blockshot.settings.open.info":                         "Open BlockShot settings screen",
+    "gui.blockshot.settings.encoder":                           "Video Encoder",
+    "gui.blockshot.settings.encoder.gif":                       "Gif 360p",
+    "gui.blockshot.settings.encoder.mov":                       "MOV 720p",
+    "gui.blockshot.settings.encoder.mov.experimental":          "Experimental 720p encoder is currently only available to MineTogether premium supporters",
+
+    "gui.blockshot.history.title":                              "BlockShot Upload History",
+    "gui.blockshot.history.copy_url":                           "Copy URL",
+    "gui.blockshot.history.delete":                             "Delete",
+    "gui.blockshot.history.delete.pending":                     "Pending deletion...",
+    "gui.blockshot.history.view":                               "View",
+    "gui.blockshot.history.not_in_offline":                     "BlockShot not available in offline mode.",
+    "gui.blockshot.history.how_to_screenshot":                  "%s to take a screenshot",
+    "gui.blockshot.history.how_to_record":                      "Ctrl + %s to start / stop recording",
+    "gui.blockshot.history.download_error":                     "An error occurred while downloading history...",
+    "gui.blockshot.history.not_in_anon_mode":                   "Capture history is not available in anonymous mode.",
+
+
+    "gui.blockshot.upload_mode.auto":                           "BlockShot Upload: Auto",
+    "gui.blockshot.upload_mode.off":                            "BlockShot Upload: Off",
+    "gui.blockshot.upload_mode.prompt":                         "BlockShot Upload: Prompt",
+
+    "gui.blockshot.button_pos.top_left":                         "BlockShot Button Pos: Top Left",
+    "gui.blockshot.button_pos.top_right":                        "BlockShot Button Pos: Top Right",
+    "gui.blockshot.button_pos.bottom_left":                      "BlockShot Button Pos: Bottom Left",
+    "gui.blockshot.button_pos.bottom_right":                     "BlockShot Button Pos: Bottom Right",
+
+    "gui.blockshot.upload.anonymous":                           "Anonymous",
+    "gui.blockshot.upload.owner":                               "BlockShot Owner:",
+    "gui.blockshot.upload.history":                             "View BlockShot History",
+
+    "overlay.blockshot.recording":                              "Recording with BlockShot",
+    "overlay.blockshot.encoding":                               "Encoding: %s frames remaining",
+    "overlay.blockshot.encoding_frame_of":                      "Encoding frame %s of %s",
+    "overlay.blockshot.uploading":                              "Uploading",
+    "overlay.blockshot.finish":                                 "Press Ctrl + %s to finish recording.",
+    "overlay.blockshot.cancel":                                 "Press Shift + %s to cancel recording."
 }

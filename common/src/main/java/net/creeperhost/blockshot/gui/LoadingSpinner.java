@@ -1,11 +1,9 @@
 package net.creeperhost.blockshot.gui;
 
-
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemStack;
-
 
 public class LoadingSpinner {
     public static void render(float partialTicks, int ticks, int x, int y, ItemStack stack) {

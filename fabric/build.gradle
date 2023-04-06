@@ -9,10 +9,13 @@ architectury {
 
 configurations {
     common
+    shadowLib
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    shadowCommon.extendsFrom shadowLib
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
     developmentFabric.extendsFrom common
+    implementation.extendsFrom shadowLib
 }
 
 dependencies {
@@ -23,6 +26,10 @@ dependencies {
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+
+    shadowLib 'net.creeperhost:jcodec:0.2.6'
+
+    runtimeClasspath "net.covers1624:DevLogin:0.1.+"
 }
 
 processResources {
@@ -35,11 +42,15 @@ processResources {
 
 shadowJar {
     configurations = [project.configurations.shadowCommon]
-    relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     classifier "dev-shadow"
+    mergeServiceFiles()
+
+    relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
+    relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
 }
 
 remapJar {
+//    injectAccessWidener = true
     input.set shadowJar.archiveFile
     dependsOn shadowJar
     archiveBaseName.set "${rootProject.archives_base_name}-${project.name}-${rootProject.minecraft_version}"
