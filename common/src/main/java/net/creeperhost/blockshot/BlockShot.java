@@ -23,7 +23,7 @@ public class BlockShot {
         if (Platform.getEnvironment().equals(Env.CLIENT)) {
             Config.init(configLocation.toFile());
             Auth.init();
-            if (Auth.checkMojangAuth() || Platform.isDevelopmentEnvironment()) {
+            if (Auth.hasCreeperHostAuth() || Platform.isDevelopmentEnvironment()) {
                 _active = true;
             } else {
                 LOGGER.error("BlockShot will not run in offline mode.");

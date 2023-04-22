@@ -6,7 +6,6 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.architectury.platform.Platform;
-import net.creeperhost.blockshot.Auth;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.WebUtils;
@@ -168,7 +167,6 @@ public class VideoEncoder implements Encoder {
 
         uploadProgress.set(0);
         //Upload
-        Auth.resetAuth();
         CompletableFuture.runAsync(() -> {
             uploadAndAddToChat(true, "mov", uploadProgress);
             isRecording = stopping = false;
