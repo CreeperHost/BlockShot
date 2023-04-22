@@ -28,7 +28,7 @@ public class WebUtils {
     public static final Logger LOGGER = LogManager.getLogger();
 
     public static String get(String url, @Nullable AtomicDouble progress) {
-        return executeWebRequest(new HttpGet(url), null, progress);
+        return executeWebRequest(new HttpGet(url), null, progress, true);
     }
 
     public static String post(String url, String data, MediaType type, @Nullable AtomicDouble progress) {
@@ -36,24 +36,30 @@ public class WebUtils {
         HttpPost httppost = new HttpPost(url);
         httppost.setEntity(new TrackableByteArrayEntity(postData, progress));
         httppost.setHeader("charset", "utf-8");
-        return executeWebRequest(httppost, type, null);
+        return executeWebRequest(httppost, type, null, true);
     }
 
     public static String post(String url, byte[] bytes, MediaType type, @Nullable AtomicDouble progress) {
         HttpPost httppost = new HttpPost(url);
         httppost.setEntity(new TrackableByteArrayEntity(bytes, progress));
-        return executeWebRequest(httppost, type, null);
+        return executeWebRequest(httppost, type, null, true);
     }
 
     public static String post(String url, File file, MediaType type) {
         HttpPost httppost = new HttpPost(url);
         httppost.setEntity(new FileEntity(file));
-        return executeWebRequest(httppost, type, null);
+        return executeWebRequest(httppost, type, null, true);
     }
 
-    private static String executeWebRequest(HttpUriRequest message, @Nullable MediaType type, @Nullable AtomicDouble progress) {
+    public static String executeWebRequest(HttpUriRequest message, @Nullable MediaType type, @Nullable AtomicDouble progress, boolean authHeaders) {
         try (CloseableHttpClient client = buildClient()) {
-            applyHeaders(message, type);
+            if (authHeaders) {
+                authHeaders(message);
+            }
+            if (type != null) {
+                type.apply(message);
+            }
+
             CloseableHttpResponse response = client.execute(message);
             StatusLine status = response.getStatusLine();
 
@@ -92,21 +98,19 @@ public class WebUtils {
         }
     }
 
-    private static CloseableHttpClient buildClient() {
+    public static CloseableHttpClient buildClient() {
         //TODO Cookies? They dont seem to be used by the current system so do we need them?
         HttpClientBuilder clientBuilder = HttpClients.custom()
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.138 Safari/537.36 Vivaldi/1.8.770.56 BlockShot/1.0.0");
         return clientBuilder.build();
     }
 
-    private static void applyHeaders(HttpUriRequest message, @Nullable MediaType type) {
-        message.setHeader("Server-Id", Auth.checkAndGetServerID());
+    private static void authHeaders(HttpUriRequest message) {
+//        message.setHeader("Server-Id", Auth.getMojangServerId());
+        message.setHeader("Authorization", "Bearer " + Auth.getCreeperHostAuth());
         message.setHeader("Minecraft-Name", Minecraft.getInstance().getUser().getName());
         if (!Config.INSTANCE.anonymous) {
             message.setHeader("Minecraft-Uuid", Minecraft.getInstance().getUser().getUuid()); //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
-        }
-        if (type != null) {
-            type.apply(message);
         }
     }
 
