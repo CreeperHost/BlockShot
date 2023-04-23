@@ -67,7 +67,6 @@ public class ScreenshotHandler {
         byte[] bytes = Arrays.copyOf(latest, latest.length);
         latest = null;
 
-        Auth.resetAuth();
         Util.ioPool().execute(() -> uploadAndAddToChat(bytes, writeOnFail, "png", null, WebUtils.MediaType.PNG));
     }
 

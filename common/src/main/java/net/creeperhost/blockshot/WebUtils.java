@@ -99,8 +99,9 @@ public class WebUtils {
         return clientBuilder.build();
     }
 
-    private static void applyHeaders(HttpUriRequest message, @Nullable MediaType type) {
-        message.setHeader("Server-Id", Auth.checkAndGetServerID());
+    private static void applyHeaders(HttpUriRequest message, @Nullable MediaType type) throws IOException {
+//        message.setHeader("Server-Id", Auth.getMojangServerId());
+        message.setHeader("Authorization", "Bearer " + Auth.mtSession.requestToken());
         message.setHeader("Minecraft-Name", Minecraft.getInstance().getUser().getName());
         if (!Config.INSTANCE.anonymous) {
             message.setHeader("Minecraft-Uuid", Minecraft.getInstance().getUser().getUuid()); //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
