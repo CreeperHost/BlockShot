@@ -168,7 +168,6 @@ public class VideoEncoder implements Encoder {
 
         uploadProgress.set(0);
         //Upload
-        Auth.resetAuth();
         CompletableFuture.runAsync(() -> {
             uploadAndAddToChat(true, "mov", uploadProgress);
             isRecording = stopping = false;

@@ -28,6 +28,7 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
     shadowLib 'net.creeperhost:jcodec:0.2.6'
+    shadowLib 'net.creeperhost:MineTogetherSessions:1.1.2'
 
     runtimeClasspath "net.covers1624:DevLogin:0.1.+"
 }

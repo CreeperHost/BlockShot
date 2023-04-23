@@ -42,7 +42,7 @@ public class RecordingHandler {
         if (!BlockShot.isActive() || !getEncoder().isWorking()) {
             return;
         }
-        
+
         getEncoder().updateCapture();
 
         drawRecordingIndicator(5, 5);

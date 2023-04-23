@@ -4,11 +4,16 @@ import com.google.common.hash.Hashing;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
+import me.shedaniel.architectury.platform.Platform;
+import net.creeperhost.minetogether.session.MineTogetherSession;
+import net.creeperhost.minetogether.session.SessionValidationException;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.User;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
@@ -22,66 +27,52 @@ public class Auth {
 
     private static final String CH_API = "https://api.creeper.host/";
     private static final Logger LOGGER = LogManager.getLogger();
-    private static boolean verified = false;
-    private static String serverId = null;
-    private static String uuidHash = null;
+
+    private static User user;
+    private static GameProfile profile;
+    private static String uuidHash;
+
+    private static boolean chAuthenticated = false;
     private static boolean hasPremium = false;
 
+    public static MineTogetherSession mtSession;
+
     public static void init() {
-        checkMojangAuth();
-        checkMTPremiumStatus();
-    }
-
-    public static boolean checkMojangAuth() {
-        if (serverId == null) {
-            doMojangAuth();
-        } else {
-            check();
-        }
-        return verified;
-    }
-
-    public static String checkAndGetServerID() {
-        checkMojangAuth();
-        return serverId;
-    }
-
-    private static void doMojangAuth() {
-        verified = false;
         Minecraft mc = Minecraft.getInstance();
-        serverId = DigestUtils.sha1Hex(String.valueOf(new Random().nextInt()));
+        user = mc.getUser();
+        profile = user.getGameProfile();
+
+        UUID playerUUID = getOrCreatePlayerUUID(profile);
+        String playerName = profile.getName();
+        uuidHash = Hashing.sha256().hashString(playerUUID.toString(), UTF_8).toString().toUpperCase(Locale.ROOT);
+
+        mtSession = new MineTogetherSession(Platform.getGameFolder(), playerUUID, playerName, Auth::doMojangAuth);
 
         try {
-            mc.getMinecraftSessionService().joinServer(mc.getUser().getGameProfile(), mc.getUser().getAccessToken(), serverId);
-            verified = true;
-            if (uuidHash == null) {
-                GameProfile profile = mc.getUser().getGameProfile();
-                UUID uuid = profile.getId();
-                if (uuid != null){
-                    uuidHash = Hashing.sha256().hashString(uuid.toString(), UTF_8).toString().toUpperCase(Locale.ROOT);
-                }
-            }
+            mtSession.validate();
+            chAuthenticated = true;
+            checkMTPremiumStatus();
+        } catch (SessionValidationException e) {
+            LOGGER.error("Failed to validate session", e);
+        }
+    }
+
+    public static String doMojangAuth() {
+        String mojangServerId = DigestUtils.sha1Hex(String.valueOf(new Random().nextInt()));
+        try {
+            Minecraft.getInstance().getMinecraftSessionService().joinServer(profile, user.getAccessToken(), mojangServerId);
+            return mojangServerId;
         } catch (Throwable e) {
             LOGGER.error("Failed to validate with Mojang", e);
         }
+        return "";
     }
 
-    private static void check() {
-        verified = false;
-        Minecraft mc = Minecraft.getInstance();
-
-        try {
-            GameProfile profile = mc.getMinecraftSessionService().hasJoinedServer(mc.getUser().getGameProfile(), serverId, null);
-            if (profile != null) {
-                verified = true;
-                return;
-            }
-        } catch (Throwable ignored) {}
-
-        doMojangAuth();
+    public static boolean hasCreeperHostAuth() {
+        return chAuthenticated;
     }
 
-    public static void checkMTPremiumStatus() {
+    private static void checkMTPremiumStatus() {
         hasPremium = false;
         if (uuidHash == null) {
             return;
@@ -93,7 +84,7 @@ public class Auth {
         }
 
         try {
-            JsonObject response = new JsonParser().parse(profile).getAsJsonObject();
+            JsonObject response = JsonParser.parseString(profile).getAsJsonObject();
             if (!"success".equals(response.get("status").getAsString())) {
                 return;
             }
@@ -109,11 +100,16 @@ public class Auth {
         return hasPremium;
     }
 
-    /**
-     * Mojang auth times out after 2 minutes so calling this before an upload means
-     * the upload will start with a fresh auth and can take up to 2 minutes.
-     */
-    public static void resetAuth() {
-        serverId = null;
+    private static UUID getOrCreatePlayerUUID(GameProfile gameProfile) {
+        UUID uUID = gameProfile.getId();
+        if (uUID == null) {
+            uUID = createOfflinePlayerUUID(gameProfile.getName());
+        }
+
+        return uUID;
+    }
+
+    private static UUID createOfflinePlayerUUID(String string) {
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + string).getBytes(StandardCharsets.UTF_8));
     }
 }
