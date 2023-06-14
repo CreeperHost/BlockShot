@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.sounds.SoundManager;
@@ -19,11 +20,7 @@ public class RadioButton extends Button {
     private Supplier<Boolean> selected;
 
     public RadioButton(int i, int j, int k, int l, Component component, OnPress onPress) {
-        super(i, j, k, l, component, onPress);
-    }
-
-    public RadioButton(int i, int j, int k, int l, Component component, OnPress onPress, OnTooltip onTooltip) {
-        super(i, j, k, l, component, onPress, onTooltip);
+        super(i, j, k, l, component, onPress, null);
     }
 
     public void setSelected(Supplier<Boolean> selected) {
@@ -43,7 +40,7 @@ public class RadioButton extends Button {
     }
 
     @Override
-    public void renderButton(PoseStack poseStack, int i, int j, float f) {
+    public void renderWidget(GuiGraphics guiGraphics, int i, int j, float f) {
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
         boolean selected = this.selected.get();
@@ -55,11 +52,11 @@ public class RadioButton extends Button {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(poseStack, this.x, this.y, 0, 46 + k * 20, this.width / 2, this.height);
-        this.blit(poseStack, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + k * 20, this.width / 2, this.height);
+        guiGraphics.blit(WIDGETS_LOCATION, this.x, this.y, 0, 46 + k * 20, this.width / 2, this.height);
+        guiGraphics.blit(WIDGETS_LOCATION, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + k * 20, this.width / 2, this.height);
         this.renderBg(poseStack, minecraft, i, j);
         int l = this.active ? 16777215 : 10526880;
-        drawCenteredString(poseStack, font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
+        guiGraphics.drawCenteredString(font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
 
         if (this.isHoveredOrFocused()) {
             this.renderToolTip(poseStack, i, j);

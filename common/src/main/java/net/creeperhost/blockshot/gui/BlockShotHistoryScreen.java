@@ -11,6 +11,7 @@ import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.polylib.client.screen.widget.LoadingSpinner;
 import net.creeperhost.polylib.client.screen.widget.ScreenList;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
@@ -140,8 +141,8 @@ public class BlockShotHistoryScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack poseStack, int i, int j, float f) {
-        super.render(poseStack, i, j, f);
+    public void render(GuiGraphics guiGraphics, int i, int j, float f) {
+        super.render(guiGraphics, i, j, f);
         if (screenList.getCurrSelected() != null && screenList.getCurrSelected() != lastSelected) {
             setButtons(!screenList.getCurrSelected().capInfo.deleting);
             lastSelected = screenList.getCurrSelected();
@@ -149,31 +150,31 @@ public class BlockShotHistoryScreen extends Screen {
 
         if (isLoading) {
             ticks++;
-            LoadingSpinner.render(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
+            LoadingSpinner.render(guiGraphics.pose(), f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
 
             if (downloadProgress.get() != -1) {
                 if (downloadProgress.get() > 1) {
-                    drawCenteredString(poseStack, font, Component.literal(Math.round(downloadProgress.get() / 1000) + "KB"), width / 2, (height / 2) + 50, 0xFFFFFF);
+                    guiGraphics.drawCenteredString(font, Component.literal(Math.round(downloadProgress.get() / 1000) + "KB"), width / 2, (height / 2) + 50, 0xFFFFFF);
                 } else {
-                    drawCenteredString(poseStack, font, Component.literal(Math.round(downloadProgress.get() * 100) + "%"), width / 2, (height / 2) + 50, 0xFFFFFF);
+                    guiGraphics.drawCenteredString(font, Component.literal(Math.round(downloadProgress.get() * 100) + "%"), width / 2, (height / 2) + 50, 0xFFFFFF);
                 }
             }
         }
-        drawCenteredString(poseStack, font, this.getTitle(), width / 2, 15 - 4, 0xFFFFFF);
+        guiGraphics.drawCenteredString(font, this.getTitle(), width / 2, 15 - 4, 0xFFFFFF);
 
         if (downloadError) {
-            drawCenteredString(poseStack, font, Component.translatable("gui.blockshot.history.download_error"), width / 2, 11 + 10, 0xFF0000);
+            guiGraphics.drawCenteredString(font, Component.translatable("gui.blockshot.history.download_error"), width / 2, 11 + 10, 0xFF0000);
         } else {
-            poseStack.pushPose();
-            poseStack.translate(5, 15, 0);
-            poseStack.scale(0.75F, 0.75F, 0.75F);
-            drawString(poseStack, font, Component.translatable("gui.blockshot.history.how_to_screenshot", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0xFFFFFF);
-            drawString(poseStack, font, Component.translatable("gui.blockshot.history.how_to_record", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0xFFFFFF);
-            poseStack.popPose();
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(5, 15, 0);
+            guiGraphics.pose().scale(0.75F, 0.75F, 0.75F);
+            guiGraphics.drawString(font, Component.translatable("gui.blockshot.history.how_to_screenshot", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0xFFFFFF);
+            guiGraphics.drawString(font, Component.translatable("gui.blockshot.history.how_to_record", minecraft.options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0xFFFFFF);
+            guiGraphics.pose().popPose();
         }
 
         if (Config.INSTANCE.anonymous) {
-            drawCenteredString(poseStack, font, Component.translatable("gui.blockshot.history.not_in_anon_mode"), width / 2, 11 + 50, 0xFF0000);
+            guiGraphics.drawCenteredString(font, Component.translatable("gui.blockshot.history.not_in_anon_mode"), width / 2, 11 + 50, 0xFF0000);
         }
     }
 

@@ -58,14 +58,14 @@ public class ClientUtil {
         if (!validState()) return;
         MixinChatComponent chat = (MixinChatComponent) getChat();
 
-        chat.getAllMessages().removeIf(e -> Objects.equals(e.headerSignature(), messageSignature));
+        chat.getAllMessages().removeIf(e -> Objects.equals(e.signature(), messageSignature));
 
         //Refresh
         chat.getTrimmedMessages().clear();
 
         for (int i = chat.getAllMessages().size() - 1; i >= 0; --i) {
             GuiMessage guiMessage = chat.getAllMessages().get(i);
-            addMessageQuietly(guiMessage.content(), guiMessage.headerSignature(), guiMessage.addedTime(), guiMessage.tag(), true);
+            addMessageQuietly(guiMessage.content(), guiMessage.signature(), guiMessage.addedTime(), guiMessage.tag(), true);
         }
     }
 
