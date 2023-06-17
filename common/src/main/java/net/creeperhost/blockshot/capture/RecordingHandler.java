@@ -2,14 +2,15 @@ package net.creeperhost.blockshot.capture;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
 import net.creeperhost.blockshot.Auth;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
+import org.joml.Matrix4f;
 
 import java.util.List;
 
@@ -51,9 +52,12 @@ public class RecordingHandler {
         List<Component> hudLines = getEncoder().getHudText();
         if (hudLines == null || hudLines.isEmpty()) return;
 
+        PoseStack poseStack = RenderSystem.getModelViewStack();
+        poseStack.pushPose();
+        poseStack.setIdentity();
+        poseStack.translate(0.0F, 0.0F, -2000.0F);
+        RenderSystem.applyModelViewMatrix();
         RenderSystem.enableBlend();
-        PoseStack poseStack = new PoseStack();
-
         Font font = Minecraft.getInstance().font;
 
         int recordOffset = getEncoder().showRecordIcon() ? 10 : 0;
@@ -66,17 +70,22 @@ public class RecordingHandler {
 
         drawRect(poseStack, x, y, maxWidth + 6 + recordOffset, height, 0xb0101010);
 
+        MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
         int i = 0;
         for (Component line : hudLines) {
-            font.draw(poseStack, line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFF);
+//            font.draw(poseStack, line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFF);
+            font.drawInBatch(line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFF, true, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 0xf000f0);
             i += 9;
         }
+        bufferSource.endBatch();
 
         if (System.currentTimeMillis() % 2000 > 1000 && getEncoder().showRecordIcon()) {
             drawRect(poseStack, x + 3, y + 4, 7, 5, 0xFFFF0000);
             drawRect(poseStack, x + 4, y + 3, 5, 7, 0xFFFF0000);
         }
 
+        poseStack.popPose();
+        RenderSystem.applyModelViewMatrix();
         RenderSystem.disableBlend();
     }
 

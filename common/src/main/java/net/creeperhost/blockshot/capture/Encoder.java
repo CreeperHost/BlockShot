@@ -17,14 +17,15 @@ import java.util.List;
  */
 public interface Encoder {
 
-
     void startOrStopRecording();
 
     void updateCapture();
 
     void cancelRecording();
 
-    /** Returns true if currently recording, encoding or uploading. */
+    /**
+     * Returns true if currently recording, encoding or uploading.
+     */
     boolean isWorking();
 
     boolean showRecordIcon();
@@ -69,5 +70,4 @@ public interface Encoder {
             return null;
         }
     }
-
 }

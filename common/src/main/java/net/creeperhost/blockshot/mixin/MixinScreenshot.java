@@ -29,7 +29,7 @@ public abstract class MixinScreenshot {
 
     @Inject(method = "_grab", at = @At("HEAD"), cancellable = true)
     private static void takeScreenShot(File file, String string, RenderTarget renderTarget, Consumer<Component> consumer, CallbackInfo ci) {
-        if (!BlockShot.isActive()|| !ClientUtil.validState()) {
+        if (!BlockShot.isActive() || !ClientUtil.validState()) {
             return;
         }
 

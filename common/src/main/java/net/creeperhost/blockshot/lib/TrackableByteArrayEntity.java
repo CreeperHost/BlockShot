@@ -45,13 +45,12 @@ public class TrackableByteArrayEntity extends ByteArrayEntity {
     @Override
     public void writeTo(OutputStream outStream) throws IOException {
         Args.notNull(outStream, "Output stream");
-        for (int i = 0 ; i < len ; i++) {
+        for (int i = 0; i < len; i++) {
             if (progress != null) {
-                progress.set(i / (double)len);
+                progress.set(i / (double) len);
             }
             outStream.write(b[off + i]);
         }
-//        outStream.write(this.b, this.off, this.len);
         outStream.flush();
     }
 }

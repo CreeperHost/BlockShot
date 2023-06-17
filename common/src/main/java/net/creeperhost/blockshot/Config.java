@@ -90,7 +90,9 @@ public class Config {
         PROMPT,
         AUTO;
 
-        public Mode next() { return values()[(ordinal() + 1) % values().length]; }
+        public Mode next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
 
         public String translatableName() {
             return "gui.blockshot.upload_mode." + name().toLowerCase(Locale.ENGLISH);
@@ -111,7 +113,9 @@ public class Config {
             this.yGetter = yGetter;
         }
 
-        public ButtonPos next() { return values()[(ordinal() + 1) % values().length]; }
+        public ButtonPos next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
 
         public String translatableName() {
             return "gui.blockshot.button_pos." + name().toLowerCase(Locale.ENGLISH);
@@ -120,6 +124,7 @@ public class Config {
         public int getX(int screenWidth, int buttonWidth) {
             return xGetter.apply(screenWidth, buttonWidth);
         }
+
         public int getY(int screenHeight, int buttonHeight) {
             return yGetter.apply(screenHeight, buttonHeight);
         }

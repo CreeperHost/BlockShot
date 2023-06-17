@@ -1,18 +1,16 @@
 package net.creeperhost.blockshot.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.creeperhost.blockshot.Auth;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FormattedCharSequence;
-
-import java.util.List;
 
 public class BlockShotSettingsScreen extends Screen {
     private final BlockShotHistoryScreen parent;
@@ -23,34 +21,38 @@ public class BlockShotSettingsScreen extends Screen {
         this.parent = parent;
     }
 
+    @Override
     protected void init() {
         int xPos = width / 2 - 102;
         int yPos = height / 4 + 24 - 16;
 
         //Owner Button
         String value2 = I18n.get("gui.blockshot.upload.owner") + " " + (Config.INSTANCE.anonymous ? I18n.get("gui.blockshot.upload.anonymous") : minecraft.getUser().getName());
-        addRenderableWidget(new Button(xPos, yPos, 204, 20, Component.literal(value2), button -> {
-            Config.INSTANCE.anonymous = !Config.INSTANCE.anonymous;
-            Config.saveConfigToFile(BlockShot.configLocation.toFile());
-            Minecraft.getInstance().setScreen(this);
-        }));
+        addRenderableWidget(Button.builder(Component.literal(value2), button -> {
+                    Config.INSTANCE.anonymous = !Config.INSTANCE.anonymous;
+                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
+                    Minecraft.getInstance().setScreen(this);
+                })
+                .bounds(xPos, yPos, 204, 20).build());
         prevAnon = Config.INSTANCE.anonymous;
         yPos += 24;
 
         //Upload Mode
-        addRenderableWidget(new Button(xPos, yPos, 204, 20, Component.translatable(Config.INSTANCE.uploadMode.translatableName()), button -> {
-            Config.INSTANCE.uploadMode = Config.INSTANCE.uploadMode.next();
-            Config.saveConfigToFile(BlockShot.configLocation.toFile());
-            Minecraft.getInstance().setScreen(this);
-        }));
+        addRenderableWidget(Button.builder(Component.translatable(Config.INSTANCE.uploadMode.translatableName()), button -> {
+                    Config.INSTANCE.uploadMode = Config.INSTANCE.uploadMode.next();
+                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
+                    Minecraft.getInstance().setScreen(this);
+                })
+                .bounds(xPos, yPos, 204, 20).build());
         yPos += 24;
 
         //Button Position
-        addRenderableWidget(new Button(xPos, yPos, 204, 20, Component.translatable(Config.INSTANCE.buttonPos.translatableName()), button -> {
-            Config.INSTANCE.buttonPos = Config.INSTANCE.buttonPos.next();
-            Config.saveConfigToFile(BlockShot.configLocation.toFile());
-            Minecraft.getInstance().setScreen(this);
-        }));
+        addRenderableWidget(Button.builder(Component.translatable(Config.INSTANCE.buttonPos.translatableName()), button -> {
+                    Config.INSTANCE.buttonPos = Config.INSTANCE.buttonPos.next();
+                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
+                    Minecraft.getInstance().setScreen(this);
+                })
+                .bounds(xPos, yPos, 204, 20).build());
         yPos += 24;
 
         yPos += 10;
@@ -62,16 +64,15 @@ public class BlockShotSettingsScreen extends Screen {
         }));
         setGif.setSelected(() -> Config.INSTANCE.getEncoderType() == Config.EncoderType.GIF);
 
-        Button.OnTooltip premiumTooltip = Auth.hasPremium() ? Button.NO_TOOLTIP : (button, poseStack, x, y) -> {
-            List<FormattedCharSequence> list = font.split(Component.translatable("gui.blockshot.settings.encoder.mov.experimental"), (int) (width / 2.1));
-            renderTooltip(poseStack, list, x, y);
-        };
-
         RadioButton setMOV = addRenderableWidget(new RadioButton(xPos + 104, yPos, 101, 20, Component.translatable("gui.blockshot.settings.encoder.mov"), button -> {
             Config.INSTANCE.setEncoderType(Config.EncoderType.MOV);
             Config.saveConfigToFile(BlockShot.configLocation.toFile());
             Minecraft.getInstance().setScreen(this);
-        }, premiumTooltip));
+        }));
+        if (!Auth.hasPremium()) {
+            setMOV.setTooltip(Tooltip.create(Component.translatable("gui.blockshot.settings.encoder.mov.experimental")));
+        }
+
         setMOV.setSelected(() -> Config.INSTANCE.getEncoderType() == Config.EncoderType.MOV);
         setMOV.active = Auth.hasPremium();
 
@@ -79,16 +80,16 @@ public class BlockShotSettingsScreen extends Screen {
 
 
         //Back Button
-        addRenderableWidget(new Button(xPos, yPos, 204, 20, CommonComponents.GUI_BACK, e -> {
-            minecraft.setScreen(parent);
-        }));
+        addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, e -> minecraft.setScreen(parent))
+                .bounds(xPos, yPos, 204, 20).build());
         yPos += 24;
     }
 
-    public void render(PoseStack poseStack, int i, int j, float f) {
-        renderBackground(poseStack);
-        drawCenteredString(poseStack, font, title, width / 2, 40, 16777215);
-        drawCenteredString(poseStack, font, Component.translatable("gui.blockshot.settings.encoder"), width / 2, height / 4 + 80, 16777215);
-        super.render(poseStack, i, j, f);
+    @Override
+    public void render(GuiGraphics guiGraphics, int i, int j, float f) {
+        renderBackground(guiGraphics);
+        guiGraphics.drawCenteredString(font, title, width / 2, 40, 0xffffff);
+        guiGraphics.drawCenteredString(font, Component.translatable("gui.blockshot.settings.encoder"), width / 2, height / 4 + 80, 0xffffff);
+        super.render(guiGraphics, i, j, f);
     }
 }

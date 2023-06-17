@@ -97,7 +97,7 @@ public class VideoEncoder implements Encoder {
 
         if (stopping) {
             if (canceled) {
-                activeFutures.forEach(e->e.cancel(true));
+                activeFutures.forEach(e -> e.cancel(true));
             }
 
             if (activeFutures.isEmpty()) {
@@ -185,7 +185,7 @@ public class VideoEncoder implements Encoder {
 
             //Fallback
             if (writeOnFail) {
-                try (FileInputStream is = new FileInputStream(tempFile)){
+                try (FileInputStream is = new FileInputStream(tempFile)) {
                     ScreenshotHandler.saveLocal(is.readAllBytes(), Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
                 } catch (IOException e) {
                     LOGGER.error("An error occurred while uploading image", e);
@@ -200,7 +200,7 @@ public class VideoEncoder implements Encoder {
     }
 
     public String uploadImage(File file, @Nullable AtomicDouble progress) {
-        try (InputStream is = new FileInputStream(file)){
+        try (InputStream is = new FileInputStream(file)) {
             String rsp = WebUtils.post("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(is.readAllBytes()), MEDIA_TYPE, progress);
             return ScreenshotHandler.readJsonResponse(rsp);
         } catch (Throwable t) {

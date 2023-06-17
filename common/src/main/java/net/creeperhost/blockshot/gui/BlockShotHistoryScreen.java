@@ -5,7 +5,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
@@ -13,6 +12,7 @@ import net.creeperhost.polylib.client.screen.widget.LoadingSpinner;
 import net.creeperhost.polylib.client.screen.widget.ScreenList;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -56,14 +56,15 @@ public class BlockShotHistoryScreen extends Screen {
     protected void init() {
         screenList = addRenderableWidget(new ScreenList<>(this, minecraft, width, height, 30, height - 36, 36));
 
-        copyButton = addRenderableWidget(new Button(width / 2 - (76 * 2), height - 28, 72, 20, Component.translatable("gui.blockshot.history.copy_url"), e -> screenList.getCurrSelected().copyUrl()));
-        deleteButton = addRenderableWidget(new Button(width / 2 - 76, height - 28, 72, 20, Component.translatable("gui.blockshot.history.delete"), e -> deleteSelected()));
-        viewButton = addRenderableWidget(new Button(width / 2, height - 28, 72, 20, Component.translatable("gui.blockshot.history.view"), (arg) -> screenList.getCurrSelected().openUrl()));
-        addRenderableWidget(new Button(this.width / 2 + 76, this.height - 28, 72, 20, CommonComponents.GUI_BACK, (arg) -> this.minecraft.setScreen(this.parent)));
+        copyButton = addRenderableWidget(Button.builder(Component.translatable("gui.blockshot.history.copy_url"), e -> screenList.getCurrSelected().copyUrl()).bounds(width / 2 - (76 * 2), height - 28, 72, 20).build());
+        deleteButton = addRenderableWidget(Button.builder(Component.translatable("gui.blockshot.history.delete"), e -> deleteSelected()).bounds(width / 2 - 76, height - 28, 72, 20).build());
+        viewButton = addRenderableWidget(Button.builder(Component.translatable("gui.blockshot.history.view"), (arg) -> screenList.getCurrSelected().openUrl()).bounds(width / 2, height - 28, 72, 20).build());
+        addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, (arg) -> this.minecraft.setScreen(this.parent)).bounds(this.width / 2 + 76, this.height - 28, 72, 20).build());
 
         setButtons(false);
 
-        IconButton gearButton = addRenderableWidget(new IconButton(width - 28, height - 28, 20, 20, null, e -> minecraft.setScreen(new BlockShotSettingsScreen(this)), (button, poseStack, i, j) -> renderTooltip(poseStack, Component.translatable("gui.blockshot.settings.open.info"), i, j)));
+        IconButton gearButton = addRenderableWidget(new IconButton(width - 28, height - 28, 20, 20, null, e -> minecraft.setScreen(new BlockShotSettingsScreen(this))));
+        gearButton.setTooltip(Tooltip.create(Component.translatable("gui.blockshot.settings.open.info")));
         gearButton.setIcon(new ResourceLocation(BlockShot.MOD_ID, "textures/gui/gear_icon.png"), 16, 16);
 
         loadRemote(false);

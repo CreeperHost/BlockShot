@@ -156,8 +156,6 @@ public class GifEncoder implements Encoder {
                 }
                 currentFrame = i;
                 totalFrames = f + dots;
-//                message = Component.translatable("chat.blockshot.record.encoding", i, f + dots);
-//                ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
                 writer.writeToSequence(frame);
             } catch (IOException e) {
                 LOGGER.error("An error occurred while writing frames", e);

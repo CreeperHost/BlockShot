@@ -13,12 +13,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Screen.class)
 public abstract class MixinScreen {
-    @Shadow public abstract boolean handleComponentClicked(@Nullable Style style);
+    @Shadow
+    public abstract boolean handleComponentClicked(@Nullable Style style);
 
     @Inject(method = "handleComponentClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasShiftDown()Z"), cancellable = true)
     public void handleComponentClicked(Style _style, CallbackInfoReturnable<Boolean> cir) {
         if (BlockShot.isActive()) {
-            if(_style == null) return;
+            if (_style == null) return;
             if (GuiEvents.handleComponentClick(_style)) {
                 cir.cancel();
                 cir.setReturnValue(true);

@@ -1,12 +1,10 @@
 package net.creeperhost.blockshot.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -39,27 +37,30 @@ public class RadioButton extends Button {
         super.onPress();
     }
 
-    @Override
     public void renderWidget(GuiGraphics guiGraphics, int i, int j, float f) {
         Minecraft minecraft = Minecraft.getInstance();
-        Font font = minecraft.font;
         boolean selected = this.selected.get();
-
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
-        RenderSystem.setShaderColor(selected ? 0.5F : 1F, 1F, selected ? 0.5F : 1F, this.alpha);
-        int k = this.getYImage(this.isHoveredOrFocused() && !selected);
+        guiGraphics.setColor(selected ? 0.5F : 1F, 1F, selected ? 0.5F : 1F, this.alpha);
         RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        guiGraphics.blit(WIDGETS_LOCATION, this.x, this.y, 0, 46 + k * 20, this.width / 2, this.height);
-        guiGraphics.blit(WIDGETS_LOCATION, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + k * 20, this.width / 2, this.height);
-        this.renderBg(poseStack, minecraft, i, j);
-        int l = this.active ? 16777215 : 10526880;
-        guiGraphics.drawCenteredString(font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
+        guiGraphics.blitNineSliced(WIDGETS_LOCATION, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 20, 4, 200, 20, 0, this.getTextureY());
+        guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        int k = this.active ? 16777215 : 10526880;
+        this.renderString(guiGraphics, minecraft.font, k | Mth.ceil(this.alpha * 255.0F) << 24);
+    }
 
-        if (this.isHoveredOrFocused()) {
-            this.renderToolTip(poseStack, i, j);
+    public void renderString(GuiGraphics guiGraphics, Font font, int i) {
+        this.renderScrollingString(guiGraphics, font, 2, i);
+    }
+
+    private int getTextureY() {
+        int i = 1;
+        if (!this.active) {
+            i = 0;
+        } else if (this.isHoveredOrFocused() && !selected.get()) {
+            i = 2;
         }
+
+        return 46 + i * 20;
     }
 }

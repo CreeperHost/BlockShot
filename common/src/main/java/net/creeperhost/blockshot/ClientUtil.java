@@ -20,7 +20,9 @@ import java.util.Objects;
  */
 public class ClientUtil {
 
-    public static void sendMessage(Component component, MessageSignature messageSignature) { sendMessage(component, messageSignature, false); }
+    public static void sendMessage(Component component, MessageSignature messageSignature) {
+        sendMessage(component, messageSignature, false);
+    }
 
     public static void sendMessage(Component component, MessageSignature messageSignature, boolean quietly) {
         if (!validState()) return;
@@ -32,7 +34,9 @@ public class ClientUtil {
         }
     }
 
-    public static void sendMessage(Component component) { sendMessage(component, false); }
+    public static void sendMessage(Component component) {
+        sendMessage(component, false);
+    }
 
     public static void sendMessage(Component component, boolean quietly) {
         if (!validState()) return;

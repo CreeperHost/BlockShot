@@ -78,7 +78,7 @@ public class Auth {
             return;
         }
 
-        String profile = WebUtils.post(CH_API + "minetogether/profile", "{\"target\":\""+uuidHash+"\"}", WebUtils.MediaType.JSON, null);
+        String profile = WebUtils.post(CH_API + "minetogether/profile", "{\"target\":\"" + uuidHash + "\"}", WebUtils.MediaType.JSON, null);
         if ("error".equals(profile)) {
             return;
         }
@@ -91,7 +91,7 @@ public class Auth {
 
             JsonObject data = response.getAsJsonObject("profileData").getAsJsonObject(uuidHash);
             hasPremium = data.get("premium").getAsBoolean();
-        }catch (Throwable e) {
+        } catch (Throwable e) {
             LOGGER.error("An error occurred while retrieving MineTogether profile", e);
         }
     }
