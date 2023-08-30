@@ -18,7 +18,7 @@ public class RadioButton extends Button {
     private Supplier<Boolean> selected;
 
     public RadioButton(int i, int j, int k, int l, Component component, OnPress onPress) {
-        super(i, j, k, l, component, onPress, null);
+        super(i, j, k, l, component, onPress, Button.DEFAULT_NARRATION);
     }
 
     public void setSelected(Supplier<Boolean> selected) {
@@ -37,6 +37,7 @@ public class RadioButton extends Button {
         super.onPress();
     }
 
+    @Override
     public void renderWidget(GuiGraphics guiGraphics, int i, int j, float f) {
         Minecraft minecraft = Minecraft.getInstance();
         boolean selected = this.selected.get();
@@ -49,6 +50,7 @@ public class RadioButton extends Button {
         this.renderString(guiGraphics, minecraft.font, k | Mth.ceil(this.alpha * 255.0F) << 24);
     }
 
+    @Override
     public void renderString(GuiGraphics guiGraphics, Font font, int i) {
         this.renderScrollingString(guiGraphics, font, 2, i);
     }

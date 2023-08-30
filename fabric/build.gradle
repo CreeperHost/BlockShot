@@ -36,7 +36,7 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive = false }
 
     shadowLib('net.creeperhost:jcodec:0.2.6') { transitive = false }
-    shadowLib('net.creeperhost:MineTogetherSessions:1.1.2') { transitive = false }
+    shadowLib('net.creeperhost:MineTogetherSessions:1.2.1') { transitive = false }
 
     runtimeClasspath "net.covers1624:DevLogin:0.1.+"
 }
@@ -57,6 +57,7 @@ shadowJar {
     relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
     relocate 'net.sourceforge.jaad', 'net.creeperhost.blockshot.repack.net.sourceforge.jaad'
+    relocate 'net.creeperhost.minetogether', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether'
 }
 
 remapJar {
