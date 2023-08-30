@@ -115,6 +115,7 @@ public class BlockShotHistoryScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
+        ticks++;
         if (activeTasks.isEmpty()) return;
 
         List<CompletableFuture<FutureTask>> completed = new ArrayList<>();
@@ -150,7 +151,6 @@ public class BlockShotHistoryScreen extends Screen {
         }
 
         if (isLoading) {
-            ticks++;
             LoadingSpinner.render(poseStack, f, ticks, width / 2, height / 2, new ItemStack(Items.COOKED_BEEF));
 
             if (downloadProgress.get() != -1) {
