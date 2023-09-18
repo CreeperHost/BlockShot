@@ -95,7 +95,7 @@ public class Config {
         }
 
         public String translatableName() {
-            return "gui.blockshot.upload_mode." + name().toLowerCase(Locale.ENGLISH);
+            return "gui.blockshot.settings.upload_mode." + name().toLowerCase(Locale.ENGLISH);
         }
     }
 
@@ -118,7 +118,7 @@ public class Config {
         }
 
         public String translatableName() {
-            return "gui.blockshot.button_pos." + name().toLowerCase(Locale.ENGLISH);
+            return "gui.blockshot.settings.button_pos." + name().toLowerCase(Locale.ENGLISH);
         }
 
         public int getX(int screenWidth, int buttonWidth) {
