@@ -358,7 +358,7 @@ public class BlockShotGui implements GuiProvider {
 
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            if (isMouseOver(mouseX, mouseY)) {
+            if (isMouseOver()) {
                 selected = capture;
                 if (System.currentTimeMillis() - lastClick < 500) {
                     activateSelected(false);
@@ -374,7 +374,7 @@ public class BlockShotGui implements GuiProvider {
 
         @Override
         public void renderBehind(GuiRender render, double mouseX, double mouseY, float partialTicks) {
-            if (isMouseOver(mouseX, mouseY) || capture.equals(selected)) {
+            if (isMouseOver() || capture.equals(selected)) {
                 render.borderRect(getRectangle(), 1, 0x50808080, 0x80FFFFFF);
             }
 

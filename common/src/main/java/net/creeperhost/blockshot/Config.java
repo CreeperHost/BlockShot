@@ -132,7 +132,7 @@ public class Config {
 
     public enum EncoderType {
         GIF(GifEncoder::new, false),
-        MOV(VideoEncoder::new, false);
+        MOV(VideoEncoder::new, true);
 
         private final Supplier<Encoder> getEncoder;
         private final boolean requiresPremium;
