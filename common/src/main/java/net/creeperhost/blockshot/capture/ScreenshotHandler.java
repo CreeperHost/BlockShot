@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import dev.architectury.platform.Platform;
 import net.creeperhost.blockshot.*;
 import net.creeperhost.blockshot.gui.BlockShotClickEvent;
+import net.creeperhost.blockshot.lib.HistoryManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.network.chat.ClickEvent;
@@ -106,6 +107,7 @@ public class ScreenshotHandler {
             JsonElement jsonElement = JsonParser.parseString(rsp);
             String status = jsonElement.getAsJsonObject().get("status").getAsString();
             if (!status.equals("error")) {
+                HistoryManager.instance.markDirty();
                 return jsonElement.getAsJsonObject().get("url").getAsString();
             } else {
                 LOGGER.error("Server Response: {}", jsonElement.getAsJsonObject().get("message").getAsString());

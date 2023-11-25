@@ -8,6 +8,7 @@ import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.capture.RecordingHandler;
 import net.creeperhost.blockshot.capture.ScreenshotHandler;
+import net.creeperhost.polylib.client.modulargui.ModularGuiScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -31,7 +32,7 @@ public class GuiEvents {
     private static void onGuiInit(Screen screen, ScreenAccess access) {
         if (screen instanceof PauseScreen) {
             Config.ButtonPos pos = Config.INSTANCE.buttonPos;
-            access.addRenderableWidget(new IconButton(pos.getX(screen.width, 100), pos.getY(screen.height, 20), 100, 20, new TranslatableComponent("gui.blockshot.blockshot_button"), e -> Minecraft.getInstance().setScreen(new BlockShotHistoryScreen(screen)))
+            access.addRenderableWidget(new IconButton(pos.getX(screen.width, 100), pos.getY(screen.height, 20), 100, 20, new TranslatableComponent("gui.blockshot.blockshot_button"), e -> Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui())))
                     .setIcon(new ResourceLocation(BlockShot.MOD_ID, "textures/gui/blockshot_icon.png"), 16, 16)
             );
         }
