@@ -93,7 +93,7 @@ public class Config {
         public Mode next() { return values()[(ordinal() + 1) % values().length]; }
 
         public String translatableName() {
-            return "gui.blockshot.upload_mode." + name().toLowerCase(Locale.ENGLISH);
+            return "gui.blockshot.settings.upload_mode." + name().toLowerCase(Locale.ENGLISH);
         }
     }
 
@@ -114,7 +114,7 @@ public class Config {
         public ButtonPos next() { return values()[(ordinal() + 1) % values().length]; }
 
         public String translatableName() {
-            return "gui.blockshot.button_pos." + name().toLowerCase(Locale.ENGLISH);
+            return "gui.blockshot.settings.button_pos." + name().toLowerCase(Locale.ENGLISH);
         }
 
         public int getX(int screenWidth, int buttonWidth) {
@@ -127,7 +127,7 @@ public class Config {
 
     public enum EncoderType {
         GIF(GifEncoder::new, false),
-        MOV(VideoEncoder::new, false);
+        MOV(VideoEncoder::new, true);
 
         private final Supplier<Encoder> getEncoder;
         private final boolean requiresPremium;

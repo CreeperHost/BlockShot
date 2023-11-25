@@ -44,6 +44,7 @@ public class BlockShot {
             JWebToken token = tokenFuture.get();
             if (token != null) {
                 Auth.init(token);
+                BlockShotClient.init();
                 active = true;
             }
         } catch (InterruptedException | ExecutionException ignored) {}

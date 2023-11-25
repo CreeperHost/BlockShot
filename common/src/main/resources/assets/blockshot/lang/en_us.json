@@ -18,39 +18,59 @@
     "chat.blockshot.fallback.success":                          "[BlockShot] Upload Failed, Capture saved locally as %s",
     "chat.blockshot.fallback.failure":                          "[BlockShot] Upload Failed, Also unable to save locally: %s",
 
-    "gui.blockshot.blockshot_button":                           "Open BlockShot",
+    "gui.blockshot.title":                                      "Block Shot",
+    "gui.blockshot.history.title":                              "Capture History",
+    "gui.blockshot.history.no_history":                         "No Captures Found",
+    "gui.blockshot.history.today":                              "Today",
+    "gui.blockshot.history.copy_url":                           "Copy URL",
+    "gui.blockshot.history.view":                               "Open URL",
+    "gui.blockshot.history.delete":                             "Delete",
+    "gui.blockshot.history.anon_warning":                       "(Anonymous captures can not be displayed)",
+    "gui.blockshot.close":                                      "Close",
 
-    "gui.blockshot.settings.title":                             "Block Shot Settings",
-    "gui.blockshot.settings.open.info":                         "Open BlockShot settings screen",
+    "gui.blockshot.settings.keybind":                           "Block Shot Gui Key",
+
+    "gui.blockshot.settings.upload.owner":                      "BlockShot Owner",
+    "gui.blockshot.settings.upload.anonymous":                  "Anonymous",
+    "gui.blockshot.settings.upload.info":                       "Choose weather to upload your captures anonymously,\nor have them tied to your minecraft account.\nAnonymous captures will not be visible in your history!",
+
+    "gui.blockshot.settings.upload_mode":                       "BlockShot Upload",
+    "gui.blockshot.settings.upload_mode.off":                   "Off",
+    "gui.blockshot.settings.upload_mode.prompt":                "Prompt",
+    "gui.blockshot.settings.upload_mode.auto":                  "Auto",
+
+    "gui.blockshot.settings.button_pos":                        "BlockShot Button Pos",
+    "gui.blockshot.settings.button_pos.info":                   "Sets the position of the Block Shot button on the pause screen.",
+    "gui.blockshot.settings.button_pos.top_left":               "Top Left",
+    "gui.blockshot.settings.button_pos.top_right":              "Top Right",
+    "gui.blockshot.settings.button_pos.bottom_left":            "Bottom Left",
+    "gui.blockshot.settings.button_pos.bottom_right":           "Bottom Right",
+
     "gui.blockshot.settings.encoder":                           "Video Encoder",
     "gui.blockshot.settings.encoder.gif":                       "Gif 360p",
     "gui.blockshot.settings.encoder.mov":                       "MOV 720p",
-    "gui.blockshot.settings.encoder.mov.experimental":          "Experimental 720p encoder is currently only available to MineTogether premium supporters",
+    "gui.blockshot.settings.encoder.mov.info":                  "Experimental 720p encoder is currently only available to MineTogether premium supporters",
 
-    "gui.blockshot.history.title":                              "BlockShot Upload History",
-    "gui.blockshot.history.copy_url":                           "Copy URL",
-    "gui.blockshot.history.delete":                             "Delete",
-    "gui.blockshot.history.delete.pending":                     "Pending deletion...",
-    "gui.blockshot.history.view":                               "View",
-    "gui.blockshot.history.not_in_offline":                     "BlockShot not available in offline mode.",
+    "key.blockshot.open_blockshot":                             "Open Block Shot GUI",
+
+
+
+
+
+
+    "gui.blockshot.settings.upload.history":                    "View BlockShot History",
+    "gui.blockshot.settings.open.info":                         "Open BlockShot settings screen",
+    "gui.blockshot.blockshot_button":                           "Open BlockShot",
+
+
+
+    "gui.blockshot.history.not_in_offline":                     "BlockShot is not available in offline mode.",
     "gui.blockshot.history.how_to_screenshot":                  "%s to take a screenshot",
     "gui.blockshot.history.how_to_record":                      "Ctrl + %s to start / stop recording",
     "gui.blockshot.history.download_error":                     "An error occurred while downloading history...",
-    "gui.blockshot.history.not_in_anon_mode":                   "Capture history is not available in anonymous mode.",
 
 
-    "gui.blockshot.upload_mode.auto":                           "BlockShot Upload: Auto",
-    "gui.blockshot.upload_mode.off":                            "BlockShot Upload: Off",
-    "gui.blockshot.upload_mode.prompt":                         "BlockShot Upload: Prompt",
 
-    "gui.blockshot.button_pos.top_left":                         "BlockShot Button Pos: Top Left",
-    "gui.blockshot.button_pos.top_right":                        "BlockShot Button Pos: Top Right",
-    "gui.blockshot.button_pos.bottom_left":                      "BlockShot Button Pos: Bottom Left",
-    "gui.blockshot.button_pos.bottom_right":                     "BlockShot Button Pos: Bottom Right",
-
-    "gui.blockshot.upload.anonymous":                           "Anonymous",
-    "gui.blockshot.upload.owner":                               "BlockShot Owner:",
-    "gui.blockshot.upload.history":                             "View BlockShot History",
 
     "overlay.blockshot.recording":                              "Recording with BlockShot",
     "overlay.blockshot.encoding":                               "Encoding: %s frames remaining",

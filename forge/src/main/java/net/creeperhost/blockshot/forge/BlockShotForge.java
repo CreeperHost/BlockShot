@@ -4,6 +4,8 @@ import dev.architectury.platform.Platform;
 import dev.architectury.platform.forge.EventBuses;
 import dev.architectury.utils.Env;
 import net.creeperhost.blockshot.BlockShot;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -15,6 +17,7 @@ public class BlockShotForge
         if (Platform.getEnvironment().equals(Env.CLIENT)) {
             EventBuses.registerModEventBus(BlockShot.MOD_ID, FMLJavaModLoadingContext.get().getModEventBus());
             BlockShot.init();
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> BlockShotForgeClient::init);
         }
     }
 }
