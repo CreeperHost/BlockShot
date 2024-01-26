@@ -1,9 +1,14 @@
-architectury {
-    common(rootProject.enabled_platforms.split(","))
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.0.0"
+    id "maven-publish"
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/blockshot.accesswidener")
+}
+
+configurations {
+    shadowCommon
 }
 
 dependencies {
@@ -15,6 +20,10 @@ dependencies {
     modApi("net.creeperhost:polylib-fabric:${rootProject.polylib_version}")
     modApi 'net.creeperhost:jcodec:0.2.6'
     modApi 'net.creeperhost:MineTogetherSessions:1.2.1'
+}
+
+architectury {
+    common("fabric", "forge", "neoforge")
 }
 
 publishing {

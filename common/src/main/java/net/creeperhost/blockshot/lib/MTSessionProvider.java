@@ -21,7 +21,7 @@ public class MTSessionProvider implements SessionProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(MTSessionProvider.class);
     private final Minecraft MC = Minecraft.getInstance();
     private final User U = MC.getUser();
-    private final GameProfile P = MC.getUser().getGameProfile();
+    private final GameProfile P = MC.getGameProfile();
 
     // @formatter:off
     @Override public @Nullable UUID getUUID() { return P.getId(); }

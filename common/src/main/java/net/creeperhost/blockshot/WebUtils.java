@@ -111,7 +111,7 @@ public class WebUtils {
         message.setHeader("Authorization", "Bearer " + MineTogetherSession.getDefault().getToken());
         message.setHeader("Minecraft-Name", Minecraft.getInstance().getUser().getName());
         if (!Config.INSTANCE.anonymous) {
-            message.setHeader("Minecraft-Uuid", Minecraft.getInstance().getUser().getUuid()); //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
+            message.setHeader("Minecraft-Uuid", Minecraft.getInstance().getUser().getProfileId().toString()); //Used to trigger our servers to store additional meta data about your image to allow you to delete and list
         }
     }
 
