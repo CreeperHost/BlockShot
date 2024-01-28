@@ -59,14 +59,18 @@ public class Config {
             FileReader fileReader = new FileReader(file);
             INSTANCE = gson.fromJson(fileReader, Config.class);
             if (INSTANCE.uploadMode == null) INSTANCE.uploadMode = Mode.PROMPT; //Fixes null pointer due to loading previous config format.
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            BlockShot.LOGGER.error("Failed to load config, Resetting to default", ex);
+            INSTANCE = new Config();
+            saveConfigToFile(BlockShot.configLocation.toFile());
         }
     }
 
     public static void saveConfigToFile(File file) {
         try (FileOutputStream configOut = new FileOutputStream(file)) {
             IOUtils.write(Config.saveConfig(), configOut, Charset.defaultCharset());
-        } catch (Throwable ignored) {
+        } catch (Throwable ex) {
+            BlockShot.LOGGER.error("An error occurred while saving config to file", ex);
         }
     }
 
