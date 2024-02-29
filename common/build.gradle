@@ -6,7 +6,7 @@ dependencies {
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
     modApi("net.creeperhost:polylib-fabric:${rootProject.polylib_version}")
     modApi 'net.creeperhost:jcodec:0.2.6'
-    modApi 'net.creeperhost:MineTogetherSessions:1.2.1'
+    modApi 'net.creeperhost:MineTogetherSessions:1.2.2'
 }
 
 architectury {
