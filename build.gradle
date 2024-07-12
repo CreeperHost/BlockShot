@@ -1,6 +1,6 @@
 plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "1.4-SNAPSHOT" apply false
+    id "dev.architectury.loom" version "1.6-SNAPSHOT" apply false
 }
 
 architectury {
@@ -12,21 +12,19 @@ subprojects {
 
     loom {
         silentMojangMappingsLicense()
+
+        // Enable Java assertions on all run configs
+        runConfigs.each {
+            it.vmArg '-ea'
+        }
     }
 
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
-        // The following line declares the mojmap mappings, you may use other mappings as well
+
         mappings loom.officialMojangMappings()
 
-        // The following line declares the yarn mappings you may select this one as well.
-        // mappings "net.fabricmc:yarn:1.18+build.1:v2"
-
-//        implementation 'net.creeperhost:jcodec:0.2.6'
-    }
-
-    repositories {
-        maven { url "https://maven.neoforged.net/releases/" }
+        localRuntime 'net.covers1624:DevLogin:0.1.0.5'
     }
 }
 
@@ -39,6 +37,8 @@ allprojects {
     version = rootProject.mod_version
     group = rootProject.maven_group
 
+    sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = 21
+
     repositories {
         mavenLocal()
         maven { url 'https://maven.creeperhost.net' }
@@ -47,7 +47,7 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
-        options.release = 17
+        options.release = 21
     }
 
     java {

@@ -33,7 +33,7 @@ public class GuiEvents {
         if (screen instanceof PauseScreen) {
             Config.ButtonPos pos = Config.INSTANCE.buttonPos;
             access.addRenderableWidget(new IconButton(pos.getX(screen.width, 100), pos.getY(screen.height, 20), 100, 20, Component.translatable("gui.blockshot.blockshot_button"), e -> Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui())))
-                    .setIcon(new ResourceLocation(BlockShot.MOD_ID, "textures/gui/blockshot_icon.png"), 16, 16)
+                    .setIcon(ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "textures/gui/blockshot_icon.png"), 16, 16)
             );
         }
     }

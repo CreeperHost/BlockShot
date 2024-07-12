@@ -2,7 +2,6 @@ package net.creeperhost.blockshot.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.creeperhost.polylib.client.modulargui.lib.GuiRender;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -18,7 +17,7 @@ import org.joml.Matrix4f;
  * Created by brandon3055 on 19/03/2023
  */
 public class IconButton extends Button {
-    private static final WidgetSprites SPRITES = new WidgetSprites(new ResourceLocation("widget/button"), new ResourceLocation("widget/button_disabled"), new ResourceLocation("widget/button_highlighted"));
+    private static final WidgetSprites SPRITES = new WidgetSprites(ResourceLocation.withDefaultNamespace("widget/button"), ResourceLocation.withDefaultNamespace("widget/button_disabled"), ResourceLocation.withDefaultNamespace("widget/button_highlighted"));
     private final boolean showText;
     private ResourceLocation icon;
     private int iconWidth;
@@ -34,17 +33,6 @@ public class IconButton extends Button {
         this.iconWidth = iconWidth;
         this.iconHeight = iconHeight;
         return this;
-    }
-
-    private int getTextureY() {
-        int i = 1;
-        if (!this.active) {
-            i = 0;
-        } else if (this.isHoveredOrFocused()) {
-            i = 2;
-        }
-
-        return 46 + i * 20;
     }
 
     @Override
@@ -82,12 +70,11 @@ public class IconButton extends Button {
         RenderSystem.setShaderTexture(0, resourceLocation);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         Matrix4f matrix4f = poseStack.last().pose();
-        BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferBuilder.vertex(matrix4f, (float) x, (float) y + height, (float) 0).uv(0, 1).endVertex();
-        bufferBuilder.vertex(matrix4f, (float) x + width, (float) y + height, (float) 0).uv(1, 1).endVertex();
-        bufferBuilder.vertex(matrix4f, (float) x + width, (float) y, (float) 0).uv(1, 0).endVertex();
-        bufferBuilder.vertex(matrix4f, (float) x, (float) y, (float) 0).uv(0, 0).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferBuilder.addVertex(matrix4f, (float) x, (float) y + height, (float) 0).setUv(0, 1);
+        bufferBuilder.addVertex(matrix4f, (float) x + width, (float) y + height, (float) 0).setUv(1, 1);
+        bufferBuilder.addVertex(matrix4f, (float) x + width, (float) y, (float) 0).setUv(1, 0);
+        bufferBuilder.addVertex(matrix4f, (float) x, (float) y, (float) 0).setUv(0, 0);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 }

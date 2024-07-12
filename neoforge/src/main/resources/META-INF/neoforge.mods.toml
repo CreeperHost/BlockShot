@@ -1,0 +1,45 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+#issueTrackerURL = ""
+license = "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md"
+
+[[mods]]
+    modId = "blockshot"
+    version = "${version}"
+    displayName = "BlockShot"
+    authors = "CreeperHost"
+    description = '''
+    Upload your screenshots for easy sharing
+    '''
+    #logoFile = ""
+
+[[dependencies.blockshot]]
+    modId = "neoforge"
+    type="required"
+    versionRange = "[21.0.0-beta,)"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.blockshot]]
+    modId = "minecraft"
+    type="required"
+    versionRange = "[1.21,)"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.blockshot]]
+    modId = "architectury"
+    type="required"
+    versionRange = "[11.0.9,)"
+    ordering = "AFTER"
+    side = "BOTH"
+
+[[dependencies.blockshot]]
+    modId = "polylib"
+    type="required"
+    versionRange = "[2100.0.3,)"
+    ordering = "AFTER"
+    side = "BOTH"
+
+[[mixins]]
+    config = "blockshot.mixins.json"

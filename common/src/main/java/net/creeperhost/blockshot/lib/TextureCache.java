@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public class TextureCache {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final ResourceLocation FALLBACK_RESOURCE = new ResourceLocation("textures/misc/unknown_server.png");
+    private static final ResourceLocation FALLBACK_RESOURCE = ResourceLocation.withDefaultNamespace("textures/misc/unknown_server.png");
     private static final Map<String, ResourceLocation> PREVIEW_CACHE = new HashMap<>();
 
     public static ResourceLocation loadPreview(Capture capture) {

@@ -214,8 +214,7 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(HEIGHT, literal(14));
 
 
-        new GuiLoadingSpinner(root, new ResourceLocation(BlockShot.MOD_ID, "textures/gui/loading_spinner.png"))
-//        new GuiLoadingSpinner(root, new ResourceLocation(BlockShot.MOD_ID, "textures/gui/blockshot.png"))
+        new GuiLoadingSpinner(root, ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "textures/gui/loading_spinner.png"))
                 .setDoSpin(() -> HistoryManager.instance.isDownloading())
                 .constrain(TOP, match(historyPanel.get(TOP)))
                 .constrain(LEFT, match(historyPanel.get(LEFT)))
@@ -395,13 +394,12 @@ public class BlockShotGui implements GuiProvider {
             RenderSystem.setShaderTexture(0, TextureCache.loadPreview(capture));
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             Matrix4f matrix4f = render.pose().last().pose();
-            BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            bufferbuilder.vertex(matrix4f, (float) xMin, (float) yMin, 0).uv(0, 0).endVertex();
-            bufferbuilder.vertex(matrix4f, (float) xMin, (float) yMax, 0).uv(0, 1).endVertex();
-            bufferbuilder.vertex(matrix4f, (float) xMax, (float) yMax, 0).uv(1, 1).endVertex();
-            bufferbuilder.vertex(matrix4f, (float) xMax, (float) yMin, 0).uv(1, 0).endVertex();
-            BufferUploader.drawWithShader(bufferbuilder.end());
+            BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            bufferBuilder.addVertex(matrix4f, (float) xMin, (float) yMin, 0).setUv(0, 0);
+            bufferBuilder.addVertex(matrix4f, (float) xMin, (float) yMax, 0).setUv(0, 1);
+            bufferBuilder.addVertex(matrix4f, (float) xMax, (float) yMax, 0).setUv(1, 1);
+            bufferBuilder.addVertex(matrix4f, (float) xMax, (float) yMin, 0).setUv(1, 0);
+            BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         }
     }
 

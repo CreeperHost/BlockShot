@@ -1,29 +1,21 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
-    id "maven-publish"
+}
+
+architectury {
+    common("fabric", "forge", "neoforge")
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/blockshot.accesswidener")
 }
 
-configurations {
-    shadowCommon
-}
-
 dependencies {
-    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
-    // Do NOT use other classes from fabric loader
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury:${rootProject.architectury_version}"
-    modApi("net.creeperhost:polylib-fabric:${rootProject.polylib_version}")
-    modApi 'net.creeperhost:jcodec:0.2.6'
-    modApi 'net.creeperhost:MineTogetherSessions:1.2.2'
-}
-
-architectury {
-    common("fabric", "forge", "neoforge")
+    modApi ("dev.architectury:architectury:${rootProject.architectury_version}")
+    modApi ("net.creeperhost:polylib-fabric:${polylib_version}") { transitive = false }
+    modApi ("net.creeperhost:jcodec:0.2.6") { transitive = false }
+    modApi ("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
 }
 
 publishing {
@@ -32,10 +24,5 @@ publishing {
             artifactId = rootProject.archives_base_name
             from components.java
         }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
     }
 }

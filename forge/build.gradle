@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.github.johnrengelman.shadow" version "8.1.1"
 }
 
 architectury {
@@ -44,7 +44,7 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     shadowLib('net.creeperhost:jcodec:0.2.6') { transitive = false }
-    shadowLib('net.creeperhost:MineTogetherSessions:1.2.1') { transitive = false }
+    modApi("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
 
     runtimeOnly "net.covers1624:DevLogin:0.1.+"
 }

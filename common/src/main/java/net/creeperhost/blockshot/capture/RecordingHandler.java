@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 
 import java.util.List;
 
@@ -52,11 +53,11 @@ public class RecordingHandler {
         List<Component> hudLines = getEncoder().getHudText();
         if (hudLines == null || hudLines.isEmpty()) return;
 
-        PoseStack poseStack = RenderSystem.getModelViewStack();
-        poseStack.pushPose();
-        poseStack.setIdentity();
-        poseStack.translate(0.0F, 0.0F, -2000.0F);
+        Matrix4fStack matrix4fStack = RenderSystem.getModelViewStack();
+        matrix4fStack.pushMatrix();
+        matrix4fStack.translation(0.0F, 0.0F, -2000.0F);
         RenderSystem.applyModelViewMatrix();
+
         RenderSystem.enableBlend();
         Font font = Minecraft.getInstance().font;
 
@@ -68,36 +69,34 @@ public class RecordingHandler {
         }
         int height = (hudLines.size() * 9) + 5;
 
-        drawRect(poseStack, x, y, maxWidth + 6 + recordOffset, height, 0xb0101010);
+        drawRect(matrix4fStack, x, y, maxWidth + 6 + recordOffset, height, 0xb0101010);
 
-        MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         int i = 0;
         for (Component line : hudLines) {
-//            font.draw(poseStack, line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFF);
-            font.drawInBatch(line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFF, true, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 0xf000f0);
+            font.drawInBatch(line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFF, true, matrix4fStack, bufferSource, Font.DisplayMode.NORMAL, 0, 0xf000f0);
             i += 9;
         }
         bufferSource.endBatch();
 
         if (System.currentTimeMillis() % 2000 > 1000 && getEncoder().showRecordIcon()) {
-            drawRect(poseStack, x + 3, y + 4, 7, 5, 0xFFFF0000);
-            drawRect(poseStack, x + 4, y + 3, 5, 7, 0xFFFF0000);
+            drawRect(matrix4fStack, x + 3, y + 4, 7, 5, 0xFFFF0000);
+            drawRect(matrix4fStack, x + 4, y + 3, 5, 7, 0xFFFF0000);
         }
 
-        poseStack.popPose();
+        matrix4fStack.popMatrix();
         RenderSystem.applyModelViewMatrix();
+
         RenderSystem.disableBlend();
     }
 
-    private static void drawRect(PoseStack poseStack, int x, int y, int width, int height, int colour) {
+    private static void drawRect(Matrix4fStack poseStack, int x, int y, int width, int height, int colour) {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        Matrix4f matrix4f = poseStack.last().pose();
-        BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferBuilder.vertex(matrix4f, x, y + height, 0).color(colour).endVertex();
-        bufferBuilder.vertex(matrix4f, x + width, y + height, 0).color(colour).endVertex();
-        bufferBuilder.vertex(matrix4f, x + width, y, 0).color(colour).endVertex();
-        bufferBuilder.vertex(matrix4f, x, y, 0).color(colour).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        bufferBuilder.addVertex(poseStack, x, y + height, 0).setColor(colour);
+        bufferBuilder.addVertex(poseStack, x + width, y + height, 0).setColor(colour);
+        bufferBuilder.addVertex(poseStack, x + width, y, 0).setColor(colour);
+        bufferBuilder.addVertex(poseStack, x, y, 0).setColor(colour);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 }
