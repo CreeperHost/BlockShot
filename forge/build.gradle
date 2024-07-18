@@ -11,6 +11,15 @@ loom {
     forge {
         mixinConfig "blockshot.mixins.json"
     }
+    runs {
+        clientLogin {
+            client()
+            ideConfigGenerated true
+            mainClass.set 'net.covers1624.devlogin.DevLogin'
+
+            programArgs '--launch_target', 'net.minecraftforge.bootstrap.ForgeBootstrap'
+        }
+    }
 }
 
 loom {
@@ -37,16 +46,14 @@ configurations {
 dependencies {
     forge("net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}")
     // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
-    modApi("net.creeperhost:polylib-forge:${rootProject.polylib_version}")
+    modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}")
+    modApi("net.creeperhost:polylib-forge:${polylib_version}") { transitive false }
 
     common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     shadowLib('net.creeperhost:jcodec:0.2.6') { transitive = false }
-    shadowLib('net.creeperhost:MineTogetherSessions:1.2.1') { transitive = false }
-
-    runtimeOnly "net.covers1624:DevLogin:0.1.+"
+    shadowLib("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
 }
 
 processResources {
@@ -68,7 +75,7 @@ shadowJar {
     relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
     relocate 'net.sourceforge.jaad', 'net.creeperhost.blockshot.repack.net.sourceforge.jaad'
-    relocate 'net.creeperhost.minetogether', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether'
+    relocate 'net.creeperhost.minetogether.session', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether.session'
 }
 
 remapJar {

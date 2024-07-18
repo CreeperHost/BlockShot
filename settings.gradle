@@ -12,4 +12,4 @@ include("fabric")
 include("forge")
 include("neoforge")
 
-rootProject.name = "architectury-blockshot"
+rootProject.name = "BlockShot"
