@@ -49,7 +49,7 @@ public class ScreenshotHandler {
                     .append(Component.translatable("chat.blockshot.prompt.upload_screenshot"))
                     .withStyle(style -> style.withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
 
-            ClientUtil.sendMessage(confirmMessage, BlockShot.CHAT_UPLOAD_ID);
+            ClientUtil.getMessageHandler().sendMessage(confirmMessage, ClientUtil.CHAT_UPLOAD);
             return false;
         }
 
@@ -70,22 +70,23 @@ public class ScreenshotHandler {
 
     public static void uploadAndAddToChat(byte[] imageBytes, boolean writeOnFail, String fallbackExt, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
         Component finished = Component.translatable("chat.blockshot.upload.uploading");
-        ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+        ClientUtil.getMessageHandler().sendMessage(finished, ClientUtil.CHAT_UPLOAD);
 
         String result = uploadImage(imageBytes, progress, type);
         if (result == null) {
             finished = Component.translatable("chat.blockshot.upload.error");
-            ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+            ClientUtil.getMessageHandler().sendMessage(finished, ClientUtil.CHAT_UPLOAD);
 
             //Fallback
             if (writeOnFail) {
-                saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
             }
         } else if (result.startsWith("http")) {
             Component link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
-            finished = Component.translatable("chat.blockshot.upload.uploaded").append(" ").append(link);
-            ClientUtil.deleteMessage(BlockShot.CHAT_UPLOAD_ID);
-            ClientUtil.sendMessage(finished);
+            finished = Component.translatable("chat.blockshot.upload.uploaded");
+            ClientUtil.getMessageHandler().sendMessage(null, ClientUtil.CHAT_UPLOAD);
+            ClientUtil.getMessageHandler().sendMessage(finished);
+            ClientUtil.getMessageHandler().sendMessage(link);
         }
     }
 

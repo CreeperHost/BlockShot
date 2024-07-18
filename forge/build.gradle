@@ -68,7 +68,7 @@ shadowJar {
     relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
     relocate 'net.sourceforge.jaad', 'net.creeperhost.blockshot.repack.net.sourceforge.jaad'
-    relocate 'net.creeperhost.minetogether', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether'
+    relocate 'net.creeperhost.minetogether.session', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether.session'
 }
 
 remapJar {

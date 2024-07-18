@@ -18,6 +18,8 @@ public class BlockShotClient {
     public static final KeyMapping OPEN_GUI = new KeyMapping("key.blockshot.open_blockshot", InputConstants.UNKNOWN.getValue(), "key.categories.misc");
 
     public static void init() {
+        ClientUtil.init();
+
         ClientTickEvent.CLIENT_PRE.register(mc -> HistoryManager.instance.tick());
 
         ClientRawInputEvent.KEY_PRESSED.register((client, keyCode, scanCode, action, modifiers) -> {
