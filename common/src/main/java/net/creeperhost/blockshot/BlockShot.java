@@ -17,8 +17,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -26,8 +28,6 @@ public class BlockShot {
     public static final String MOD_ID = "blockshot";
     public static final Logger LOGGER = LogManager.getLogger();
     public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
-    public static final MessageSignature CHAT_UPLOAD_ID = SignedMessageChain.Encoder.UNSIGNED.pack(new SignedMessageBody("CHAT_UPLOAD_ID-2634579823657932554", Instant.now(), 2634579823657932554L, LastSeenMessages.EMPTY));
-    public static final MessageSignature CHAT_ENCODING_ID = SignedMessageChain.Encoder.UNSIGNED.pack(new SignedMessageBody("CHAT_ENCODING_ID-2634579823657932555", Instant.now(), 2634579823657932555L, LastSeenMessages.EMPTY));
     private static boolean active = false;
     private static CompletableFuture<@Nullable JWebToken> tokenFuture;
 

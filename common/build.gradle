@@ -19,6 +19,7 @@ dependencies {
     modApi ("net.creeperhost:polylib-fabric:${polylib_version}") { transitive = false }
     modApi ("net.creeperhost:jcodec:0.2.6") { transitive = false }
     modApi ("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
+    modApi ("curse.maven:creeperhost-minetogether-267172:5522844") { transitive = false }
 }
 
 architectury {
