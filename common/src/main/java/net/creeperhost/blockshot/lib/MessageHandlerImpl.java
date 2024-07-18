@@ -23,9 +23,10 @@ import java.util.Objects;
 public class MessageHandlerImpl implements MessageHandler {
 
     @Override
-    public void sendMessage(Component component, MessageSignature messageSignature, boolean quietly) {
+    public void sendMessage(@Nullable Component component, MessageSignature messageSignature, boolean quietly) {
         if (!ClientUtil.validState()) return;
         deleteMessage(messageSignature);
+        if (component == null) return;
         if (quietly) {
             addMessageQuietly(component, messageSignature, Minecraft.getInstance().gui.getGuiTicks(), null, false);
         } else {
