@@ -100,9 +100,9 @@ public class GifEncoder implements Encoder {
 
             if (isCanceled) {
                 isCanceled = false;
-                ClientUtil.sendMessage(Component.translatable("chat.blockshot.record.canceled"), BlockShot.CHAT_ENCODING_ID);
+                ClientUtil.getMessageHandler().sendMessage(Component.translatable("chat.blockshot.record.canceled"), ClientUtil.CHAT_ENCODING_ID);
             } else {
-                ClientUtil.sendMessage(Component.translatable("chat.blockshot.record.complete"), BlockShot.CHAT_ENCODING_ID);
+                ClientUtil.getMessageHandler().sendMessage(Component.translatable("chat.blockshot.record.complete"), ClientUtil.CHAT_ENCODING_ID);
                 generateGif();
             }
 
@@ -134,7 +134,7 @@ public class GifEncoder implements Encoder {
         int duration = (int) (totalSeconds / frames.size());
 
         Component message = Component.translatable("chat.blockshot.record.preparing.complete");
-        ClientUtil.sendMessage(message, BlockShot.CHAT_ENCODING_ID);
+        ClientUtil.getMessageHandler().sendMessage(message, ClientUtil.CHAT_ENCODING_ID);
         try {
             outputStream = new ByteArrayOutputStream();
             imageStream = ImageIO.createImageOutputStream(outputStream);
@@ -175,8 +175,8 @@ public class GifEncoder implements Encoder {
         totalFrames = null;
         _frames.set(new ArrayList<>());
         message = Component.translatable("chat.blockshot.record.start.upload");
-        ClientUtil.deleteMessage(BlockShot.CHAT_ENCODING_ID);
-        ClientUtil.sendMessage(message, BlockShot.CHAT_UPLOAD_ID);
+        ClientUtil.getMessageHandler().sendMessage(null, ClientUtil.CHAT_ENCODING_ID);
+        ClientUtil.getMessageHandler().sendMessage(message, ClientUtil.CHAT_UPLOAD);
         try {
             byte[] bytes = outputStream.toByteArray();
             outputStream.close();
