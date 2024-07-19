@@ -176,26 +176,27 @@ public class VideoEncoder implements Encoder {
 
     public void uploadAndAddToChat(boolean writeOnFail, String fallbackExt, @Nullable AtomicDouble progress) {
         Component finished = Component.translatable("chat.blockshot.upload.uploading");
-        ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+        ClientUtil.getMessageHandler().sendMessage(finished, ClientUtil.CHAT_UPLOAD);
 
         String result = uploadImage(tempFile, progress);
         if (result == null) {
             finished = Component.translatable("chat.blockshot.upload.error");
-            ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+            ClientUtil.getMessageHandler().sendMessage(finished, ClientUtil.CHAT_UPLOAD);
 
             //Fallback
             if (writeOnFail) {
                 try (FileInputStream is = new FileInputStream(tempFile)) {
-                    ScreenshotHandler.saveLocal(is.readAllBytes(), Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                    ScreenshotHandler.saveLocal(is.readAllBytes(), Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
                 } catch (IOException e) {
                     LOGGER.error("An error occurred while uploading image", e);
                 }
             }
         } else if (result.startsWith("http")) {
             Component link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
-            finished = Component.translatable("chat.blockshot.upload.uploaded").append(" ").append(link);
-            ClientUtil.deleteMessage(BlockShot.CHAT_UPLOAD_ID);
-            ClientUtil.sendMessage(finished);
+            finished = Component.translatable("chat.blockshot.upload.uploaded");
+            ClientUtil.getMessageHandler().sendMessage(null, ClientUtil.CHAT_UPLOAD);
+            ClientUtil.getMessageHandler().sendMessage(finished);
+            ClientUtil.getMessageHandler().sendMessage(link);
         }
     }
 
