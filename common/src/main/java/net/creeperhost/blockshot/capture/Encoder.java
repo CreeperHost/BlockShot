@@ -2,14 +2,20 @@ package net.creeperhost.blockshot.capture;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.ClientUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import org.lwjgl.stb.STBImage;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
 /**
@@ -60,7 +66,7 @@ public interface Encoder {
 
             try (NativeImage nativeImage = new NativeImage(targetWidth, targetHeight, false)) {
                 image.resizeSubRectTo(0, 0, width, height, nativeImage);
-                InputStream is = new ByteArrayInputStream(nativeImage.asByteArray());
+                InputStream is = new ByteArrayInputStream(ClientUtil.nativeImageBytes(nativeImage));
                 BufferedImage finalFrame = new BufferedImage(targetWidth, targetHeight, 1);
                 finalFrame.getGraphics().drawImage(ImageIO.read(is), 0, 0, null);
                 return finalFrame;

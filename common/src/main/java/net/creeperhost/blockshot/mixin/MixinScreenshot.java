@@ -43,7 +43,7 @@ public abstract class MixinScreenshot {
         }
 
         try (NativeImage nativeImage = takeScreenshot(renderTarget)) {
-            if (ScreenshotHandler.handleScreenshot(Objects.requireNonNull(nativeImage).asByteArray())) {
+            if (ScreenshotHandler.handleScreenshot(ClientUtil.nativeImageBytes(Objects.requireNonNull(nativeImage)))) {
                 ci.cancel();
             }
         } catch (Throwable e) {

@@ -26,6 +26,7 @@ import net.creeperhost.polylib.client.modulargui.lib.geometry.GuiParent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -392,7 +393,7 @@ public class BlockShotGui implements GuiProvider {
 
         private void drawTexture(GuiRender render, double xMin, double yMin, double xMax, double yMax) {
             RenderSystem.setShaderTexture(0, TextureCache.loadPreview(capture));
-            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShader(CoreShaders.POSITION_TEX);
             Matrix4f matrix4f = render.pose().last().pose();
             BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
             bufferBuilder.addVertex(matrix4f, (float) xMin, (float) yMin, 0).setUv(0, 0);

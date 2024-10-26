@@ -4,7 +4,6 @@ import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.hooks.client.screen.ScreenAccess;
-import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.capture.RecordingHandler;
 import net.creeperhost.blockshot.capture.ScreenshotHandler;
@@ -15,7 +14,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
 
 /**
  * Created by brandon3055 on 18/03/2023
@@ -32,8 +30,9 @@ public class GuiEvents {
     private static void onGuiInit(Screen screen, ScreenAccess access) {
         if (screen instanceof PauseScreen) {
             Config.ButtonPos pos = Config.INSTANCE.buttonPos;
+            //TODO, replace this with modular GUI Injection
             access.addRenderableWidget(new IconButton(pos.getX(screen.width, 100), pos.getY(screen.height, 20), 100, 20, Component.translatable("gui.blockshot.blockshot_button"), e -> Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui())))
-                    .setIcon(ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "textures/gui/blockshot_icon.png"), 16, 16)
+                    .setIcon(ModTextures.get("blockshot_icon"), 16, 16)
             );
         }
     }

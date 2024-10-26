@@ -7,6 +7,7 @@ import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
@@ -56,7 +57,7 @@ public class RecordingHandler {
         Matrix4fStack matrix4fStack = RenderSystem.getModelViewStack();
         matrix4fStack.pushMatrix();
         matrix4fStack.translation(0.0F, 0.0F, -2000.0F);
-        RenderSystem.applyModelViewMatrix();
+//        RenderSystem.applyModelViewMatrix();
 
         RenderSystem.enableBlend();
         Font font = Minecraft.getInstance().font;
@@ -85,13 +86,13 @@ public class RecordingHandler {
         }
 
         matrix4fStack.popMatrix();
-        RenderSystem.applyModelViewMatrix();
+//        RenderSystem.applyModelViewMatrix();
 
         RenderSystem.disableBlend();
     }
 
     private static void drawRect(Matrix4fStack poseStack, int x, int y, int width, int height, int colour) {
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.setShader(CoreShaders.POSITION_COLOR);
         BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         bufferBuilder.addVertex(poseStack, x, y + height, 0).setColor(colour);
         bufferBuilder.addVertex(poseStack, x + width, y + height, 0).setColor(colour);

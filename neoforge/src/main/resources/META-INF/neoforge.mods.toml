@@ -16,7 +16,7 @@ license = "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md"
 [[dependencies.blockshot]]
     modId = "neoforge"
     type="required"
-    versionRange = "[21.0.0-beta,)"
+    versionRange = "[21.3.0-beta,)"
     ordering = "NONE"
     side = "BOTH"
 
@@ -30,14 +30,14 @@ license = "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md"
 [[dependencies.blockshot]]
     modId = "architectury"
     type="required"
-    versionRange = "[11.0.9,)"
+    versionRange = "[14.0.3,)"
     ordering = "AFTER"
     side = "BOTH"
 
 [[dependencies.blockshot]]
     modId = "polylib"
     type="required"
-    versionRange = "[2100.0.3,)"
+    versionRange = "[2100.0.4,)"
     ordering = "AFTER"
     side = "BOTH"
 
