@@ -1,6 +1,7 @@
 package net.creeperhost.blockshot.lib;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import net.creeperhost.blockshot.BlockShot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -11,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -20,9 +22,10 @@ public class TextureCache {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ResourceLocation FALLBACK_RESOURCE = ResourceLocation.withDefaultNamespace("textures/misc/unknown_server.png");
     private static final Map<String, ResourceLocation> PREVIEW_CACHE = new HashMap<>();
+    private static int index = 0;
 
     public static ResourceLocation loadPreview(Capture capture) {
-        return PREVIEW_CACHE.computeIfAbsent(capture.id(), s -> load(capture.preview(), capture.created()));
+        return PREVIEW_CACHE.computeIfAbsent(capture.id(), s -> load(capture.preview(), capture.created(), capture.id()));
     }
 
     public static void unloadPreview(Capture capture) {
@@ -32,11 +35,13 @@ public class TextureCache {
         }
     }
 
-    private static ResourceLocation load(String base64Texture, long created) {
+    private static ResourceLocation load(String base64Texture, long created, String key) {
         try {
             if (StringUtils.isNotBlank(base64Texture) && created > 0) {
                 byte[] bs = Base64.getDecoder().decode(base64Texture.replaceAll("\n", "").getBytes(StandardCharsets.UTF_8));
-                return Minecraft.getInstance().getTextureManager().register("blockshot/", new DynamicTexture(NativeImage.read(bs)));
+                ResourceLocation location = ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "blockshot/" + index++);
+                Minecraft.getInstance().getTextureManager().register(location, new DynamicTexture(NativeImage.read(bs)));
+                return location;
             }
         } catch (Throwable t) {
             LOGGER.warn("An error occurred while loading capture preview", t);
