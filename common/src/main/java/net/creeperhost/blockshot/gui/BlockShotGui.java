@@ -95,7 +95,10 @@ public class BlockShotGui implements GuiProvider {
 
         //Selected Capture
         GuiButton copyUrl = Flat.button(root, Component.translatable("gui.blockshot.history.copy_url"))
-                .setEnabled(() -> selected != null)
+                .setDisabled(() -> selected == null)
+                .setTooltipDelay(0)
+                .setTooltipSingle(Component.translatable("gui.blockshot.history.buttons_disabled"))
+                .setEnableToolTip(() -> selected == null)
                 .onPress(() -> activateSelected(true))
                 .constrain(LEFT, match(historyPanel.get(LEFT)))
                 .constrain(BOTTOM, relative(root.get(BOTTOM), -4))
@@ -103,7 +106,10 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(HEIGHT, literal(14));
 
         GuiButton view = Flat.button(root, Component.translatable("gui.blockshot.history.view"))
-                .setEnabled(() -> selected != null)
+                .setDisabled(() -> selected == null)
+                .setTooltipDelay(0)
+                .setTooltipSingle(Component.translatable("gui.blockshot.history.buttons_disabled"))
+                .setEnableToolTip(() -> selected == null)
                 .onPress(() -> activateSelected(false))
                 .constrain(LEFT, relative(copyUrl.get(RIGHT), 2))
                 .constrain(BOTTOM, relative(root.get(BOTTOM), -4))
@@ -111,7 +117,10 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(HEIGHT, literal(14));
 
         GuiButton delete = Flat.buttonCaution(root, Component.translatable("gui.blockshot.history.delete"))
-                .setEnabled(() -> selected != null)
+                .setDisabled(() -> selected == null)
+                .setTooltipDelay(0)
+                .setTooltipSingle(Component.translatable("gui.blockshot.history.buttons_disabled"))
+                .setEnableToolTip(() -> selected == null)
                 .onPress(this::deleteSelected)
                 .constrain(RIGHT, match(historyPanel.get(RIGHT)))
                 .constrain(BOTTOM, relative(root.get(BOTTOM), -4))
@@ -155,6 +164,18 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
                 .constrain(HEIGHT, literal(14));
         ((GuiButton) previous).getLabel().setTextSupplier(() -> Component.translatable(Config.INSTANCE.uploadMode.translatableName()));
+
+        previous = Flat.button(root, Component.empty())
+                .setTooltipSingle(Component.translatable("gui.blockshot.settings.copy_on_create.info"))
+                .onPress(() -> {
+                    Config.INSTANCE.copyToClipboard = !Config.INSTANCE.copyToClipboard;
+                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
+                })
+                .constrain(RIGHT, relative(root.get(RIGHT), -4))
+                .constrain(TOP, relative(previous.get(BOTTOM), 2))
+                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
+                .constrain(HEIGHT, literal(14));
+        ((GuiButton) previous).getLabel().setTextSupplier(() -> Component.translatable("gui.blockshot.settings.copy_on_create." + Config.INSTANCE.copyToClipboard));
 
         //Position Setting
         previous = new GuiText(root, Component.translatable("gui.blockshot.settings.button_pos").withStyle(ChatFormatting.UNDERLINE))
