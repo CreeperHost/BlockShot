@@ -12,8 +12,10 @@ import net.creeperhost.blockshot.gui.BlockShotClickEvent;
 import net.creeperhost.blockshot.lib.HistoryManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -82,10 +84,14 @@ public class ScreenshotHandler {
                 saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
             }
         } else if (result.startsWith("http")) {
-            Component link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
+            MutableComponent link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
             finished = Component.translatable("chat.blockshot.upload.uploaded");
             ClientUtil.getMessageHandler().sendMessage(null, ClientUtil.CHAT_UPLOAD);
             ClientUtil.getMessageHandler().sendMessage(finished);
+            if (Config.INSTANCE.copyToClipboard) {
+                Minecraft.getInstance().keyboardHandler.setClipboard(result);
+                link.append(" ").append(Component.translatable("chat.blockshot.upload.copied").withStyle(ChatFormatting.GRAY));
+            }
             ClientUtil.getMessageHandler().sendMessage(link);
         }
     }

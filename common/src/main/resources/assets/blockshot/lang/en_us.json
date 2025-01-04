@@ -6,6 +6,7 @@
     "chat.blockshot.upload.uploading":                          "[BlockShot] Uploading to BlockShot...",
     "chat.blockshot.upload.error":                              "[BlockShot] An error occurred uploading your content to BlockShot.",
     "chat.blockshot.upload.uploaded":                           "[BlockShot] Your content is now available on BlockShot!",
+    "chat.blockshot.upload.copied":                             "(Copied to clipboard)",
 
     "chat.blockshot.record.recording":                          "[BlockShot] You are now recording gameplay!",
     "chat.blockshot.record.complete":                           "[BlockShot] Gameplay recording complete, preparing...",
@@ -27,6 +28,7 @@
     "gui.blockshot.history.delete":                             "Delete",
     "gui.blockshot.history.anon_warning":                       "(Anonymous captures can not be displayed)",
     "gui.blockshot.close":                                      "Close",
+    "gui.blockshot.history.buttons_disabled":                   "Please select a capture first.",
 
     "gui.blockshot.settings.keybind":                           "Block Shot Gui Key",
 
@@ -38,6 +40,9 @@
     "gui.blockshot.settings.upload_mode.off":                   "Off",
     "gui.blockshot.settings.upload_mode.prompt":                "Prompt",
     "gui.blockshot.settings.upload_mode.auto":                  "Auto",
+    "gui.blockshot.settings.copy_on_create.true":               "Copy URL: Enabled",
+    "gui.blockshot.settings.copy_on_create.false":              "Copy URL: Disabled",
+    "gui.blockshot.settings.copy_on_create.info":               "Copy the capture URL to your clipboard automatically after creation.",
 
     "gui.blockshot.settings.button_pos":                        "BlockShot Button Pos",
     "gui.blockshot.settings.button_pos.info":                   "Sets the position of the Block Shot button on the pause screen.",
