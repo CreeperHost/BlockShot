@@ -7,6 +7,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.stb.STBImage;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -52,7 +54,6 @@ public interface Encoder {
         try (image) {
             int width = image.getWidth();
             int height = image.getHeight();
-            image.flipY();
 
             if (width > height) {
                 double ratio = (double) height / width;

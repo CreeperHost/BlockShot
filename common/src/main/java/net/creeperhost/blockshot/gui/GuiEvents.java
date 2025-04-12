@@ -61,7 +61,7 @@ public class GuiEvents {
     public static boolean handleComponentClick(Style style) {
         if (Screen.hasShiftDown() || style == null) return false;
         ClickEvent clickEvent = style.getClickEvent();
-        if (!(clickEvent instanceof BlockShotClickEvent)) return false;
+        if (!(clickEvent instanceof BlockShotUploadEvent)) return false;
 
         //If we fail to upload here there is no need to write to disk because this image is already on disk.
         ScreenshotHandler.uploadLast(false);

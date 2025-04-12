@@ -4,11 +4,10 @@ import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import dev.architectury.platform.Platform;
-import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
-import net.creeperhost.blockshot.gui.BlockShotClickEvent;
+import net.creeperhost.blockshot.gui.BlockShotUploadEvent;
 import net.creeperhost.blockshot.lib.HistoryManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -23,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.function.Consumer;
@@ -49,7 +49,7 @@ public class ScreenshotHandler {
                     )
                     .append(" ")
                     .append(Component.translatable("chat.blockshot.prompt.upload_screenshot"))
-                    .withStyle(style -> style.withClickEvent(new BlockShotClickEvent(ClickEvent.Action.RUN_COMMAND, "/blockshot upload")));
+                    .withStyle(style -> style.withClickEvent(new BlockShotUploadEvent()));
 
             ClientUtil.getMessageHandler().sendMessage(confirmMessage, ClientUtil.CHAT_UPLOAD);
             return false;
@@ -84,7 +84,7 @@ public class ScreenshotHandler {
                 saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
             }
         } else if (result.startsWith("http")) {
-            MutableComponent link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
+            MutableComponent link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(result))));
             finished = Component.translatable("chat.blockshot.upload.uploaded");
             ClientUtil.getMessageHandler().sendMessage(null, ClientUtil.CHAT_UPLOAD);
             ClientUtil.getMessageHandler().sendMessage(finished);
@@ -134,7 +134,7 @@ public class ScreenshotHandler {
         Util.ioPool().execute(() -> {
             try (OutputStream os = new FileOutputStream(outputFile)) {
                 os.write(bytes);
-                Component component = Component.literal(outputFile.getName()).withStyle(ChatFormatting.UNDERLINE).withStyle((style) -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, outputFile.getAbsolutePath())));
+                Component component = Component.literal(outputFile.getName()).withStyle(ChatFormatting.UNDERLINE).withStyle((style) -> style.withClickEvent(new ClickEvent.OpenFile(outputFile.getAbsolutePath())));
                 consumer.accept(Component.translatable(msgSuccess, component));
             } catch (Exception e) {
                 LOGGER.warn("Couldn't save screenshot", e);

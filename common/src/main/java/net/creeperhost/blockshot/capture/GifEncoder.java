@@ -11,6 +11,7 @@ import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.polylib.client.gif.GifSequenceWriter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
 import net.minecraft.network.chat.Component;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -62,10 +63,7 @@ public class GifEncoder implements Encoder {
                 totalSeconds++;
             }
             RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();
-            NativeImage nativeImage = new NativeImage(renderTarget.width, renderTarget.height, false);
-            RenderSystem.bindTexture(renderTarget.getColorTextureId());
-            nativeImage.downloadTexture(0, true);
-            addFrame(nativeImage);
+            Screenshot.takeScreenshot(renderTarget, this::addFrame);
             if (totalSeconds > 30) stopping = true;
         } else {
             frames++;

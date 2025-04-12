@@ -40,7 +40,7 @@ public class TextureCache {
             if (StringUtils.isNotBlank(base64Texture) && created > 0) {
                 byte[] bs = Base64.getDecoder().decode(base64Texture.replaceAll("\n", "").getBytes(StandardCharsets.UTF_8));
                 ResourceLocation location = ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "blockshot/" + index++);
-                Minecraft.getInstance().getTextureManager().register(location, new DynamicTexture(NativeImage.read(bs)));
+                Minecraft.getInstance().getTextureManager().register(location, new DynamicTexture(null, NativeImage.read(bs)));
                 return location;
             }
         } catch (Throwable t) {

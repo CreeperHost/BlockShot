@@ -22,12 +22,11 @@ import java.util.function.Consumer;
 
 @Mixin(Screenshot.class)
 public abstract class MixinScreenshot {
-    @Shadow
-    public static NativeImage takeScreenshot(RenderTarget arg) {
-        return null;
-    }
 
-    @Inject(method = "_grab", at = @At("HEAD"), cancellable = true)
+    @Shadow
+    public static void takeScreenshot(RenderTarget renderTarget, Consumer<NativeImage> consumer) {}
+
+    @Inject(method = "grab(Ljava/io/File;Ljava/lang/String;Lcom/mojang/blaze3d/pipeline/RenderTarget;Ljava/util/function/Consumer;)V", at = @At("HEAD"), cancellable = true)
     private static void takeScreenShot(File file, String string, RenderTarget renderTarget, Consumer<Component> consumer, CallbackInfo ci) {
         if (!BlockShot.isActive() || !ClientUtil.validState()) {
             return;
@@ -42,12 +41,21 @@ public abstract class MixinScreenshot {
             return;
         }
 
-        try (NativeImage nativeImage = takeScreenshot(renderTarget)) {
-            if (ScreenshotHandler.handleScreenshot(ClientUtil.nativeImageBytes(Objects.requireNonNull(nativeImage)))) {
-                ci.cancel();
+        takeScreenshot(renderTarget, image -> {
+            try (image) {
+                ScreenshotHandler.handleScreenshot(ClientUtil.nativeImageBytes(Objects.requireNonNull(image)));
+            } catch (Throwable e) {
+                BlockShot.LOGGER.error("An error occurred while processing screenshot", e);
             }
-        } catch (Throwable e) {
-            BlockShot.LOGGER.error("An error occurred while processing screenshot", e);
-        }
+        });
+        ci.cancel(); //This is problematic, we need to not cancel if handleScreenshot fails, but i don't know where that lambda is handled. If it's a delayed execution then that wont work.
+
+//        try (NativeImage nativeImage = takeScreenshot(renderTarget)) {
+//            if (ScreenshotHandler.handleScreenshot(ClientUtil.nativeImageBytes(Objects.requireNonNull(nativeImage)))) {
+//                ci.cancel();
+//            }
+//        } catch (Throwable e) {
+//            BlockShot.LOGGER.error("An error occurred while processing screenshot", e);
+//        }
     }
 }

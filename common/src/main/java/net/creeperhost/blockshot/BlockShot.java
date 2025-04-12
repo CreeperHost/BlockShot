@@ -35,14 +35,14 @@ public class BlockShot {
         if (Platform.getEnvironment().equals(Env.CLIENT)) {
             LOGGER.info("Init");
             Config.init(configLocation.toFile());
-            MineTogetherSession.getDefault().setProvider(new MTSessionProvider());
-            // Trigger session validation early in the background.
-            tokenFuture = MineTogetherSession.getDefault().getTokenAsync();
             ClientLifecycleEvent.CLIENT_SETUP.register(instance -> clientStart());
         }
     }
 
     private static void clientStart() {
+        //Cant do this in init anymore because init now occurs before Minecraft.instance is initialised.
+        MineTogetherSession.getDefault().setProvider(new MTSessionProvider());
+        tokenFuture = MineTogetherSession.getDefault().getTokenAsync();
         try {
             JWebToken token = tokenFuture.get();
             if (token != null) {

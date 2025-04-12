@@ -7,11 +7,9 @@ import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.CoreShaders;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
 import java.util.List;
@@ -57,9 +55,6 @@ public class RecordingHandler {
         Matrix4fStack matrix4fStack = RenderSystem.getModelViewStack();
         matrix4fStack.pushMatrix();
         matrix4fStack.translation(0.0F, 0.0F, -2000.0F);
-//        RenderSystem.applyModelViewMatrix();
-
-        RenderSystem.enableBlend();
         Font font = Minecraft.getInstance().font;
 
         int recordOffset = getEncoder().showRecordIcon() ? 10 : 0;
@@ -86,18 +81,14 @@ public class RecordingHandler {
         }
 
         matrix4fStack.popMatrix();
-//        RenderSystem.applyModelViewMatrix();
-
-        RenderSystem.disableBlend();
     }
 
     private static void drawRect(Matrix4fStack poseStack, int x, int y, int width, int height, int colour) {
-        RenderSystem.setShader(CoreShaders.POSITION_COLOR);
-        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferBuilder.addVertex(poseStack, x, y + height, 0).setColor(colour);
-        bufferBuilder.addVertex(poseStack, x + width, y + height, 0).setColor(colour);
-        bufferBuilder.addVertex(poseStack, x + width, y, 0).setColor(colour);
-        bufferBuilder.addVertex(poseStack, x, y, 0).setColor(colour);
-        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+        VertexConsumer consumer = Minecraft.getInstance().renderBuffers().bufferSource().getBuffer(RenderType.guiOverlay());
+        consumer.addVertex(poseStack, x, y + height, 0).setColor(colour);
+        consumer.addVertex(poseStack, x + width, y + height, 0).setColor(colour);
+        consumer.addVertex(poseStack, x + width, y, 0).setColor(colour);
+        consumer.addVertex(poseStack, x, y, 0).setColor(colour);
+        Minecraft.getInstance().renderBuffers().bufferSource().endBatch();
     }
 }

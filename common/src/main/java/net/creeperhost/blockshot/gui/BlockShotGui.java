@@ -23,11 +23,10 @@ import net.creeperhost.polylib.client.modulargui.lib.geometry.Align;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.Axis;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.Constraint;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.GuiParent;
+import net.creeperhost.polylib.client.modulargui.sprite.Material;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.CoreShaders;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -413,15 +412,7 @@ public class BlockShotGui implements GuiProvider {
         }
 
         private void drawTexture(GuiRender render, double xMin, double yMin, double xMax, double yMax) {
-            RenderSystem.setShaderTexture(0, TextureCache.loadPreview(capture));
-            RenderSystem.setShader(CoreShaders.POSITION_TEX);
-            Matrix4f matrix4f = render.pose().last().pose();
-            BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            bufferBuilder.addVertex(matrix4f, (float) xMin, (float) yMin, 0).setUv(0, 0);
-            bufferBuilder.addVertex(matrix4f, (float) xMin, (float) yMax, 0).setUv(0, 1);
-            bufferBuilder.addVertex(matrix4f, (float) xMax, (float) yMax, 0).setUv(1, 1);
-            bufferBuilder.addVertex(matrix4f, (float) xMax, (float) yMin, 0).setUv(1, 0);
-            BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+            render.tex(Material.fromRawTexture(TextureCache.loadPreview(capture)), xMin, yMin, xMax, yMax);
         }
     }
 

@@ -13,6 +13,7 @@ import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.blockshot.WebUtils.MediaType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -114,18 +116,15 @@ public class VideoEncoder implements Encoder {
         }
 
         RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();
-        NativeImage nativeImage = new NativeImage(renderTarget.width, renderTarget.height, false);
-        RenderSystem.bindTexture(renderTarget.getColorTextureId());
-        nativeImage.downloadTexture(0, true);
-
-        CompletableFuture<BufferedImage> converter = CompletableFuture.supplyAsync(() -> toBufferedImage(nativeImage, TARGET_WIDTH, TARGET_HEIGHT), RECORDING_EXECUTOR);
-        activeFutures.add(converter);
-
-        //Duplicates frames when required to achieve target frame rate.
-        while (time - lastFrameTime > 1000 / FPS) {
-            addFrame(converter);
-            lastFrameTime += 1000 / FPS;
-        }
+        Screenshot.takeScreenshot(renderTarget, image -> {
+            CompletableFuture<BufferedImage> converter = CompletableFuture.supplyAsync(() -> toBufferedImage(image, TARGET_WIDTH, TARGET_HEIGHT), RECORDING_EXECUTOR);
+            activeFutures.add(converter);
+            //Duplicates frames when required to achieve target frame rate.
+            while (time - lastFrameTime > 1000 / FPS) {
+                addFrame(converter);
+                lastFrameTime += 1000 / FPS;
+            }
+        });
     }
 
     private void addFrame(CompletableFuture<BufferedImage> converter) {
@@ -194,7 +193,7 @@ public class VideoEncoder implements Encoder {
                 }
             }
         } else if (result.startsWith("http")) {
-            MutableComponent link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
+            MutableComponent link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(result))));
             finished = Component.translatable("chat.blockshot.upload.uploaded");
             ClientUtil.getMessageHandler().sendMessage(null, ClientUtil.CHAT_UPLOAD);
             ClientUtil.getMessageHandler().sendMessage(finished);
