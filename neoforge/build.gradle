@@ -128,6 +128,7 @@ unifiedPublishing {
         relations {
             depends {
                 curseforge = "polylib"
+                modrinth = "polylib"
             }
         }
 
@@ -137,6 +138,15 @@ unifiedPublishing {
                 token = CURSE_API_KEY
                 id = rootProject.curseforge_id
                 gameVersions.addAll rootProject.minecraft_version
+            }
+        }
+
+        var MODRINTH_TOKEN = project.findProperty("MODRINTH_TOKEN") ?: System.getenv("MODRINTH_TOKEN")
+        if (MODRINTH_TOKEN != null) {
+            modrinth {
+                token = MODRINTH_TOKEN
+                id = rootProject.modrinth_id
+                version = "$project.version"
             }
         }
     }
