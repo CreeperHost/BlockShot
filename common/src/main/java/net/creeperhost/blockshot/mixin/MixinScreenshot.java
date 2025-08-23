@@ -26,8 +26,8 @@ public abstract class MixinScreenshot {
     @Shadow
     public static void takeScreenshot(RenderTarget renderTarget, Consumer<NativeImage> consumer) {}
 
-    @Inject(method = "grab(Ljava/io/File;Ljava/lang/String;Lcom/mojang/blaze3d/pipeline/RenderTarget;Ljava/util/function/Consumer;)V", at = @At("HEAD"), cancellable = true)
-    private static void takeScreenShot(File file, String string, RenderTarget renderTarget, Consumer<Component> consumer, CallbackInfo ci) {
+    @Inject(method = "grab(Ljava/io/File;Lcom/mojang/blaze3d/pipeline/RenderTarget;Ljava/util/function/Consumer;)V", at = @At("HEAD"), cancellable = true)
+    private static void takeScreenShot(File file, RenderTarget renderTarget, Consumer<Component> consumer, CallbackInfo ci) {
         if (!BlockShot.isActive() || !ClientUtil.validState()) {
             return;
         }

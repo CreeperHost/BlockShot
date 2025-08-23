@@ -33,7 +33,7 @@ public class IconButton extends Button {
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        GuiRender render = GuiRender.convert(guiGraphics);
+        GuiRender render = new GuiRender(guiGraphics);
 
         Material buttonMat = PolyTextures.get(() -> this.isHoveredOrFocused() ? "dynamic/button_highlight" : "dynamic/button_vanilla");
         render.dynamicTex(buttonMat, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 4, 4, 4, 4, 0xFFFFFFFF);
@@ -57,7 +57,7 @@ public class IconButton extends Button {
             if (icon != null) {
                 drawX += iconWidth + 2;
             }
-            render.drawString(formattedCharSequence, drawX, (int) (getY() + (height - 8) / 2F), 0xFFFFFF, true);
+            render.drawString(formattedCharSequence, drawX, (int) (getY() + (height - 8) / 2F), 0xFFFFFFFF, true);
         }
     }
 }

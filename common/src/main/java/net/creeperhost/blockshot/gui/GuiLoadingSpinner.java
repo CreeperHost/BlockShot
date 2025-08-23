@@ -82,12 +82,12 @@ public class GuiLoadingSpinner extends GuiElement<GuiLoadingSpinner> implements 
     public void renderBehind(GuiRender render, double mouseX, double mouseY, float partialTicks) {
         if (fadeOut == 0) return;
         double time = Mth.lerp(partialTicks, animation, animation + animSpeed);
-        render.pose().pushPose();
-        render.pose().translate(xCenter(), yCenter(), 0);
-        render.pose().mulPose(Axis.ZP.rotationDegrees((float) (time * 90) + 40));
-        render.pose().translate(-xCenter(), -yCenter(), 0);
-        render.batchDraw(() -> pixels.forEach(pxl -> pxl.draw(render, (int) xCenter() - (texWidth / 2), (int) yCenter() - (texHeight / 2), partialTicks)));
-        render.pose().popPose();
+        render.pose().pushMatrix();
+        render.pose().translate((int) xCenter(), (int) yCenter());
+        render.pose().rotate((float) Math.toRadians((time * 90) + 40));
+        render.pose().translate((int) -xCenter(), (int) -yCenter());
+        pixels.forEach(pxl -> pxl.draw(render, (int) xCenter() - (texWidth / 2), (int) yCenter() - (texHeight / 2), partialTicks));
+        render.pose().popMatrix();
     }
 
     private class Pxl {

@@ -1,16 +1,12 @@
 package net.creeperhost.blockshot.capture;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import net.creeperhost.blockshot.Auth;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import org.joml.Matrix4fStack;
 
 import java.util.List;
 
@@ -42,19 +38,19 @@ public class RecordingHandler {
         if (!BlockShot.isActive() || !getEncoder().isWorking()) {
             return;
         }
-
         getEncoder().updateCapture();
-
-        drawRecordingIndicator(5, 5);
     }
 
-    private static void drawRecordingIndicator(int x, int y) {
-        List<Component> hudLines = getEncoder().getHudText();
-        if (hudLines == null || hudLines.isEmpty()) return;
+    public static void handleScreenCaptureOverlay(GuiGraphics graphics) {
+        if (!BlockShot.isActive() || !getEncoder().isWorking()) {
+            return;
+        }
+        if (Minecraft.getInstance().level == null || Minecraft.getInstance().options.hideGui) return;
+        drawRecordingIndicator(graphics, 5, 5);
+    }
 
-        Matrix4fStack matrix4fStack = RenderSystem.getModelViewStack();
-        matrix4fStack.pushMatrix();
-        matrix4fStack.translation(0.0F, 0.0F, -2000.0F);
+    private static void drawRecordingIndicator(GuiGraphics graphics, int x, int y) {
+        List<Component> hudLines = getEncoder().getHudText();
         Font font = Minecraft.getInstance().font;
 
         int recordOffset = getEncoder().showRecordIcon() ? 10 : 0;
@@ -65,30 +61,17 @@ public class RecordingHandler {
         }
         int height = (hudLines.size() * 9) + 5;
 
-        drawRect(matrix4fStack, x, y, maxWidth + 6 + recordOffset, height, 0xb0101010);
+        graphics.fill(x, y, x + maxWidth + 6 + recordOffset, y + height, 0xb0101010);
 
-        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         int i = 0;
         for (Component line : hudLines) {
-            font.drawInBatch(line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFF, true, matrix4fStack, bufferSource, Font.DisplayMode.NORMAL, 0, 0xf000f0);
+            graphics.drawString(font, line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFFFF, true);
             i += 9;
         }
-        bufferSource.endBatch();
 
         if (System.currentTimeMillis() % 2000 > 1000 && getEncoder().showRecordIcon()) {
-            drawRect(matrix4fStack, x + 3, y + 4, 7, 5, 0xFFFF0000);
-            drawRect(matrix4fStack, x + 4, y + 3, 5, 7, 0xFFFF0000);
+            graphics.fill(x + 3, y + 4, x + 3 + 7, y + 4 + 5, 0xFFFF0000);
+            graphics.fill(x + 4, y + 3, x + 4 + 5, y + 3 + 7, 0xFFFF0000);
         }
-
-        matrix4fStack.popMatrix();
-    }
-
-    private static void drawRect(Matrix4fStack poseStack, int x, int y, int width, int height, int colour) {
-        VertexConsumer consumer = Minecraft.getInstance().renderBuffers().bufferSource().getBuffer(RenderType.guiOverlay());
-        consumer.addVertex(poseStack, x, y + height, 0).setColor(colour);
-        consumer.addVertex(poseStack, x + width, y + height, 0).setColor(colour);
-        consumer.addVertex(poseStack, x + width, y, 0).setColor(colour);
-        consumer.addVertex(poseStack, x, y, 0).setColor(colour);
-        Minecraft.getInstance().renderBuffers().bufferSource().endBatch();
     }
 }

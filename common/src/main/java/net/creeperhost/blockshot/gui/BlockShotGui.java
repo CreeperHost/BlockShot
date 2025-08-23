@@ -401,14 +401,14 @@ public class BlockShotGui implements GuiProvider {
             double size = (Math.min(xSize(), ySize()) / 2) - 1;
             drawTexture(render, xCenter() - size, yCenter() - size, xCenter() + size, yCenter() + size);
 
-            render.pose().pushPose();
-            render.pose().translate(xMin() + 2, yMax() - 8, 0);
-            render.pose().scale(0.75F, 0.75F, 1F);
-            render.drawString(HH_MM_FORMAT.format(capture.created() * 1000L), 0, 0, 0x8080FF, false);
+            render.pose().pushMatrix();
+            render.pose().translate((int) xMin() + 2, (int) yMax() - 8);
+            render.pose().scale(0.75F, 0.75F);
+            render.drawString(HH_MM_FORMAT.format(capture.created() * 1000L), 0, 0, 0xFF8080FF, false);
             String format = capture.format();
             if (format.contains("/")) format = format.substring(format.indexOf("/") + 1);
-            render.drawString(format, (entryWidth / 0.75) - 28, 0, 0xAAAAAA, false);
-            render.pose().popPose();
+            render.drawString(format, (entryWidth / 0.75) - 28, 0, 0xFFAAAAAA, false);
+            render.pose().popMatrix();
         }
 
         private void drawTexture(GuiRender render, double xMin, double yMin, double xMax, double yMax) {
@@ -425,14 +425,14 @@ public class BlockShotGui implements GuiProvider {
         @Override
         public void renderBehind(GuiRender render, double mouseX, double mouseY, float partialTicks) {
             if (HistoryManager.instance.isDownloadError()) {
-                render.drawCenteredString(Component.translatable("gui.blockshot.history.download_error"), xSize() / 2, 15, 0xFF0000);
+                render.drawCenteredString(Component.translatable("gui.blockshot.history.download_error"), xSize() / 2, 15, 0xFFFF0000);
             } else {
-                render.pose().pushPose();
-                render.pose().translate(10, 2, 0);
-                render.pose().scale(0.75F, 0.75F, 0.75F);
-                render.drawString(Component.translatable("gui.blockshot.history.how_to_screenshot", mc().options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0x707070);
-                render.drawString(Component.translatable("gui.blockshot.history.how_to_record", mc().options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0x707070);
-                render.pose().popPose();
+                render.pose().pushMatrix();
+                render.pose().translate(10, 2);
+                render.pose().scale(0.75F, 0.75F);
+                render.drawString(Component.translatable("gui.blockshot.history.how_to_screenshot", mc().options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0xFF707070);
+                render.drawString(Component.translatable("gui.blockshot.history.how_to_record", mc().options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0xFF707070);
+                render.pose().popMatrix();
             }
         }
     }

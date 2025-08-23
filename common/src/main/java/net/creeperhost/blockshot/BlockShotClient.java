@@ -7,6 +7,7 @@ import dev.architectury.event.events.client.ClientTickEvent;
 import net.creeperhost.blockshot.gui.BlockShotGui;
 import net.creeperhost.blockshot.lib.HistoryManager;
 import net.creeperhost.polylib.client.modulargui.ModularGuiScreen;
+import net.creeperhost.polylib.events.ClientRenderEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
