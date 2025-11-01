@@ -24,24 +24,28 @@ public class MessageHandlerImpl implements MessageHandler {
 
     @Override
     public void sendMessage(@Nullable Component component, MessageSignature messageSignature, boolean quietly) {
-        if (!ClientUtil.validState()) return;
-        deleteMessage(messageSignature);
-        if (component == null) return;
-        if (quietly) {
-            addMessageQuietly(component, messageSignature, Minecraft.getInstance().gui.getGuiTicks(), null, false);
-        } else {
-            ClientUtil.getChat().addMessage(component, messageSignature, null);
-        }
+        Minecraft.getInstance().execute(() -> {
+            if (!ClientUtil.validState()) return;
+            deleteMessage(messageSignature);
+            if (component == null) return;
+            if (quietly) {
+                addMessageQuietly(component, messageSignature, Minecraft.getInstance().gui.getGuiTicks(), null, false);
+            } else {
+                ClientUtil.getChat().addMessage(component, messageSignature, null);
+            }
+        });
     }
 
     @Override
     public void sendMessage(Component component, boolean quietly) {
-        if (!ClientUtil.validState()) return;
-        if (quietly) {
-            addMessageQuietly(component, null, Minecraft.getInstance().gui.getGuiTicks(), null, false);
-        } else {
-            ClientUtil.getChat().addMessage(component);
-        }
+        Minecraft.getInstance().execute(() -> {
+            if (!ClientUtil.validState()) return;
+            if (quietly) {
+                addMessageQuietly(component, null, Minecraft.getInstance().gui.getGuiTicks(), null, false);
+            } else {
+                ClientUtil.getChat().addMessage(component);
+            }
+        });
     }
 
     /**

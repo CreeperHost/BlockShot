@@ -246,8 +246,8 @@ public class BlockShotGui implements GuiProvider {
         gui.onTick(() -> detectHistoryChanges(false));
         gui.onResize(() -> detectHistoryChanges(true));
         gui.onMouseClickPost((aDouble, aDouble2, integer) -> selected = null);
-        gui.onKeyPressPost((key, code, modifier) -> {
-            if (key == InputConstants.KEY_DELETE) deleteSelected();
+        gui.onKeyPressPost((event) -> {
+            if (event.key() == InputConstants.KEY_DELETE) deleteSelected();
         });
     }
 

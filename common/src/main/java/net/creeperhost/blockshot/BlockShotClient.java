@@ -7,7 +7,6 @@ import dev.architectury.event.events.client.ClientTickEvent;
 import net.creeperhost.blockshot.gui.BlockShotGui;
 import net.creeperhost.blockshot.lib.HistoryManager;
 import net.creeperhost.polylib.client.modulargui.ModularGuiScreen;
-import net.creeperhost.polylib.events.ClientRenderEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
@@ -16,15 +15,15 @@ import net.minecraft.client.Minecraft;
  */
 public class BlockShotClient {
 
-    public static final KeyMapping OPEN_GUI = new KeyMapping("key.blockshot.open_blockshot", InputConstants.UNKNOWN.getValue(), "key.categories.misc");
+    public static final KeyMapping OPEN_GUI = new KeyMapping("key.blockshot.open_blockshot", InputConstants.UNKNOWN.getValue(), KeyMapping.Category.MISC);
 
     public static void init() {
         ClientUtil.init();
 
         ClientTickEvent.CLIENT_PRE.register(mc -> HistoryManager.instance.tick());
 
-        ClientRawInputEvent.KEY_PRESSED.register((client, keyCode, scanCode, action, modifiers) -> {
-            if (OPEN_GUI.isDown() && client.screen == null) {
+        ClientRawInputEvent.KEY_PRESSED.register((minecraft, i, keyEvent) -> {
+            if (OPEN_GUI.isDown() && minecraft.screen == null) {
                 Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui()));
             }
             return EventResult.pass();

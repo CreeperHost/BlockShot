@@ -3,3 +3,6 @@ accessible field net/minecraft/client/Options keyMappings [Lnet/minecraft/client
 mutable field net/minecraft/client/Options keyMappings [Lnet/minecraft/client/KeyMapping;
 
 accessible method com/mojang/blaze3d/platform/NativeImage writeToChannel (Ljava/nio/channels/WritableByteChannel;)Z
+
+accessible class net/minecraft/client/resources/model/AtlasManager$AtlasEntry
+accessible method net/minecraft/client/resources/model/AtlasManager$AtlasEntry <init> (Lnet/minecraft/client/renderer/texture/TextureAtlas;Lnet/minecraft/client/resources/model/AtlasManager$AtlasConfig;)V

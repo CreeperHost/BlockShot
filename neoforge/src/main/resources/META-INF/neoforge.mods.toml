@@ -23,21 +23,21 @@ license = "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md"
 [[dependencies.blockshot]]
     modId = "minecraft"
     type = "required"
-    versionRange = "[1.21.7,)"
+    versionRange = "[1.21.9,)"
     ordering = "NONE"
     side = "BOTH"
 
 [[dependencies.blockshot]]
     modId = "architectury"
     type="required"
-    versionRange = "[17.0.8,)"
+    versionRange = "[18.0.5,)"
     ordering = "AFTER"
     side = "BOTH"
 
 [[dependencies.blockshot]]
     modId = "polylib"
     type="required"
-    versionRange = "[2107.1.0,)"
+    versionRange = "[2109.1.0,)"
     ordering = "AFTER"
     side = "BOTH"
 

@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "net.creeperhost.blockshot.fabric.mixin",
+  "minVersion": "0.7.11",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+  ],
+  "client": [
+    "AtlasManagerMixin",
+    "TextureAtlasMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

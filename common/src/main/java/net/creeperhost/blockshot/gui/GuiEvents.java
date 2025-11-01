@@ -11,6 +11,7 @@ import net.creeperhost.polylib.client.modulargui.ModularGuiScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -37,8 +38,9 @@ public class GuiEvents {
         }
     }
 
-    private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers) {
-        if (!Minecraft.getInstance().options.keyScreenshot.matches(keyCode, scanCode) || action != 0) { //Have to use key release because key pressed does not get fired on forge for keyScreenshot.
+//    private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers) {
+    private static EventResult onRawInput(Minecraft minecraft, int action, KeyEvent event) {
+        if (!Minecraft.getInstance().options.keyScreenshot.matches(event) || action != 0) { //Have to use key release because key pressed does not get fired on forge for keyScreenshot.
             return EventResult.pass();
         }
 
@@ -48,10 +50,10 @@ public class GuiEvents {
         }
         keybindLast = System.currentTimeMillis();
 
-        if (Screen.hasControlDown()) {
+        if (event.hasControlDown()) {
             RecordingHandler.getEncoder().startOrStopRecording();
             return EventResult.interrupt(true);
-        } else if (Screen.hasShiftDown()) {
+        } else if (event.hasShiftDown()) {
             RecordingHandler.getEncoder().cancelRecording();
         }
 
@@ -59,7 +61,7 @@ public class GuiEvents {
     }
 
     public static boolean handleComponentClick(Style style) {
-        if (Screen.hasShiftDown() || style == null) return false;
+        if (Minecraft.getInstance().hasShiftDown() || style == null) return false;
         ClickEvent clickEvent = style.getClickEvent();
         if (!(clickEvent instanceof BlockShotUploadEvent)) return false;
 

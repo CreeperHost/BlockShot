@@ -3,6 +3,7 @@ package net.creeperhost.blockshot.integration;
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.lib.MessageHandler;
 import net.creeperhost.minetogether.chat.FriendChatNotifier;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MessageSignature;
 
@@ -17,15 +18,19 @@ public class MTMessageHandler implements MessageHandler {
 
     @Override
     public void sendMessage(Component component, MessageSignature messageSignature, boolean quietly) {
-        if (!ClientUtil.validState()) return;
-        FriendChatNotifier.addNotificationMessage(component, messageSignature);
+        Minecraft.getInstance().execute(() -> {
+            if (!ClientUtil.validState()) return;
+            FriendChatNotifier.addNotificationMessage(component, messageSignature);
+        });
     }
 
     @Override
     public void sendMessage(Component component, boolean quietly) {
-        if (!ClientUtil.validState()) return;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(256);
-        for (int i = 0; i < 4; i++) byteBuffer.putLong(random.nextLong());
-        FriendChatNotifier.addNotificationMessage(component, new MessageSignature(byteBuffer.array()));
+        Minecraft.getInstance().execute(() -> {
+            if (!ClientUtil.validState()) return;
+            ByteBuffer byteBuffer = ByteBuffer.allocate(256);
+            for (int i = 0; i < 4; i++) byteBuffer.putLong(random.nextLong());
+            FriendChatNotifier.addNotificationMessage(component, new MessageSignature(byteBuffer.array()));
+        });
     }
 }

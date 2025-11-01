@@ -7,6 +7,7 @@ import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.capture.RecordingHandler;
 import net.creeperhost.blockshot.capture.ScreenshotHandler;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -32,7 +33,7 @@ public abstract class MixinScreenshot {
             return;
         }
 
-        if (RecordingHandler.getEncoder().isWorking() || Screen.hasControlDown()) {
+        if (RecordingHandler.getEncoder().isWorking() || Minecraft.getInstance().hasControlDown()) {
             ci.cancel();
             return;
         }
