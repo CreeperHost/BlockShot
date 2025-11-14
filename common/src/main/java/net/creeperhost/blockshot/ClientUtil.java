@@ -10,6 +10,7 @@ import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.network.chat.MessageSignature;
 import org.lwjgl.stb.STBImage;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -68,6 +69,27 @@ public class ClientUtil {
             }
 
             return bytearrayoutputstream.toByteArray();
+        }
+    }
+
+    public static NativeImage bufferedImageToNativeImage(BufferedImage bufferedImage)
+    {
+        try (NativeImage nativeImage = new NativeImage(bufferedImage.getWidth(), bufferedImage.getHeight(), true)) {
+            for (int y = 0; y < bufferedImage.getHeight(); y++) {
+                for (int x = 0; x < bufferedImage.getWidth(); x++) {
+                    int arbg = bufferedImage.getRGB(x, y);
+                    int a = (arbg >> 24) & 0xFF;
+                    int r = (arbg >> 16) & 0xFF;
+                    int g = (arbg >> 8) & 0xFF;
+                    int b = arbg & 0xFF;
+
+                    int abgr = (a << 24) | (b << 16) | (g << 8) | r;
+                    nativeImage.setPixelABGR(x, y, abgr);
+                }
+            }
+            return nativeImage;
+        } catch (Exception e) {
+            return null;
         }
     }
 }

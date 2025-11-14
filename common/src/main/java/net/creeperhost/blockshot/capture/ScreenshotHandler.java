@@ -75,7 +75,27 @@ public class ScreenshotHandler {
         ClientUtil.getMessageHandler().sendMessage(finished, ClientUtil.CHAT_UPLOAD);
 
         String result = uploadImage(imageBytes, progress, type);
-        if (result == null) {
+        if (result != null && !result.equals("error")) {
+            if (result.startsWith("http")) {
+                MutableComponent link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(result))));
+                finished = Component.translatable("chat.blockshot.upload.uploaded");
+                ClientUtil.getMessageHandler().sendMessage(null, ClientUtil.CHAT_UPLOAD);
+                ClientUtil.getMessageHandler().sendMessage(finished);
+                if (Config.INSTANCE.copyToClipboard) {
+                    Minecraft.getInstance().keyboardHandler.setClipboard(result);
+                    link.append(" ").append(Component.translatable("chat.blockshot.upload.copied").withStyle(ChatFormatting.GRAY));
+                }
+                ClientUtil.getMessageHandler().sendMessage(link);
+            } else {
+                finished = Component.translatable("chat.blockshot.upload.error.reason", result);
+                ClientUtil.getMessageHandler().sendMessage(finished, ClientUtil.CHAT_UPLOAD);
+
+                //Fallback
+                if (writeOnFail) {
+                    saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                }
+            }
+        } else {
             finished = Component.translatable("chat.blockshot.upload.error");
             ClientUtil.getMessageHandler().sendMessage(finished, ClientUtil.CHAT_UPLOAD);
 
@@ -83,22 +103,12 @@ public class ScreenshotHandler {
             if (writeOnFail) {
                 saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
             }
-        } else if (result.startsWith("http")) {
-            MutableComponent link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(result))));
-            finished = Component.translatable("chat.blockshot.upload.uploaded");
-            ClientUtil.getMessageHandler().sendMessage(null, ClientUtil.CHAT_UPLOAD);
-            ClientUtil.getMessageHandler().sendMessage(finished);
-            if (Config.INSTANCE.copyToClipboard) {
-                Minecraft.getInstance().keyboardHandler.setClipboard(result);
-                link.append(" ").append(Component.translatable("chat.blockshot.upload.copied").withStyle(ChatFormatting.GRAY));
-            }
-            ClientUtil.getMessageHandler().sendMessage(link);
         }
     }
 
     public static String uploadImage(byte[] imageBytes, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
         try {
-            String rsp = WebUtils.post("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), type, progress);
+            String rsp = WebUtils.put("https://blocks.hot/api/v1/shares", imageBytes, type, progress);
             return readJsonResponse(rsp);
         } catch (Throwable t) {
             LOGGER.error("An error occurred while uploading image", t);
@@ -108,15 +118,10 @@ public class ScreenshotHandler {
 
     public static String readJsonResponse(String rsp) {
         try {
-            if (rsp.equals("error")) return null;
+            if (!rsp.startsWith("{")) return rsp;
             JsonElement jsonElement = JsonParser.parseString(rsp);
-            String status = jsonElement.getAsJsonObject().get("status").getAsString();
-            if (!status.equals("error")) {
-                HistoryManager.instance.markDirty();
-                return jsonElement.getAsJsonObject().get("url").getAsString();
-            } else {
-                LOGGER.error("Server Response: {}", jsonElement.getAsJsonObject().get("message").getAsString());
-            }
+            HistoryManager.instance.markDirty();
+            return "https://blocks.hot/%s".formatted(jsonElement.getAsJsonObject().get("code").getAsString());
         } catch (Throwable t) {
             LOGGER.error("An error occurred while uploading image", t);
         }
