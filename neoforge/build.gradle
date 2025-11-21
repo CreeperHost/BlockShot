@@ -47,9 +47,9 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive = false }
 
     shadowLib('net.creeperhost:jcodec:0.2.6') { transitive = false }
+    shadowLib ("net.covers1624:Quack:${quack_version}") { transitive = false }
     shadowLib("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
     shadowLib ("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
-    shadowLib ("net.covers1624:Quack:${quack_version}") { transitive = false }
 }
 
 processResources {
