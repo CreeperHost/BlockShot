@@ -37,7 +37,7 @@ license = "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md"
 [[dependencies.blockshot]]
     modId = "polylib"
     type="required"
-    versionRange = "[2100.0.3,)"
+    versionRange = "[2100.1.0,)"
     ordering = "AFTER"
     side = "BOTH"
 
