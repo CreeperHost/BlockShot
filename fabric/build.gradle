@@ -45,9 +45,9 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive = false }
 
     shadowLib('net.creeperhost:jcodec:0.2.6') { transitive = false }
+    shadowLib ("net.covers1624:Quack:${quack_version}") { transitive = false }
     shadowLib("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
     shadowLib ("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
-    shadowLib ("net.covers1624:Quack:${quack_version}") { transitive = false }
 }
 
 processResources {
@@ -67,6 +67,8 @@ shadowJar {
     relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
     relocate 'net.sourceforge.jaad', 'net.creeperhost.blockshot.repack.net.sourceforge.jaad'
     relocate 'net.creeperhost.minetogether.session', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether.session'
+    relocate 'net.creeperhost.minetogether.lib', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether.lib'
+    relocate 'net.covers1624.quack', 'net.creeperhost.blockshot.repack.net.covers1624.quack'
 }
 
 remapJar {
