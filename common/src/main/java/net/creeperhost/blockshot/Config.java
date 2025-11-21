@@ -23,7 +23,6 @@ public class Config {
     public Mode uploadMode = Mode.PROMPT;
     public boolean copyToClipboard = false;
     public ButtonPos buttonPos = ButtonPos.BOTTOM_LEFT;
-    private EncoderType encoderType = EncoderType.GIF;
     public boolean anonymous;
 
     public Config() {
@@ -39,14 +38,8 @@ public class Config {
         this.anonymous = anonymous;
     }
 
-    public void setEncoderType(EncoderType encoderType) {
-        if (RecordingHandler.setEncoder(encoderType.createEncoder())) {
-            this.encoderType = encoderType;
-        }
-    }
-
     public EncoderType getEncoderType() {
-        return encoderType;
+        return EncoderType.MOV;
     }
 
     public static String saveConfig() {
@@ -136,8 +129,8 @@ public class Config {
     }
 
     public enum EncoderType {
-        GIF(GifEncoder::new, false),
-        MOV(VideoEncoder::new, true);
+        GIF(VideoEncoder::new, false),
+        MOV(VideoEncoder::new, false);
 
         private final Supplier<Encoder> getEncoder;
         private final boolean requiresPremium;
