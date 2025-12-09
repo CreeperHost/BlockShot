@@ -47,7 +47,7 @@ public class VideoEncoder implements Encoder {
     private static final int MAX_DURATION = 30;
     private static final MediaType MEDIA_TYPE = MediaType.WEBM;
 
-    private final ExecutorService RECORDING_EXECUTOR = Executors.newFixedThreadPool(4, new ThreadFactoryBuilder().setNameFormat("blockshot-recorder-%d").setDaemon(true).build());
+    private final ExecutorService RECORDING_EXECUTOR = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("blockshot-recorder-%d").setDaemon(true).build());
     private final ExecutorService ENCODING_EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("blockshot-encoder-%d").setDaemon(true).build());
     private final File tempFile = new File(Platform.getGameFolder().toFile(), "screenshots/blockshot.temp.webm");
     private final List<CompletableFuture<?>> activeFutures = new ArrayList<>();
