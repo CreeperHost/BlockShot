@@ -72,6 +72,7 @@ shadowJar {
     relocate 'net.sourceforge.jaad', 'net.creeperhost.blockshot.repack.net.sourceforge.jaad'
     relocate 'net.creeperhost.minetogether.lib', 'net.creeperhost.blockshot.repack.minetogether.lib'
     relocate 'net.creeperhost.minetogether.session', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether.session'
+    relocate 'net.covers1624.quack', 'net.creeperhost.blockshot.repack.covers1624.quack'
 }
 
 remapJar {
