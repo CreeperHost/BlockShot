@@ -38,7 +38,7 @@ public class BlockShot {
     public static final ApiClient API = ApiClient.builder()
             .httpEngine(WEB_ENGINE)
             .addUserAgentSegment("MineTogether-lib/" + MineTogetherLib.VERSION)
-            .addUserAgentSegment("BlockShot-mod/" + "123.45") // TODO: Fix to Blockshot version
+            .addUserAgentSegment("BlockShot-mod/" + Platform.getMod(MOD_ID).getVersion())
             .addUserAgentSegment("Minecraft/" + Platform.getMinecraftVersion())
             .addUserAgentSegment("Modloader/" + ArchitecturyTarget.getCurrentTarget())
             .webAuth(AUTH)
