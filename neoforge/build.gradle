@@ -130,7 +130,7 @@ unifiedPublishing {
         displayName = "${ENV.GITHUB_REF_NAME} [NeoForge]"
         releaseType = "$rootProject.artifact_type"
         changelog = ""
-        gameVersions = [rootProject.minecraft_version]
+        gameVersions = [rootProject.minecraft_version, "1.21.1"]
         gameLoaders = ["neoforge"]
         mainPublication tasks.remapJar
         relations {
@@ -149,13 +149,13 @@ unifiedPublishing {
             }
         }
 
-        var MODRINTH_TOKEN = project.findProperty("MODRINTH_TOKEN") ?: System.getenv("MODRINTH_TOKEN")
-        if (MODRINTH_TOKEN != null) {
-            modrinth {
-                token = MODRINTH_TOKEN
-                id = rootProject.modrinth_id
-                version = "$project.version"
-            }
-        }
+//        var MODRINTH_TOKEN = project.findProperty("MODRINTH_TOKEN") ?: System.getenv("MODRINTH_TOKEN")
+//        if (MODRINTH_TOKEN != null) {
+//            modrinth {
+//                token = MODRINTH_TOKEN
+//                id = rootProject.modrinth_id
+//                version = "$project.version"
+//            }
+//        }
     }
 }
