@@ -43,6 +43,10 @@ dependencies {
     modApi("dev.architectury:architectury-neoforge:${rootProject.architectury_version}")
     modApi("net.creeperhost:polylib-neoforge:${polylib_version}") { transitive = false }
 
+    modApi ("dev.ftb.mods:ftb-pause-menu-api:21.1.0:api") {
+        transitive false
+    }
+
     common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive = false }
 
