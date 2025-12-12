@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
 public class BlockShot {
     public static final String MOD_ID = "blockshot";
     public static final Logger LOGGER = LogManager.getLogger();
-    public static Path configLocation = Platform.getGameFolder().resolve(MOD_ID + ".json");
+    public static Path configLocation = Platform.getConfigFolder().resolve(MOD_ID + ".json");
     private static boolean active = false;
     private static CompletableFuture<@Nullable JWebToken> tokenFuture;
     public static final MessageSignature CHAT_UPLOAD_ID = new MessageSignature(new byte[]{36, 03, 60});
