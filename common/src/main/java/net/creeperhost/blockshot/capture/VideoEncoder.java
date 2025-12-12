@@ -47,7 +47,7 @@ public class VideoEncoder implements Encoder {
     private static final int MAX_DURATION = 30;
     private static final MediaType MEDIA_TYPE = MediaType.WEBM;
 
-    private final ExecutorService RECORDING_EXECUTOR = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("blockshot-recorder-%d").setDaemon(true).build());
+    private final ExecutorService RECORDING_EXECUTOR = Executors.newFixedThreadPool(getCores(), new ThreadFactoryBuilder().setNameFormat("blockshot-recorder-%d").setDaemon(true).build());
     private final ExecutorService ENCODING_EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("blockshot-encoder-%d").setDaemon(true).build());
     private final File tempFile = new File(Platform.getGameFolder().toFile(), "screenshots/blockshot.temp.webm");
     private final List<CompletableFuture<?>> activeFutures = new ArrayList<>();
@@ -60,6 +60,20 @@ public class VideoEncoder implements Encoder {
     private boolean canceled = false;
     private long recordStartTime = 0;
     private long lastFrameTime = 0;
+
+    public static int getCores()
+    {
+        int min = 1;
+        int max = 4;
+        int available = Runtime.getRuntime().availableProcessors();
+        if (available > min) {
+            int count = available / 2;
+            if (count > max) count = max;
+            BlockShot.LOGGER.debug("RECORDING_EXECUTOR has been given {} threads", count);
+            return count;
+        }
+        return available;
+    }
 
     @Override
     public void startOrStopRecording() {
