@@ -2,7 +2,7 @@ name: Java CI
 
 on:
   push:
-    tags: [ '\d+\.\d+\.\d+\-?\w*' ]
+    tags: [ '1.21.3-\d+.\d+.\d+' ]
   workflow_dispatch:
     inputs:
       norelease:
@@ -39,4 +39,11 @@ jobs:
           echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
           echo "Tag name from github.ref_name: ${{ github.ref_name}}"
           chmod +x ./gradlew
-          ./gradlew build publish --stacktrace --no-daemon
+          ./gradlew build publish publishUnified --stacktrace --no-daemon
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: |
+            ./neoforge/build/libs/*neoforge*.jar
+            ./fabric/build/libs/*fabric*.jar
