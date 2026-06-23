@@ -49,7 +49,7 @@ public class VideoEncoder implements Encoder {
 
     private final ExecutorService RECORDING_EXECUTOR = Executors.newFixedThreadPool(4, new ThreadFactoryBuilder().setNameFormat("blockshot-recorder-%d").setDaemon(true).build());
     private final ExecutorService ENCODING_EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("blockshot-encoder-%d").setDaemon(true).build());
-    private final File tempFile = new File(Platform.getGameFolder().toFile(), "screenshots/blockshot.temp.mov");
+    private final File tempFile = new File(Platform.getGameFolder().toFile(), "screenshots/blockshot.temp.webm");
     private final List<CompletableFuture<?>> activeFutures = new ArrayList<>();
 
     private AtomicDouble uploadProgress = new AtomicDouble(0);
@@ -168,7 +168,7 @@ public class VideoEncoder implements Encoder {
         uploadProgress.set(0);
         //Upload
         CompletableFuture.runAsync(() -> {
-            uploadAndAddToChat(true, "mov", uploadProgress);
+            uploadAndAddToChat(true, "webm", uploadProgress);
             isRecording = stopping = false;
             tempFile.delete();
         });
@@ -200,8 +200,8 @@ public class VideoEncoder implements Encoder {
     }
 
     public String uploadImage(File file, @Nullable AtomicDouble progress) {
-        try (InputStream is = new FileInputStream(file)){
-            String rsp = WebUtils.post("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(is.readAllBytes()), MEDIA_TYPE, progress);
+        try (InputStream is = new FileInputStream(file)) {
+            String rsp = WebUtils.put("https://blocks.hot/api/v1/shares", is.readAllBytes(), MEDIA_TYPE, progress);
             return ScreenshotHandler.readJsonResponse(rsp);
         } catch (Throwable t) {
             LOGGER.error("An error occurred while uploading video", t);

@@ -5,6 +5,7 @@
 
     "chat.blockshot.upload.uploading":                          "[BlockShot] Uploading to BlockShot...",
     "chat.blockshot.upload.error":                              "[BlockShot] An error occurred uploading your content to BlockShot.",
+    "chat.blockshot.upload.error.reason":                       "[BlockShot] An error occurred uploading your content to BlockShot: %s.",
     "chat.blockshot.upload.uploaded":                           "[BlockShot] Your content is now available on BlockShot!",
 
     "chat.blockshot.record.recording":                          "[BlockShot] You are now recording gameplay!",

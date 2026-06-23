@@ -175,37 +175,6 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(HEIGHT, literal(14));
         ((GuiButton) previous).getLabel().setTextSupplier(() -> Component.translatable(Config.INSTANCE.buttonPos.translatableName()));
 
-        //Encoder Setting
-        previous = new GuiText(root, Component.translatable("gui.blockshot.settings.encoder").withStyle(ChatFormatting.UNDERLINE))
-                .constrain(RIGHT, relative(root.get(RIGHT), -4))
-                .constrain(TOP, relative(previous.get(BOTTOM), 8))
-                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
-                .constrain(HEIGHT, literal(8));
-
-        previous = Flat.button(root, Component.translatable("gui.blockshot.settings.encoder.gif"))
-                .setToggleMode(() -> Config.INSTANCE.getEncoderType() == Config.EncoderType.GIF || !Auth.hasPremium())
-                .onPress(() -> {
-                    Config.INSTANCE.setEncoderType(Config.EncoderType.GIF);
-                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                })
-                .constrain(RIGHT, relative(root.get(RIGHT), -4))
-                .constrain(TOP, relative(previous.get(BOTTOM), 2))
-                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
-                .constrain(HEIGHT, literal(14));
-
-        previous = Flat.button(root, Component.translatable("gui.blockshot.settings.encoder.mov"))
-                .setToggleMode(() -> Config.INSTANCE.getEncoderType() == Config.EncoderType.MOV && Auth.hasPremium())
-                .setDisabled(() -> !Auth.hasPremium())
-                .onPress(() -> {
-                    Config.INSTANCE.setEncoderType(Config.EncoderType.MOV);
-                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                })
-                .setTooltipSingle(Component.translatable("gui.blockshot.settings.encoder.mov.info"))
-                .constrain(RIGHT, relative(root.get(RIGHT), -4))
-                .constrain(TOP, relative(previous.get(BOTTOM), 2))
-                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
-                .constrain(HEIGHT, literal(14));
-
         Flat.button(root, Component.translatable("gui.blockshot.close"))
                 .onPress(() -> gui.mc().setScreen(null))
                 .constrain(RIGHT, relative(root.get(RIGHT), -4))
@@ -234,9 +203,9 @@ public class BlockShotGui implements GuiProvider {
     private void activateSelected(boolean copyUrl) {
         if (selected == null) return;
         if (copyUrl) {
-            Minecraft.getInstance().keyboardHandler.setClipboard("https://blockshot.ch/" + selected.id());
+            Minecraft.getInstance().keyboardHandler.setClipboard("https://blocks.hot/" + selected.id());
         } else {
-            Util.getPlatform().openUri("https://blockshot.ch/" + selected.id());
+            Util.getPlatform().openUri("https://blocks.hot/" + selected.id());
         }
     }
 
