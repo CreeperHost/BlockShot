@@ -49,13 +49,5 @@ public abstract class MixinScreenshot {
             }
         });
         ci.cancel(); //This is problematic, we need to not cancel if handleScreenshot fails, but i don't know where that lambda is handled. If it's a delayed execution then that wont work.
-
-//        try (NativeImage nativeImage = takeScreenshot(renderTarget)) {
-//            if (ScreenshotHandler.handleScreenshot(ClientUtil.nativeImageBytes(Objects.requireNonNull(nativeImage)))) {
-//                ci.cancel();
-//            }
-//        } catch (Throwable e) {
-//            BlockShot.LOGGER.error("An error occurred while processing screenshot", e);
-//        }
     }
 }

@@ -2,7 +2,6 @@ package net.creeperhost.blockshot.capture;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.creeperhost.blockshot.Auth;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.minecraft.client.Minecraft;
@@ -80,11 +79,12 @@ public class RecordingHandler {
     }
 
     private static void drawRect(Matrix4fStack poseStack, int x, int y, int width, int height, int colour) {
-        VertexConsumer consumer = Minecraft.getInstance().renderBuffers().bufferSource().getBuffer(RenderType.guiOverlay());
+        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        VertexConsumer consumer = bufferSource.getBuffer(RenderType.guiOverlay());
         consumer.addVertex(poseStack, x, y + height, 0).setColor(colour);
         consumer.addVertex(poseStack, x + width, y + height, 0).setColor(colour);
         consumer.addVertex(poseStack, x + width, y, 0).setColor(colour);
         consumer.addVertex(poseStack, x, y, 0).setColor(colour);
-        Minecraft.getInstance().renderBuffers().bufferSource().endBatch();
+        bufferSource.endBatch();
     }
 }

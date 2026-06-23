@@ -30,7 +30,6 @@ public class GuiEvents {
     private static void onGuiInit(Screen screen, ScreenAccess access) {
         if (screen instanceof PauseScreen) {
             Config.ButtonPos pos = Config.INSTANCE.buttonPos;
-            //TODO, replace this with modular GUI Injection
             access.addRenderableWidget(new IconButton(pos.getX(screen.width, 100), pos.getY(screen.height, 20), 100, 20, Component.translatable("gui.blockshot.blockshot_button"), e -> Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui())))
                     .setIcon(ModTextures.get("blockshot_icon"), 16, 16)
             );

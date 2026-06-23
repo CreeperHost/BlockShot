@@ -34,7 +34,7 @@ public class TextureCache {
     private static ResourceLocation load(NativeImage nativeImage, long created) {
         try {
             ResourceLocation location = ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "blockshot/" + index++);
-            Minecraft.getInstance().getTextureManager().register(location, new DynamicTexture(nativeImage));
+            Minecraft.getInstance().getTextureManager().register(location, new DynamicTexture(() -> "blockshot-preview", nativeImage));
             return location;
         } catch (Throwable t) {
             LOGGER.warn("An error occurred while loading capture preview", t);

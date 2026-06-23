@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    tags: [ '1.21.1-\d+.\d+.\d+' ]
+    tags: [ '1.21.5-\d+.\d+.\d+' ]
   workflow_dispatch:
     inputs:
       norelease:
