@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
-import net.creeperhost.blockshot.Auth;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.lib.Capture;
@@ -177,37 +176,6 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(HEIGHT, literal(14));
         ((GuiButton) previous).getLabel().setTextSupplier(() -> new TranslatableComponent(Config.INSTANCE.buttonPos.translatableName()));
 
-        //Encoder Setting
-        previous = new GuiText(root, new TranslatableComponent("gui.blockshot.settings.encoder").withStyle(ChatFormatting.UNDERLINE))
-                .constrain(RIGHT, relative(root.get(RIGHT), -4))
-                .constrain(TOP, relative(previous.get(BOTTOM), 8))
-                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
-                .constrain(HEIGHT, literal(8));
-
-        previous = Flat.button(root, new TranslatableComponent("gui.blockshot.settings.encoder.gif"))
-                .setToggleMode(() -> Config.INSTANCE.getEncoderType() == Config.EncoderType.GIF || !Auth.hasPremium())
-                .onPress(() -> {
-                    Config.INSTANCE.setEncoderType(Config.EncoderType.GIF);
-                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                })
-                .constrain(RIGHT, relative(root.get(RIGHT), -4))
-                .constrain(TOP, relative(previous.get(BOTTOM), 2))
-                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
-                .constrain(HEIGHT, literal(14));
-
-        previous = Flat.button(root, new TranslatableComponent("gui.blockshot.settings.encoder.mov"))
-                .setToggleMode(() -> Config.INSTANCE.getEncoderType() == Config.EncoderType.MOV && Auth.hasPremium())
-                .setDisabled(() -> !Auth.hasPremium())
-                .onPress(() -> {
-                    Config.INSTANCE.setEncoderType(Config.EncoderType.MOV);
-                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                })
-                .setTooltipSingle(new TranslatableComponent("gui.blockshot.settings.encoder.mov.info"))
-                .constrain(RIGHT, relative(root.get(RIGHT), -4))
-                .constrain(TOP, relative(previous.get(BOTTOM), 2))
-                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
-                .constrain(HEIGHT, literal(14));
-
         Flat.button(root, new TranslatableComponent("gui.blockshot.close"))
                 .onPress(() -> gui.mc().setScreen(null))
                 .constrain(RIGHT, relative(root.get(RIGHT), -4))
@@ -236,9 +204,9 @@ public class BlockShotGui implements GuiProvider {
     private void activateSelected(boolean copyUrl) {
         if (selected == null) return;
         if (copyUrl) {
-            Minecraft.getInstance().keyboardHandler.setClipboard("https://blockshot.ch/" + selected.id());
+            Minecraft.getInstance().keyboardHandler.setClipboard("https://blocks.hot/" + selected.id());
         } else {
-            Util.getPlatform().openUri("https://blockshot.ch/" + selected.id());
+            Util.getPlatform().openUri("https://blocks.hot/" + selected.id());
         }
     }
 

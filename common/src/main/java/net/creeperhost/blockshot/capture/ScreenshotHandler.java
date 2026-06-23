@@ -9,8 +9,10 @@ import net.creeperhost.blockshot.gui.BlockShotClickEvent;
 import net.creeperhost.blockshot.lib.HistoryManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +25,6 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Date;
 import java.util.function.Consumer;
 
@@ -72,11 +73,30 @@ public class ScreenshotHandler {
     }
 
     public static void uploadAndAddToChat(byte[] imageBytes, boolean writeOnFail, String fallbackExt, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
-        Component finished = new TranslatableComponent("chat.blockshot.upload.uploading");
+        MutableComponent finished = new TranslatableComponent("chat.blockshot.upload.uploading");
         ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
 
         String result = uploadImage(imageBytes, progress, type);
-        if (result == null) {
+        if (result != null && !result.equals("error")) {
+            if (result.startsWith("http")) {
+                MutableComponent link = (new TextComponent(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
+                finished = new TranslatableComponent("chat.blockshot.upload.uploaded").append(" ").append(link);
+                if (Config.INSTANCE.copyToClipboard) {
+                    Minecraft.getInstance().keyboardHandler.setClipboard(result);
+                    finished.append(" ").append(new TranslatableComponent("chat.blockshot.upload.copied").withStyle(ChatFormatting.GRAY));
+                }
+                ClientUtil.deleteMessage(BlockShot.CHAT_UPLOAD_ID);
+                ClientUtil.sendMessage(finished);
+            } else {
+                finished = new TranslatableComponent("chat.blockshot.upload.error.reason", result);
+                ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
+
+                //Fallback
+                if (writeOnFail) {
+                    saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                }
+            }
+        } else {
             finished = new TranslatableComponent("chat.blockshot.upload.error");
             ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
 
@@ -84,16 +104,12 @@ public class ScreenshotHandler {
             if (writeOnFail) {
                 saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
             }
-        } else if (result.startsWith("http")) {
-            Component link = (new TextComponent(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
-            finished = new TranslatableComponent("chat.blockshot.upload.uploaded").append(" ").append(link);
-            ClientUtil.sendMessage(finished);
         }
     }
 
     public static String uploadImage(byte[] imageBytes, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
         try {
-            String rsp = WebUtils.post("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), type, progress);
+            String rsp = WebUtils.put("https://blocks.hot/api/v1/shares", imageBytes, type, progress);
             return readJsonResponse(rsp);
         } catch (Throwable t) {
             LOGGER.error("An error occurred while uploading image", t);
@@ -103,15 +119,10 @@ public class ScreenshotHandler {
 
     public static String readJsonResponse(String rsp) {
         try {
-            if (rsp.equals("error")) return null;
+            if (!rsp.startsWith("{")) return rsp;
             JsonElement jsonElement = JsonParser.parseString(rsp);
-            String status = jsonElement.getAsJsonObject().get("status").getAsString();
-            if (!status.equals("error")) {
-                HistoryManager.instance.markDirty();
-                return jsonElement.getAsJsonObject().get("url").getAsString();
-            } else {
-                LOGGER.error("Server Response: {}", jsonElement.getAsJsonObject().get("message").getAsString());
-            }
+            HistoryManager.instance.markDirty();
+            return "https://blocks.hot/%s".formatted(jsonElement.getAsJsonObject().get("code").getAsString());
         } catch (Throwable t) {
             LOGGER.error("An error occurred while uploading image", t);
         }
@@ -127,7 +138,7 @@ public class ScreenshotHandler {
         File outputFile = fileName == null ? getFile(file2, extension) : new File(file2, fileName);
 
         Util.ioPool().execute(() -> {
-            try (OutputStream os = new FileOutputStream(outputFile)){
+            try (OutputStream os = new FileOutputStream(outputFile)) {
                 os.write(bytes);
                 Component component = new TextComponent(outputFile.getName()).withStyle(ChatFormatting.UNDERLINE).withStyle((style) -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, outputFile.getAbsolutePath())));
                 consumer.accept(new TranslatableComponent(msgSuccess, component));
@@ -141,7 +152,7 @@ public class ScreenshotHandler {
     public static File getFile(File directory, String extension) {
         String string = DATE_FORMAT.format(new Date());
         int i = 1;
-        while(true) {
+        while (true) {
             File result = new File(directory, string + (i == 1 ? "" : "_" + i) + "." + extension);
             if (!result.exists()) {
                 return result;
