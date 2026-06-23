@@ -22,10 +22,6 @@ public class RecordingHandler {
     private static Encoder encoder;
 
     public static Encoder getEncoder() {
-        if (Config.INSTANCE.getEncoderType().requiresPremium() && !Auth.hasPremium()) {
-            Config.INSTANCE.setEncoderType(Config.EncoderType.GIF);
-        }
-
         if (encoder == null) {
             setEncoder(Config.INSTANCE.getEncoderType().createEncoder());
         }

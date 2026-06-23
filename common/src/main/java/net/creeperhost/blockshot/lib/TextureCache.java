@@ -5,14 +5,10 @@ import net.creeperhost.blockshot.BlockShot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -25,7 +21,7 @@ public class TextureCache {
     private static int index = 0;
 
     public static ResourceLocation loadPreview(Capture capture) {
-        return PREVIEW_CACHE.computeIfAbsent(capture.id(), s -> load(capture.preview(), capture.created(), capture.id()));
+        return PREVIEW_CACHE.computeIfAbsent(capture.id(), s -> load(capture.preview(), capture.created()));
     }
 
     public static void unloadPreview(Capture capture) {
@@ -35,14 +31,11 @@ public class TextureCache {
         }
     }
 
-    private static ResourceLocation load(String base64Texture, long created, String key) {
+    private static ResourceLocation load(NativeImage nativeImage, long created) {
         try {
-            if (StringUtils.isNotBlank(base64Texture) && created > 0) {
-                byte[] bs = Base64.getDecoder().decode(base64Texture.replaceAll("\n", "").getBytes(StandardCharsets.UTF_8));
-                ResourceLocation location = ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "blockshot/" + index++);
-                Minecraft.getInstance().getTextureManager().register(location, new DynamicTexture(null, NativeImage.read(bs)));
-                return location;
-            }
+            ResourceLocation location = ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "blockshot/" + index++);
+            Minecraft.getInstance().getTextureManager().register(location, new DynamicTexture(nativeImage));
+            return location;
         } catch (Throwable t) {
             LOGGER.warn("An error occurred while loading capture preview", t);
         }
