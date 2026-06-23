@@ -5,8 +5,6 @@ import dev.architectury.utils.Env;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.BlockShotClient;
 import net.creeperhost.blockshot.gui.ModTextures;
-import net.creeperhost.polylib.PolyLib;
-import net.creeperhost.polylib.client.modulargui.sprite.PolyTextures;
 import net.creeperhost.polylib.fabric.client.ResourceReloadListenerWrapper;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
