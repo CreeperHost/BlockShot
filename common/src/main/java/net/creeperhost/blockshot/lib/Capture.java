@@ -1,18 +1,24 @@
 package net.creeperhost.blockshot.lib;
 
 import com.google.gson.JsonObject;
+import com.mojang.blaze3d.platform.NativeImage;
+import net.creeperhost.blockshot.WebUtils;
 
+
+import java.time.OffsetDateTime;
 import java.util.Objects;
 
 /**
  * Created by brandon3055 on 19/03/2023
  */
-public record Capture(String id, String preview, String format, long created) {
+public record Capture(String id, NativeImage preview, String format, long created) {
     public static Capture fromJson(JsonObject object) {
-        String id = object.get("id").getAsString();
-        String preview = object.get("preview").getAsString();
-        String format = object.get("format").getAsString();
-        long created = object.get("created").getAsLong();
+        String id = object.get("code").getAsString();
+        NativeImage preview = WebUtils.getImageFromUrl("https://blocks.hot/api/v1/shares/" + id + "/preview/smol");
+        JsonObject fileMeta = object.get("fileMeta").getAsJsonObject();
+        String format = fileMeta.get("type").getAsString();
+        OffsetDateTime odt = OffsetDateTime.parse(object.get("created").getAsString());
+        long created = odt.toEpochSecond();
         return new Capture(id, preview, format, created);
     }
 
