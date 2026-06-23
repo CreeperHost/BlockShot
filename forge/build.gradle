@@ -44,6 +44,7 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     shadowLib('net.creeperhost:jcodec:0.2.6') { transitive = false }
+    shadowLib('blue.endless:jankson:1.2.1') { transitive = false }
     shadowLib('net.creeperhost:MineTogetherSessions:1.2.1') { transitive = false }
 
     runtimeClasspath "net.covers1624:DevLogin:0.1.+"
