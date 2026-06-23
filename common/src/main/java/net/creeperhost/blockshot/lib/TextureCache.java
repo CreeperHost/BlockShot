@@ -1,16 +1,13 @@
 package net.creeperhost.blockshot.lib;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import net.creeperhost.blockshot.BlockShot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +18,7 @@ public class TextureCache {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ResourceLocation FALLBACK_RESOURCE = new ResourceLocation("textures/misc/unknown_server.png");
     private static final Map<String, ResourceLocation> PREVIEW_CACHE = new HashMap<>();
+    private static int index = 0;
 
     public static ResourceLocation loadPreview(Capture capture) {
         return PREVIEW_CACHE.computeIfAbsent(capture.id(), s -> load(capture.preview(), capture.created()));
@@ -33,12 +31,9 @@ public class TextureCache {
         }
     }
 
-    private static ResourceLocation load(String base64Texture, long created) {
+    private static ResourceLocation load(NativeImage nativeImage, long created) {
         try {
-            if (StringUtils.isNotBlank(base64Texture) && created > 0) {
-                byte[] bs = Base64.getDecoder().decode(base64Texture.replaceAll("\n", "").getBytes(StandardCharsets.UTF_8));
-                return Minecraft.getInstance().getTextureManager().register("blockshot/", new DynamicTexture(NativeImage.read(new ByteArrayInputStream(bs))));
-            }
+            return Minecraft.getInstance().getTextureManager().register(BlockShot.MOD_ID + "/blockshot/" + index++, new DynamicTexture(nativeImage));
         } catch (Throwable t) {
             LOGGER.warn("An error occurred while loading capture preview", t);
         }
