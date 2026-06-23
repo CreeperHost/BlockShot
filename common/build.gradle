@@ -20,6 +20,8 @@ dependencies {
     modApi ("net.creeperhost:jcodec:0.2.6") { transitive = false }
     modApi ("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
     modApi ("curse.maven:creeperhost-minetogether-267172:5522838") { transitive = false }
+    modApi ("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
+    modApi ("net.covers1624:Quack:${quack_version}") { transitive = false }
 }
 
 architectury {
