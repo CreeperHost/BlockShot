@@ -7,6 +7,7 @@ import dev.architectury.platform.Platform;
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
+import net.creeperhost.blockshot.gui.BlockShotUploadEvent;
 import net.creeperhost.blockshot.lib.HistoryManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -47,7 +48,7 @@ public class ScreenshotHandler {
                     )
                     .append(" ")
                     .append(Component.translatable("chat.blockshot.prompt.upload_screenshot"))
-                    .withStyle(style -> style.withClickEvent(new ClickEvent.RunCommand("/blockshot upload")));
+                    .withStyle(style -> style.withClickEvent(new BlockShotUploadEvent()));
 
             ClientUtil.getMessageHandler().sendMessage(confirmMessage, ClientUtil.CHAT_UPLOAD);
             return false;

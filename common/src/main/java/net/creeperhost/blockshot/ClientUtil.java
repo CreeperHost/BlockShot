@@ -1,6 +1,5 @@
 package net.creeperhost.blockshot;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import dev.architectury.platform.Platform;
 import net.creeperhost.blockshot.integration.MTMessageHandler;
 import net.creeperhost.blockshot.lib.MessageHandler;
@@ -8,13 +7,8 @@ import net.creeperhost.blockshot.lib.MessageHandlerImpl;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.network.chat.MessageSignature;
-import org.lwjgl.stb.STBImage;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -56,18 +50,5 @@ public class ClientUtil {
         byteBuffer.putLong(uuid.getMostSignificantBits());
         byteBuffer.putLong(uuid.getLeastSignificantBits());
         return new MessageSignature(byteBuffer.array());
-    }
-
-    public static byte[] nativeImageBytes(NativeImage nativeImage) throws IOException {
-        try (
-                ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
-                WritableByteChannel writablebytechannel = Channels.newChannel(bytearrayoutputstream);
-        ) {
-            if (!nativeImage.writeToChannel(writablebytechannel)) {
-                throw new IOException("Could not write image to byte array: " + STBImage.stbi_failure_reason());
-            }
-
-            return bytearrayoutputstream.toByteArray();
-        }
     }
 }
