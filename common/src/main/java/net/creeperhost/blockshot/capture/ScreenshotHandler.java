@@ -10,7 +10,7 @@ import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.blockshot.gui.BlockShotUploadEvent;
 import net.creeperhost.blockshot.lib.HistoryManager;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;

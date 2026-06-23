@@ -73,7 +73,7 @@ public class MessageHandlerImpl implements MessageHandler {
         ChatComponent chat = ClientUtil.getChat();
         MixinChatComponent chatMix = (MixinChatComponent) chat;
 
-        int j = Mth.floor((double) chat.getWidth() / chat.getScale());
+        int j = Mth.floor((double) chatMix.invokeGetWidth() / chatMix.invokeGetScale());
         if (guiMessageTag != null && guiMessageTag.icon() != null) {
             j -= guiMessageTag.icon().width + 4 + 2;
         }

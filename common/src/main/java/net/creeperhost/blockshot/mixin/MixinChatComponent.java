@@ -13,6 +13,12 @@ public interface MixinChatComponent {
     @Invoker("isChatFocused")
     boolean invokereisChatFocused();
 
+    @Invoker("getWidth")
+    int invokeGetWidth();
+
+    @Invoker("getScale")
+    double invokeGetScale();
+
     @Accessor("allMessages")
     List<GuiMessage> getAllMessages();
 

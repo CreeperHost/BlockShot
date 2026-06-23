@@ -4,12 +4,8 @@ import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.BlockShotClient;
-import net.creeperhost.blockshot.gui.ModTextures;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
 
 public class BlockShotFabric implements ModInitializer {
     @Override

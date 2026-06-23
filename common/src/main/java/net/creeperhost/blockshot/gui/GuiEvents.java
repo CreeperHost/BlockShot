@@ -61,8 +61,12 @@ public class GuiEvents {
     }
 
     public static boolean handleComponentClick(Style style) {
-        if (Minecraft.getInstance().hasShiftDown() || style == null) return false;
-        ClickEvent clickEvent = style.getClickEvent();
+        if (style == null) return false;
+        return handleClickEvent(style.getClickEvent());
+    }
+
+    public static boolean handleClickEvent(ClickEvent clickEvent) {
+        if (Minecraft.getInstance().hasShiftDown()) return false;
         if (!(clickEvent instanceof BlockShotUploadEvent)) return false;
 
         //If we fail to upload here there is no need to write to disk because this image is already on disk.

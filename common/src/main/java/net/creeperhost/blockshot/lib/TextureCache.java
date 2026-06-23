@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.creeperhost.blockshot.BlockShot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,24 +20,24 @@ import java.util.Map;
  */
 public class TextureCache {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final ResourceLocation FALLBACK_RESOURCE = ResourceLocation.withDefaultNamespace("textures/misc/unknown_server.png");
-    private static final Map<String, ResourceLocation> PREVIEW_CACHE = new HashMap<>();
+    private static final Identifier FALLBACK_RESOURCE = Identifier.withDefaultNamespace("textures/misc/unknown_server.png");
+    private static final Map<String, Identifier> PREVIEW_CACHE = new HashMap<>();
     private static int index = 0;
 
-    public static ResourceLocation loadPreview(Capture capture) {
+    public static Identifier loadPreview(Capture capture) {
         return PREVIEW_CACHE.computeIfAbsent(capture.id(), s -> load(capture.preview(), capture.created(), capture.id()));
     }
 
     public static void unloadPreview(Capture capture) {
-        ResourceLocation resource = PREVIEW_CACHE.remove(capture.id());
+        Identifier resource = PREVIEW_CACHE.remove(capture.id());
         if (resource != null) {
             Minecraft.getInstance().getTextureManager().release(resource);
         }
     }
 
-    private static ResourceLocation load(NativeImage nativeImage, long created, String key) {
+    private static Identifier load(NativeImage nativeImage, long created, String key) {
         try {
-            ResourceLocation location = ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "blockshot/" + index++);
+            Identifier location = Identifier.fromNamespaceAndPath(BlockShot.MOD_ID, "blockshot/" + index++);
             Minecraft.getInstance().getTextureManager().register(location, new DynamicTexture(null, nativeImage));
             return location;
         } catch (Throwable t) {

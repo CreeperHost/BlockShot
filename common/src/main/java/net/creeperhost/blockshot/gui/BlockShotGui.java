@@ -25,12 +25,12 @@ import net.creeperhost.polylib.client.modulargui.lib.geometry.Constraint;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.GuiParent;
 import net.creeperhost.polylib.client.modulargui.sprite.Material;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -204,7 +204,7 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(HEIGHT, literal(14));
 
 
-        new GuiLoadingSpinner(root, ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "textures/gui/loading_spinner.png"))
+        new GuiLoadingSpinner(root, Identifier.fromNamespaceAndPath(BlockShot.MOD_ID, "textures/gui/loading_spinner.png"))
                 .setDoSpin(() -> HistoryManager.instance.isDownloading())
                 .constrain(TOP, match(historyPanel.get(TOP)))
                 .constrain(LEFT, match(historyPanel.get(LEFT)))

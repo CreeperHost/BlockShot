@@ -9,7 +9,7 @@ import net.creeperhost.polylib.client.modulargui.lib.GuiRender;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.GuiParent;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.Position;
 import net.creeperhost.polylib.helpers.MathUtil;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
@@ -33,7 +33,7 @@ public class GuiLoadingSpinner extends GuiElement<GuiLoadingSpinner> implements 
     private int texHeight;
     private Supplier<Boolean> doSpin = () -> true;
 
-    public GuiLoadingSpinner(@NotNull GuiParent<?> parent, ResourceLocation texture) {
+    public GuiLoadingSpinner(@NotNull GuiParent<?> parent, Identifier texture) {
         super(parent);
         try {
             Resource resource = mc().getResourceManager().getResourceOrThrow(texture);

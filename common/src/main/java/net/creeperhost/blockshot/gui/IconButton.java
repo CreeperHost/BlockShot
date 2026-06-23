@@ -32,7 +32,7 @@ public class IconButton extends Button {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         GuiRender render = new GuiRender(guiGraphics);
 
         Material buttonMat = PolyTextures.get(() -> this.isHoveredOrFocused() ? "dynamic/button_highlight" : "dynamic/button_vanilla");

@@ -20,6 +20,7 @@ dependencies {
     modApi ("curse.maven:creeperhost-minetogether-267172:5522847") { transitive = false }
     modApi ("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
     modApi ("net.covers1624:Quack:${quack_version}") { transitive = false }
+    implementation "org.apache.httpcomponents:httpclient:4.5.14"
 }
 
 publishing {
