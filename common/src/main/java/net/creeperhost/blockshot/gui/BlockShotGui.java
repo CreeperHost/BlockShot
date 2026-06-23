@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
-import net.creeperhost.blockshot.Auth;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.lib.Capture;
@@ -154,6 +153,18 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
                 .constrain(HEIGHT, literal(14));
         ((GuiButton) previous).getLabel().setTextSupplier(() -> Component.translatable(Config.INSTANCE.uploadMode.translatableName()));
+
+        previous = Flat.button(root, Component.empty())
+                .setTooltipSingle(Component.translatable("gui.blockshot.settings.copy_on_create.info"))
+                .onPress(() -> {
+                    Config.INSTANCE.copyToClipboard = !Config.INSTANCE.copyToClipboard;
+                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
+                })
+                .constrain(RIGHT, relative(root.get(RIGHT), -4))
+                .constrain(TOP, relative(previous.get(BOTTOM), 2))
+                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
+                .constrain(HEIGHT, literal(14));
+        ((GuiButton) previous).getLabel().setTextSupplier(() -> Component.translatable("gui.blockshot.settings.copy_on_create." + Config.INSTANCE.copyToClipboard));
 
         //Position Setting
         previous = new GuiText(root, Component.translatable("gui.blockshot.settings.button_pos").withStyle(ChatFormatting.UNDERLINE))
