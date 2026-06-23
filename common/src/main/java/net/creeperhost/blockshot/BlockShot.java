@@ -18,7 +18,6 @@ import net.creeperhost.minetogether.session.JWebToken;
 import net.creeperhost.minetogether.session.MineTogetherSession;
 import net.creeperhost.minetogether.util.SignatureVerifier;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.MessageSignature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -33,8 +32,8 @@ public class BlockShot {
     public static Path configLocation = Platform.getConfigFolder().resolve(MOD_ID + ".json");
     private static boolean active = false;
     private static CompletableFuture<@Nullable JWebToken> tokenFuture;
-    public static final MessageSignature CHAT_UPLOAD_ID = new MessageSignature(new byte[]{36, 03, 60});
-    public static final MessageSignature CHAT_ENCODING_ID = new MessageSignature(new byte[]{42, 04, 20});
+    public static final int CHAT_UPLOAD_ID = 360360;
+    public static final int CHAT_ENCODING_ID = 420420;
 //    public static final String FINGERPRINT = SignatureVerifier.generateSignature();
     public static final DynamicWebAuth AUTH = new DynamicWebAuth();
     public static final HttpEngine WEB_ENGINE = Java11HttpEngine.create();

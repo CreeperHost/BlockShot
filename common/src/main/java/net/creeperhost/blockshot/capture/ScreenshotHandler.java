@@ -20,7 +20,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.function.Consumer;
 
 /**
@@ -67,17 +69,17 @@ public class ScreenshotHandler {
     }
 
     public static void uploadAndAddToChat(byte[] imageBytes, boolean writeOnFail, String fallbackExt, @Nullable AtomicDouble progress, WebUtils.MediaType type) {
-        Component finished = Component.translatable("chat.blockshot.upload.uploading");
+        MutableComponent finished = Component.translatable("chat.blockshot.upload.uploading");
         ClientUtil.sendMessage(finished, BlockShot.CHAT_UPLOAD_ID);
 
         String result = uploadImage(imageBytes, progress, type);
         if (result != null && !result.equals("error")) {
             if (result.startsWith("http")) {
                 MutableComponent link = (Component.literal(result)).withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.LIGHT_PURPLE).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)));
-                finished = Component.translatable("chat.blockshot.upload.uploaded").append(" ").append(link);
+                finished = Component.translatable("chat.blockshot.upload.uploaded").append(Component.literal(" ")).append(link);
                 if (Config.INSTANCE.copyToClipboard) {
                     Minecraft.getInstance().keyboardHandler.setClipboard(result);
-                    finished.append(" ").append(Component.translatable("chat.blockshot.upload.copied").withStyle(ChatFormatting.GRAY));
+                    finished.append(Component.literal(" ")).append(Component.translatable("chat.blockshot.upload.copied").withStyle(ChatFormatting.GRAY));
                 }
                 ClientUtil.deleteMessage(BlockShot.CHAT_UPLOAD_ID);
                 ClientUtil.sendMessage(finished);
@@ -144,7 +146,7 @@ public class ScreenshotHandler {
     }
 
     public static File getFile(File directory, String extension) {
-        String dateTimeString = Util.getFilenameFormattedDateTime();
+        String dateTimeString = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date());
         int i = 1;
         while (true) {
             File result = new File(directory, dateTimeString + (i == 1 ? "" : "_" + i) + "." + extension);

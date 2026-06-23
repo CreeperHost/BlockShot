@@ -21,6 +21,7 @@ public class Config {
     public static Config INSTANCE;
 
     public Mode uploadMode = Mode.PROMPT;
+    public boolean copyToClipboard = false;
     public ButtonPos buttonPos = ButtonPos.BOTTOM_LEFT;
     public boolean anonymous;
 
