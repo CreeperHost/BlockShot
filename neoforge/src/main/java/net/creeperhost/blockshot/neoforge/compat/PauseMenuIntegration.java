@@ -5,14 +5,13 @@ import dev.ftb.mods.pmapi.api.menu.MenuLocation;
 import dev.ftb.mods.pmapi.api.menu.PauseItemProvider;
 import dev.ftb.mods.pmapi.api.menu.ScreenHolder;
 import dev.ftb.mods.pmapi.api.menu.ScreenWidgetCollection;
-import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.gui.BlockShotGui;
 import net.creeperhost.blockshot.gui.IconButton;
+import net.creeperhost.blockshot.gui.ModTextures;
 import net.creeperhost.polylib.client.modulargui.ModularGuiScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public class PauseMenuIntegration {
@@ -29,7 +28,7 @@ public class PauseMenuIntegration {
             Config.ButtonPos pos = Config.INSTANCE.buttonPos;
 
             IconButton button = new IconButton(pos.getX(screen.getWidth(), 100), pos.getY(screen.getHeight(), 20), 100, 20, Component.translatable("gui.blockshot.blockshot_button"), e -> Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui())))
-                    .setIcon(ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "textures/gui/blockshot_icon.png"), 16, 16);
+                    .setIcon(ModTextures.get("blockshot_icon"), 16, 16);
 
             collection.addRenderableWidget(button);
             return collection;

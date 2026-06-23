@@ -132,21 +132,5 @@ public class GuiLoadingSpinner extends GuiElement<GuiLoadingSpinner> implements 
         public static int blue(int p_267087_) {
             return p_267087_ >> 16 & 0xFF;
         }
-
-        public static int transparent(int p_267248_) {
-            return p_267248_ & 16777215;
-        }
-
-        public static int opaque(int p_268288_) {
-            return p_268288_ | 0xFF000000;
-        }
-
-        public static int color(int p_267196_, int p_266895_, int p_266779_, int p_267206_) {
-            return p_267196_ << 24 | p_266895_ << 16 | p_266779_ << 8 | p_267206_;
-        }
-
-        public static int color(int p_267230_, int p_266708_) {
-            return p_267230_ << 24 | p_266708_ & 16777215;
-        }
     }
 }
