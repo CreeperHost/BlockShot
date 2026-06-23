@@ -1,8 +1,6 @@
 package net.creeperhost.blockshot.neoforge;
 
 import net.creeperhost.blockshot.BlockShotClient;
-import net.creeperhost.blockshot.integration.Integration;
-import net.creeperhost.blockshot.neoforge.compat.PauseMenuIntegration;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
@@ -11,7 +9,6 @@ public class BlockShotNeoForgeClient {
     public static void init() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(BlockShotNeoForgeClient::registerKeyMappings);
-        Integration.runOptional("ftbpmapi", () -> PauseMenuIntegration::init);
     }
 
     private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
