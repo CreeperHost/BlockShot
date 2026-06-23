@@ -156,6 +156,18 @@ public class BlockShotGui implements GuiProvider {
                 .constrain(HEIGHT, literal(14));
         ((GuiButton) previous).getLabel().setTextSupplier(() -> new TranslatableComponent(Config.INSTANCE.uploadMode.translatableName()));
 
+        previous = Flat.button(root, TextComponent.EMPTY)
+                .setTooltipSingle(new TranslatableComponent("gui.blockshot.settings.copy_on_create.info"))
+                .onPress(() -> {
+                    Config.INSTANCE.copyToClipboard = !Config.INSTANCE.copyToClipboard;
+                    Config.saveConfigToFile(BlockShot.configLocation.toFile());
+                })
+                .constrain(RIGHT, relative(root.get(RIGHT), -4))
+                .constrain(TOP, relative(previous.get(BOTTOM), 2))
+                .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
+                .constrain(HEIGHT, literal(14));
+        ((GuiButton) previous).getLabel().setTextSupplier(() -> new TranslatableComponent("gui.blockshot.settings.copy_on_create." + Config.INSTANCE.copyToClipboard));
+
         //Position Setting
         previous = new GuiText(root, new TranslatableComponent("gui.blockshot.settings.button_pos").withStyle(ChatFormatting.UNDERLINE))
                 .setTooltipSingle(new TranslatableComponent("gui.blockshot.settings.button_pos.info"))

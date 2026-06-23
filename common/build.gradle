@@ -5,6 +5,7 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
     modApi("net.creeperhost:polylib-fabric:${rootProject.polylib_version}")
+    implementation 'blue.endless:jankson:1.2.1'
     modApi 'net.creeperhost:jcodec:0.2.6'
     modApi ("net.creeperhost:MineTogetherSessions:${rootProject.mtsession_version}") { transitive = false }
     modApi ("curse.maven:creeperhost-minetogether-267172:5522835") { transitive = false }

@@ -1,5 +1,6 @@
 package net.creeperhost.blockshot;
 
+import net.creeperhost.blockshot.mixin.MixinChatComponent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.network.chat.Component;
@@ -9,14 +10,19 @@ import net.minecraft.network.chat.Component;
  */
 public class ClientUtil {
 
-    public static void sendMessage(Component component, int messageId) { sendMessage(component, messageId, false); }
+    public static void sendMessage(Component component, int messageId) {
+        sendMessage(component, messageId, false);
+    }
 
     public static void sendMessage(Component component, int messageId, boolean quietly) {
         if (!validState()) return;
-        Minecraft.getInstance().gui.getChat().addMessage(component, messageId);
+        deleteMessage(messageId);
+        ((MixinChatComponent) getChat()).invokeaddMessage(component, messageId);
     }
 
-    public static void sendMessage(Component component) { sendMessage(component, false); }
+    public static void sendMessage(Component component) {
+        sendMessage(component, false);
+    }
 
     public static void sendMessage(Component component, boolean quietly) {
         if (!validState()) return;
@@ -29,5 +35,10 @@ public class ClientUtil {
 
     public static boolean validState() {
         return Minecraft.getInstance() != null && getChat() != null;
+    }
+
+    public static void deleteMessage(int messageId) {
+        if (!validState()) return;
+        ((MixinChatComponent) getChat()).invokeremoveById(messageId);
     }
 }
