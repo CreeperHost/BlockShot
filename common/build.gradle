@@ -13,8 +13,10 @@ dependencies {
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
     modApi("net.creeperhost:polylib-fabric:${rootProject.polylib_version}")
     modApi 'net.creeperhost:jcodec:0.2.6'
-    modApi 'net.creeperhost:MineTogetherSessions:1.2.2'
+    modApi ("net.creeperhost:MineTogetherSessions:${rootProject.mtsession_version}") { transitive = false }
     modApi ("curse.maven:creeperhost-minetogether-267172:5522835") { transitive = false }
+    modApi ("net.creeperhost:MineTogetherLib:${rootProject.mtlib_version}") { transitive = false }
+    modApi ("net.covers1624:Quack:${rootProject.quack_version}") { transitive = false }
 }
 
 publishing {
