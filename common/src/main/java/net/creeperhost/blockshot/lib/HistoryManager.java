@@ -2,7 +2,9 @@ package net.creeperhost.blockshot.lib;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
 import net.creeperhost.blockshot.WebUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -107,10 +109,12 @@ public class HistoryManager {
 
         @Override
         public DownloadTask runTask() {
-            String rsp = WebUtils.get("https://blockshot.ch/list", null);
+            String rsp = WebUtils.get("https://blocks.hot/api/v1/list/1", null);
             if (!rsp.equals("error")) {
                 JsonElement jsonElement = JsonParser.parseString(rsp);
-                JsonArray images = jsonElement.getAsJsonArray();
+                JsonObject asJsonObject = jsonElement.getAsJsonObject();
+                JsonElement results = asJsonObject.get("results");
+                JsonArray images = results.getAsJsonArray();
                 for (JsonElement obj : images) {
                     captures.add(Capture.fromJson(obj.getAsJsonObject()));
                 }
@@ -140,7 +144,7 @@ public class HistoryManager {
 
         @Override
         public DeleteTask runTask() {
-            WebUtils.get("https://blockshot.ch/delete/" + capInfo.id(), null);
+            WebUtils.delete("https://blocks.hot/api/v1/shares/" + capInfo.id(), null);
             return this;
         }
 
