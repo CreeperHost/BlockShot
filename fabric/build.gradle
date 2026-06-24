@@ -18,13 +18,11 @@ dependencies {
     implementation("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
     implementation("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
     implementation("net.covers1624:Quack:${quack_version}") { transitive = false }
-    implementation "org.apache.httpcomponents:httpclient:4.5.14"
 
     shadow("net.creeperhost:jcodec:0.2.6") { transitive = false }
     shadow("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
     shadow("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
     shadow("net.covers1624:Quack:${quack_version}") { transitive = false }
-    shadow("org.apache.httpcomponents:httpclient:4.5.14") { transitive = false }
 }
 
 loom {
