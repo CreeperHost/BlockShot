@@ -2,6 +2,7 @@ package net.creeperhost.blockshot.capture;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.creeperhost.blockshot.BlockShot;
+import net.creeperhost.blockshot.ClientUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -46,8 +47,6 @@ public interface Encoder {
         try (image) {
             int width = image.getWidth();
             int height = image.getHeight();
-            image.flipY();
-
             if (width > height) {
                 double ratio = (double) height / width;
                 targetHeight = (int) Math.round(targetWidth * ratio);
@@ -60,7 +59,7 @@ public interface Encoder {
 
             try (NativeImage nativeImage = new NativeImage(targetWidth, targetHeight, false)) {
                 image.resizeSubRectTo(0, 0, width, height, nativeImage);
-                InputStream is = new ByteArrayInputStream(nativeImage.asByteArray());
+                InputStream is = new ByteArrayInputStream(ClientUtil.nativeImageBytes(nativeImage));
                 BufferedImage finalFrame = new BufferedImage(targetWidth, targetHeight, 1);
                 finalFrame.getGraphics().drawImage(ImageIO.read(is), 0, 0, null);
                 return finalFrame;

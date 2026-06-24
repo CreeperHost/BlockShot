@@ -43,7 +43,7 @@ public abstract class MixinScreenshot {
 
         takeScreenshot(renderTarget, image -> {
             try (image) {
-                ScreenshotHandler.handleScreenshot(Objects.requireNonNull(image).asByteArray());
+                ScreenshotHandler.handleScreenshot(ClientUtil.nativeImageBytes(Objects.requireNonNull(image)));
             } catch (Throwable e) {
                 BlockShot.LOGGER.error("An error occurred while processing screenshot", e);
             }

@@ -1,8 +1,6 @@
 package net.creeperhost.blockshot.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.lib.Capture;
@@ -22,17 +20,16 @@ import net.creeperhost.polylib.client.modulargui.lib.geometry.Align;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.Axis;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.Constraint;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.GuiParent;
+import net.creeperhost.polylib.client.modulargui.sprite.Material;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
@@ -369,26 +366,18 @@ public class BlockShotGui implements GuiProvider {
             double size = (Math.min(xSize(), ySize()) / 2) - 1;
             drawTexture(render, xCenter() - size, yCenter() - size, xCenter() + size, yCenter() + size);
 
-            render.pose().pushPose();
-            render.pose().translate(xMin() + 2, yMax() - 8, 0);
-            render.pose().scale(0.75F, 0.75F, 1F);
-            render.drawString(HH_MM_FORMAT.format(capture.created() * 1000L), 0, 0, 0x8080FF, false);
+            render.pose().pushMatrix();
+            render.pose().translate((int) xMin() + 2, (int) yMax() - 8);
+            render.pose().scale(0.75F, 0.75F);
+            render.drawString(HH_MM_FORMAT.format(capture.created() * 1000L), 0, 0, 0xFF8080FF, false);
             String format = capture.format();
             if (format.contains("/")) format = format.substring(format.indexOf("/") + 1);
-            render.drawString(format, (entryWidth / 0.75) - 28, 0, 0xAAAAAA, false);
-            render.pose().popPose();
+            render.drawString(format, (entryWidth / 0.75) - 28, 0, 0xFFAAAAAA, false);
+            render.pose().popMatrix();
         }
 
         private void drawTexture(GuiRender render, double xMin, double yMin, double xMax, double yMax) {
-            RenderSystem.setShaderTexture(0, TextureCache.loadPreview(capture));
-            RenderSystem.setShader(GameRenderer::getPositionTexShader);
-            Matrix4f matrix4f = render.pose().last().pose();
-            BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            bufferBuilder.addVertex(matrix4f, (float) xMin, (float) yMin, 0).setUv(0, 0);
-            bufferBuilder.addVertex(matrix4f, (float) xMin, (float) yMax, 0).setUv(0, 1);
-            bufferBuilder.addVertex(matrix4f, (float) xMax, (float) yMax, 0).setUv(1, 1);
-            bufferBuilder.addVertex(matrix4f, (float) xMax, (float) yMin, 0).setUv(1, 0);
-            BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+            render.tex(Material.fromRawTexture(TextureCache.loadPreview(capture)), xMin, yMin, xMax, yMax);
         }
     }
 
@@ -401,14 +390,14 @@ public class BlockShotGui implements GuiProvider {
         @Override
         public void renderBehind(GuiRender render, double mouseX, double mouseY, float partialTicks) {
             if (HistoryManager.instance.isDownloadError()) {
-                render.drawCenteredString(Component.translatable("gui.blockshot.history.download_error"), xSize() / 2, 15, 0xFF0000);
+                render.drawCenteredString(Component.translatable("gui.blockshot.history.download_error"), xSize() / 2, 15, 0xFFFF0000);
             } else {
-                render.pose().pushPose();
-                render.pose().translate(10, 2, 0);
-                render.pose().scale(0.75F, 0.75F, 0.75F);
-                render.drawString(Component.translatable("gui.blockshot.history.how_to_screenshot", mc().options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0x707070);
-                render.drawString(Component.translatable("gui.blockshot.history.how_to_record", mc().options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0x707070);
-                render.pose().popPose();
+                render.pose().pushMatrix();
+                render.pose().translate(10, 2);
+                render.pose().scale(0.75F, 0.75F);
+                render.drawString(Component.translatable("gui.blockshot.history.how_to_screenshot", mc().options.keyScreenshot.getTranslatedKeyMessage()), 0, 0, 0xFF707070);
+                render.drawString(Component.translatable("gui.blockshot.history.how_to_record", mc().options.keyScreenshot.getTranslatedKeyMessage()), 0, 10, 0xFF707070);
+                render.pose().popMatrix();
             }
         }
     }
