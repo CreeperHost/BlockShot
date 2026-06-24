@@ -8,7 +8,6 @@ import net.covers1624.quack.net.httpapi.HttpEngine;
 import net.covers1624.quack.net.httpapi.java11.Java11HttpEngine;
 import net.creeperhost.blockshot.gui.GuiEvents;
 import net.creeperhost.blockshot.lib.MTSessionProvider;
-import net.creeperhost.blockshot.mixin.MixinMinecraft;
 import net.creeperhost.blockshot.polylib.ModPackInfo;
 import net.creeperhost.minetogether.MineTogetherPlatform;
 import net.creeperhost.minetogether.lib.MineTogetherLib;
@@ -17,6 +16,7 @@ import net.creeperhost.minetogether.lib.web.DynamicWebAuth;
 import net.creeperhost.minetogether.session.JWebToken;
 import net.creeperhost.minetogether.session.MineTogetherSession;
 import net.creeperhost.minetogether.util.SignatureVerifier;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.MessageSignature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,6 +86,6 @@ public class BlockShot {
     }
 
     public static int getFPS() {
-        return MixinMinecraft.getfps();
+        return Minecraft.fps;
     }
 }
