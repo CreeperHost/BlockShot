@@ -17,7 +17,6 @@ import net.creeperhost.minetogether.lib.web.DynamicWebAuth;
 import net.creeperhost.minetogether.session.JWebToken;
 import net.creeperhost.minetogether.session.MineTogetherSession;
 import net.creeperhost.minetogether.util.SignatureVerifier;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.MessageSignature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,6 +86,6 @@ public class BlockShot {
     }
 
     public static int getFPS() {
-        return ((MixinMinecraft) Minecraft.getInstance()).getfps();
+        return MixinMinecraft.getfps();
     }
 }
