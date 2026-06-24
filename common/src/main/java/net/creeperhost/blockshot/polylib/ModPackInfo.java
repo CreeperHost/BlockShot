@@ -139,7 +139,7 @@ public class ModPackInfo {
                     if (manifest.packType == 0) {
                         ftbPackID = "m" + manifest.versionId;
                         base64FTBID = Base64.getEncoder().encodeToString((String.valueOf(manifest.id) + manifest.versionId).getBytes(StandardCharsets.UTF_8));
-                        GetModpacksCHVersionRequest.Response response = BlockShot.API.execute(new GetModpacksCHVersionRequest(base64FTBID)).apiResponse();
+                        GetModpacksCHVersionRequest.Response response = BlockShot.api().execute(new GetModpacksCHVersionRequest(base64FTBID)).apiResponse();
                         if (response.getStatus().equals("error") || response.id.isEmpty()) {
                             return false;
                         }
@@ -149,7 +149,7 @@ public class ModPackInfo {
                         //CurseForge pack
                         curseID = String.valueOf(manifest.id);
                         LOGGER.info("Extracted CurseID {} from instance.json", curseID);
-                        GetCurseForgeVersionRequest.Response response = BlockShot.API.execute(new GetCurseForgeVersionRequest(curseID)).apiResponse();
+                        GetCurseForgeVersionRequest.Response response = BlockShot.api().execute(new GetCurseForgeVersionRequest(curseID)).apiResponse();
                         if (response.getStatus().equals("error") || response.id.isEmpty()) {
                             return false;
                         }
@@ -194,7 +194,7 @@ public class ModPackInfo {
                     ModpackVersionManifest manifest = JsonUtils.parse(GSON, versionJson, ModpackVersionManifest.class);
                     ftbPackID = "m" + manifest.parent;
                     base64FTBID = Base64.getEncoder().encodeToString((String.valueOf(manifest.parent) + manifest.id).getBytes(StandardCharsets.UTF_8));
-                    GetModpacksCHVersionRequest.Response response = BlockShot.API.execute(new GetModpacksCHVersionRequest(base64FTBID)).apiResponse();
+                    GetModpacksCHVersionRequest.Response response = BlockShot.api().execute(new GetModpacksCHVersionRequest(base64FTBID)).apiResponse();
                     if (response.getStatus().equals("error") || response.id.isEmpty()) {
                         return false;
                     }
@@ -211,7 +211,7 @@ public class ModPackInfo {
         private boolean fetchWebsiteIDCurse() {
             try {
                 if (!NumberUtils.isParsable(curseID)) return false;
-                String resolvedID = BlockShot.API.execute(new GetCurseForgeVersionRequest(curseID)).apiResponse().id;
+                String resolvedID = BlockShot.api().execute(new GetCurseForgeVersionRequest(curseID)).apiResponse().id;
                 if (resolvedID.isEmpty()) {
                     return false;
                 }
@@ -232,7 +232,7 @@ public class ModPackInfo {
                         LOGGER.info("Found auxilium id: {} version: {}", aux.id, aux.version.id);
                         ftbPackID = "m" + aux.id;
                         base64FTBID = Base64.getEncoder().encodeToString((String.valueOf(aux.id) + aux.version.id).getBytes(StandardCharsets.UTF_8));
-                        GetModpacksCHVersionRequest.Response response = BlockShot.API.execute(new GetModpacksCHVersionRequest(base64FTBID)).apiResponse();
+                        GetModpacksCHVersionRequest.Response response = BlockShot.api().execute(new GetModpacksCHVersionRequest(base64FTBID)).apiResponse();
                         if (response.getStatus().equals("error") || response.id.isEmpty()) {
                             return;
                         }
@@ -252,7 +252,7 @@ public class ModPackInfo {
                     if (instance.packType == 1 && instance.id > 0) {
                         curseID = String.valueOf(instance.id);
                         LOGGER.info("Extracted CurseID {} from instance.json", curseID);
-                        GetCurseForgeVersionRequest.Response response = BlockShot.API.execute(new GetCurseForgeVersionRequest(curseID)).apiResponse();
+                        GetCurseForgeVersionRequest.Response response = BlockShot.api().execute(new GetCurseForgeVersionRequest(curseID)).apiResponse();
                         if (response.getStatus().equals("error") || response.id.isEmpty()) {
                             return;
                         }
@@ -272,7 +272,7 @@ public class ModPackInfo {
                     if (instance.projectID > 0) {
                         curseID = String.valueOf(instance.projectID);
                         LOGGER.info("Extracted CurseID {} from minecraftinstance.json", curseID);
-                        GetCurseForgeVersionRequest.Response response = BlockShot.API.execute(new GetCurseForgeVersionRequest(curseID)).apiResponse();
+                        GetCurseForgeVersionRequest.Response response = BlockShot.api().execute(new GetCurseForgeVersionRequest(curseID)).apiResponse();
                         if (response.getStatus().equals("error") || response.id.isEmpty()) {
                             return;
                         }
@@ -297,7 +297,7 @@ public class ModPackInfo {
                                 if (id > 0) {
                                     curseID = String.valueOf(id);
                                     LOGGER.info("Extracted CurseID {} from instance.cfg", curseID);
-                                    GetCurseForgeVersionRequest.Response response = BlockShot.API.execute(new GetCurseForgeVersionRequest(curseID)).apiResponse();
+                                    GetCurseForgeVersionRequest.Response response = BlockShot.api().execute(new GetCurseForgeVersionRequest(curseID)).apiResponse();
                                     if (response.getStatus().equals("error") || response.id.isEmpty()) {
                                         return;
                                     }

@@ -34,15 +34,22 @@ public class BlockShot {
     private static CompletableFuture<@Nullable JWebToken> tokenFuture;
 //    public static final String FINGERPRINT = SignatureVerifier.generateSignature();
     public static final DynamicWebAuth AUTH = new DynamicWebAuth();
-    public static final HttpEngine WEB_ENGINE = Java11HttpEngine.create();
-    public static final ApiClient API = ApiClient.builder()
-            .httpEngine(WEB_ENGINE)
-            .addUserAgentSegment("MineTogether-lib/" + MineTogetherLib.VERSION)
-            .addUserAgentSegment("BlockShot-mod/" + "123.45") // TODO: Fix to Blockshot version
-            .addUserAgentSegment("Minecraft/" + Platform.getMinecraftVersion())
-            .addUserAgentSegment("Modloader/" + ArchitecturyTarget.getCurrentTarget())
-            .webAuth(AUTH)
-            .build();
+    private static ApiClient api;
+
+    public static ApiClient api() {
+        if (api == null) {
+            HttpEngine webEngine = Java11HttpEngine.create();
+            api = ApiClient.builder()
+                    .httpEngine(webEngine)
+                    .addUserAgentSegment("MineTogether-lib/" + MineTogetherLib.VERSION)
+                    .addUserAgentSegment("BlockShot-mod/" + "123.45") // TODO: Fix to Blockshot version
+                    .addUserAgentSegment("Minecraft/" + Platform.getMinecraftVersion())
+                    .addUserAgentSegment("Modloader/" + ArchitecturyTarget.getCurrentTarget())
+                    .webAuth(AUTH)
+                    .build();
+        }
+        return api;
+    }
 
     public static void init() {
         if (Platform.getEnvironment().equals(Env.CLIENT)) {
