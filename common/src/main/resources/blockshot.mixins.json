@@ -1,7 +1,6 @@
 {
   "required": true,
   "package": "net.creeperhost.blockshot.mixin",
-  "refmap": "blockshot-common-refmap.json",
   "mixins": [
   ],
   "client": [
