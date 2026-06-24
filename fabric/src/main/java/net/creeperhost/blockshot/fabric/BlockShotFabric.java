@@ -1,18 +1,15 @@
 package net.creeperhost.blockshot.fabric;
 
-import dev.architectury.platform.Platform;
-import dev.architectury.utils.Env;
 import net.creeperhost.blockshot.BlockShot;
-import net.creeperhost.blockshot.BlockShotClient;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.loader.api.FabricLoader;
 
 public class BlockShotFabric implements ModInitializer {
     @Override
     public void onInitialize() {
-        if (Platform.getEnvironment().equals(Env.CLIENT)) {
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             BlockShot.init();
-            KeyBindingHelper.registerKeyBinding(BlockShotClient.OPEN_GUI);
 //            ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new ResourceReloadListenerWrapper(ModTextures::getAtlasHolder, ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "gui_atlas_reload")));
         }
     }

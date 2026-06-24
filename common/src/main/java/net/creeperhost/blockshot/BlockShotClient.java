@@ -1,12 +1,11 @@
 package net.creeperhost.blockshot;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import dev.architectury.event.EventResult;
-import dev.architectury.event.events.client.ClientRawInputEvent;
-import dev.architectury.event.events.client.ClientTickEvent;
 import net.creeperhost.blockshot.gui.BlockShotGui;
 import net.creeperhost.blockshot.lib.HistoryManager;
 import net.creeperhost.polylib.client.modulargui.ModularGuiScreen;
+import net.creeperhost.polylib.event.events.client.PolyClientTickEvents;
+import net.creeperhost.polylib.event.events.client.PolyInputEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
@@ -20,13 +19,13 @@ public class BlockShotClient {
     public static void init() {
         ClientUtil.init();
 
-        ClientTickEvent.CLIENT_PRE.register(mc -> HistoryManager.instance.tick());
+        PolyClientTickEvents.CLIENT_TICK_START.register(mc -> HistoryManager.instance.tick());
 
-        ClientRawInputEvent.KEY_PRESSED.register((minecraft, i, keyEvent) -> {
+        PolyInputEvents.INPUT_KEY.register((key, scanCode, action, modifiers) -> {
+            Minecraft minecraft = Minecraft.getInstance();
             if (OPEN_GUI.isDown() && minecraft.screen == null) {
                 Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui()));
             }
-            return EventResult.pass();
         });
     }
 

@@ -1,104 +1,107 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "com.gradleup.shadow" version "9.2.2"
+    id 'multiloader-loader'
+    id 'net.fabricmc.fabric-loom'
     id "me.shedaniel.unified-publishing"
 }
 
 def ENV = System.getenv()
 
-architectury {
-    platformSetupLoomIde()
-    fabric()
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation("net.creeperhost.polylib:polylib-fabric:${polylib_version}") { transitive = false }
+
+    implementation("net.creeperhost:jcodec:0.2.6") { transitive = false }
+    implementation("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
+    implementation("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
+    implementation("net.covers1624:Quack:${quack_version}") { transitive = false }
+    implementation "org.apache.httpcomponents:httpclient:4.5.14"
+
+    shadow("net.creeperhost:jcodec:0.2.6") { transitive = false }
+    shadow("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
+    shadow("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
+    shadow("net.covers1624:Quack:${quack_version}") { transitive = false }
+    shadow("org.apache.httpcomponents:httpclient:4.5.14") { transitive = false }
 }
 
 loom {
-    accessWidenerPath = project(":common").loom.accessWidenerPath
-
+    def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
     runs {
-        clientLogin {
+        client {
             client()
-            ideConfigGenerated true
-            mainClass.set 'net.covers1624.devlogin.DevLogin'
-
-            programArgs '--launch_target', 'net.fabricmc.loader.impl.launch.knot.KnotClient'
+            setConfigName('Fabric Client')
+            ideConfigGenerated(true)
+            runDir('runs/client')
+        }
+        server {
+            server()
+            setConfigName('Fabric Server')
+            ideConfigGenerated(true)
+            runDir('runs/server')
         }
     }
 }
 
-configurations {
-    common
-    shadowLib
-    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
-    shadowCommon.extendsFrom shadowLib
-    compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentFabric.extendsFrom common
-    implementation.extendsFrom shadowLib
-}
-
-dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-    modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
-    modApi ("net.creeperhost:polylib-fabric:${polylib_version}")
-
-    common(project(path: ":common", configuration: "namedElements")) { transitive = false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive = false }
-
-    shadowLib('net.creeperhost:jcodec:0.2.6') { transitive = false }
-    shadowLib("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
-    shadowLib ("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
-    shadowLib ("net.covers1624:Quack:${quack_version}") { transitive = false }
-    shadowLib "org.apache.httpcomponents:httpclient:4.5.14"
-}
-
-processResources {
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
-    }
-}
-
 shadowJar {
-    configurations = [project.configurations.shadowCommon]
-    archiveClassifier = "dev-shadow"
+    dependsOn(jar)
+    configurations = [project.configurations.shadow]
+    mainSpec.sourcePaths.clear()
+    from(zipTree(jar.archiveFile))
     mergeServiceFiles()
 
+    dependencies {
+        exclude(dependency('com.google::'))
+        exclude(dependency('org.apache::'))
+    }
     relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
     relocate 'net.sourceforge.jaad', 'net.creeperhost.blockshot.repack.net.sourceforge.jaad'
     relocate 'net.creeperhost.minetogether.session', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether.session'
-}
-
-remapJar {
-    injectAccessWidener = true
-    input.set shadowJar.archiveFile
-    dependsOn shadowJar
-    archiveBaseName.set "${rootProject.archives_base_name}-${project.name}-${rootProject.minecraft_version}"
     archiveClassifier = null
 }
 
 jar {
-    archiveClassifier = "dev"
+    archiveClassifier = 'dev'
 }
 
-sourcesJar {
-    def commonSources = project(":common").sourcesJar
-    dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
+configurations {
+    [apiElements, runtimeElements].each { config ->
+        config.outgoing.artifacts.clear()
+        config.outgoing.artifact(shadowJar)
+    }
 }
 
-components.java {
-    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
-        skip()
+assemble.dependsOn(shadowJar)
+
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'fabric')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'fabric')
+            }
+        }
     }
 }
 
 publishing {
     publications {
-        mavenFabric(MavenPublication) {
-            artifactId = rootProject.archivesBaseName + "-fabric"
-            from components.java
+        named('mavenJava', MavenPublication) {
+            artifactId = rootProject.archives_base_name + "-fabric"
+            version = "${rootProject.minecraft_version}-${rootProject.version}"
         }
     }
 
@@ -118,14 +121,16 @@ publishing {
 
 unifiedPublishing {
     project {
-        displayName = "${ENV.GITHUB_REF_NAME} [Fabric]"
+        displayName = "$rootProject.version [Fabric]"
         releaseType = "$rootProject.artifact_type"
         changelog = ""
-        gameVersions = [rootProject.minecraft_version]
+        gameVersions = ["$rootProject.minecraft_version"]
         gameLoaders = ["fabric"]
-        mainPublication tasks.remapJar
+        mainPublication tasks.shadowJar
         relations {
             depends {
+                curseforge = "fabric-api"
+                modrinth = "fabric-api"
                 curseforge = "polylib"
                 modrinth = "polylib"
             }
@@ -136,7 +141,6 @@ unifiedPublishing {
             curseforge {
                 token = CURSE_API_KEY
                 id = rootProject.curseforge_id
-                gameVersions.addAll rootProject.minecraft_version
             }
         }
 

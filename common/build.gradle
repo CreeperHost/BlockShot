@@ -1,33 +1,55 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.0.0"
-    id "maven-publish"
+    id 'multiloader-common'
+    id 'net.neoforged.moddev'
 }
 
-architectury {
-    common("fabric", "forge", "neoforge")
-}
-
-loom {
-    accessWidenerPath = file("src/main/resources/blockshot.accesswidener")
+neoForge {
+    neoFormVersion = neo_form_version
 }
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi ("dev.architectury:architectury:${rootProject.architectury_version}")
-    modApi ("net.creeperhost:polylib-fabric:${polylib_version}") { transitive = false }
-    modApi ("net.creeperhost:jcodec:0.2.6") { transitive = false }
-    modApi ("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
-    modApi ("curse.maven:creeperhost-minetogether-267172:5522847") { transitive = false }
-    modApi ("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
-    modApi ("net.covers1624:Quack:${quack_version}") { transitive = false }
+    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+    compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.5.3'
+    annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.5.3'
+
+    compileOnly("net.creeperhost.polylib:polylib-fabric:${polylib_version}") { transitive = false }
+    compileOnly("net.creeperhost:jcodec:0.2.6") { transitive = false }
+    compileOnly("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
+    compileOnly("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
+    compileOnly("net.covers1624:Quack:${quack_version}") { transitive = false }
     implementation "org.apache.httpcomponents:httpclient:4.5.14"
 }
 
-publishing {
-    publications {
-        mavenCommon(MavenPublication) {
-            artifactId = rootProject.archives_base_name
-            from components.java
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}
+
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'common')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'common')
+            }
         }
     }
 }

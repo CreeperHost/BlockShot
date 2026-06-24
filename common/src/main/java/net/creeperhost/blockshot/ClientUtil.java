@@ -1,21 +1,19 @@
 package net.creeperhost.blockshot;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import dev.architectury.platform.Platform;
 import net.creeperhost.blockshot.integration.MTMessageHandler;
 import net.creeperhost.blockshot.lib.MessageHandler;
 import net.creeperhost.blockshot.lib.MessageHandlerImpl;
+import net.creeperhost.polylib.platform.Services;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.network.chat.MessageSignature;
-import org.lwjgl.stb.STBImage;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -34,7 +32,7 @@ public class ClientUtil {
     }
 
     private static void loadMTIntegration(Supplier<Runnable> runnable) {
-        if (Platform.isModLoaded("minetogether")) {
+        if (Services.PLATFORM.isModLoaded("minetogether")) {
             runnable.get().run();
         }
     }
@@ -60,15 +58,12 @@ public class ClientUtil {
     }
 
     public static byte[] nativeImageBytes(NativeImage nativeImage) throws IOException {
-        try (
-                ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
-                WritableByteChannel writablebytechannel = Channels.newChannel(bytearrayoutputstream);
-        ) {
-            if (!nativeImage.writeToChannel(writablebytechannel)) {
-                throw new IOException("Could not write image to byte array: " + STBImage.stbi_failure_reason());
-            }
-
-            return bytearrayoutputstream.toByteArray();
+        Path tempFile = Files.createTempFile("blockshot-", ".png");
+        try {
+            nativeImage.writeToFile(tempFile);
+            return Files.readAllBytes(tempFile);
+        } finally {
+            Files.deleteIfExists(tempFile);
         }
     }
 

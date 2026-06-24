@@ -3,7 +3,7 @@ package net.creeperhost.blockshot.capture;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import dev.architectury.platform.Platform;
+import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.WebUtils;
@@ -92,7 +92,7 @@ public class ScreenshotHandler {
 
                 //Fallback
                 if (writeOnFail) {
-                    saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                    saveLocal(imageBytes, BlockShot.gameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
                 }
             }
         } else {
@@ -101,7 +101,7 @@ public class ScreenshotHandler {
 
             //Fallback
             if (writeOnFail) {
-                saveLocal(imageBytes, Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                saveLocal(imageBytes, BlockShot.gameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
             }
         }
     }

@@ -3,7 +3,6 @@ package net.creeperhost.blockshot.polylib;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.architectury.platform.Platform;
 import net.covers1624.quack.gson.JsonUtils;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.minetogether.lib.web.requests.GetCurseForgeVersionRequest;
@@ -11,6 +10,7 @@ import net.creeperhost.minetogether.lib.web.requests.GetModpacksCHVersionRequest
 import net.creeperhost.polylib.blue.endless.jankson.Jankson;
 import net.creeperhost.polylib.blue.endless.jankson.JsonObject;
 import net.creeperhost.polylib.blue.endless.jankson.api.SyntaxError;
+import net.creeperhost.polylib.platform.Services;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -106,8 +106,8 @@ public class ModPackInfo {
         public VersionInfo() {}
 
         public VersionInfo init() {
-            Path versionJson = Platform.getGameFolder().resolve("version.json");
-            Path versionJsonNew = Platform.getGameFolder().resolve("instance.json");
+            Path versionJson = BlockShot.gameFolder().resolve("version.json");
+            Path versionJsonNew = BlockShot.gameFolder().resolve("instance.json");
             curseID = checkMTConfig();
 
             if (!readVersionJson(versionJson)) {
@@ -168,8 +168,8 @@ public class ModPackInfo {
 
         private String checkMTConfig() {
             List<Path> paths = new ArrayList<>();
-            paths.add(Platform.getConfigFolder().resolve("minetogethercommunity.json"));
-            paths.add(Platform.getConfigFolder().resolve("minetogether.json"));
+            paths.add(Services.PLATFORM.getConfigFolder().resolve("minetogethercommunity.json"));
+            paths.add(Services.PLATFORM.getConfigFolder().resolve("minetogether.json"));
 
             for (Path path : paths) {
                 if (!path.toFile().exists()) continue;
@@ -224,7 +224,7 @@ public class ModPackInfo {
         }
 
         private void tryParseLauncherFiles() {
-            Path auxilium = Platform.getConfigFolder().resolve("metadata.json");
+            Path auxilium = Services.PLATFORM.getConfigFolder().resolve("metadata.json");
             if (Files.exists(auxilium)) {
                 try {
                     Auxilium aux = JsonUtils.parse(GSON, auxilium, Auxilium.class);
@@ -245,7 +245,7 @@ public class ModPackInfo {
             }
 
             //Curse App
-            Path instanceJson = Platform.getGameFolder().resolve("instance.json");
+            Path instanceJson = BlockShot.gameFolder().resolve("instance.json");
             if (Files.exists(instanceJson)) {
                 try {
                     FTBInstance instance = JsonUtils.parse(GSON, instanceJson, FTBInstance.class);
@@ -265,7 +265,7 @@ public class ModPackInfo {
             }
 
             //Curse Launcher
-            Path versionJson = Platform.getGameFolder().resolve("minecraftinstance.json");
+            Path versionJson = BlockShot.gameFolder().resolve("minecraftinstance.json");
             if (Files.exists(versionJson)) {
                 try {
                     CurseInstance instance = JsonUtils.parse(GSON, versionJson, CurseInstance.class);
@@ -285,7 +285,7 @@ public class ModPackInfo {
             }
 
             //Prism
-            Path instanceCfg = Platform.getGameFolder().getParent().resolve("instance.cfg");
+            Path instanceCfg = BlockShot.gameFolder().getParent().resolve("instance.cfg");
             if (Files.exists(instanceCfg)) {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(instanceCfg)))) {
                     String line;

@@ -5,7 +5,7 @@ import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class RecordingHandler {
         getEncoder().updateCapture();
     }
 
-    public static void handleScreenCaptureOverlay(GuiGraphics graphics) {
+    public static void handleScreenCaptureOverlay(GuiGraphicsExtractor graphics) {
         if (!BlockShot.isActive() || !getEncoder().isWorking()) {
             return;
         }
@@ -45,7 +45,7 @@ public class RecordingHandler {
         drawRecordingIndicator(graphics, 5, 5);
     }
 
-    private static void drawRecordingIndicator(GuiGraphics graphics, int x, int y) {
+    private static void drawRecordingIndicator(GuiGraphicsExtractor graphics, int x, int y) {
         List<Component> hudLines = getEncoder().getHudText();
         Font font = Minecraft.getInstance().font;
 
@@ -61,7 +61,7 @@ public class RecordingHandler {
 
         int i = 0;
         for (Component line : hudLines) {
-            graphics.drawString(font, line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFFFF, true);
+            graphics.text(font, line, x + 3 + recordOffset, y + 3 + i, 0xFFFFFFFF, true);
             i += 9;
         }
 

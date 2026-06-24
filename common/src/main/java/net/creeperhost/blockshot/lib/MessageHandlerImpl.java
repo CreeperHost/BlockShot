@@ -2,15 +2,14 @@ package net.creeperhost.blockshot.lib;
 
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.mixin.MixinChatComponent;
-import net.minecraft.client.GuiMessage;
-import net.minecraft.client.GuiMessageTag;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
-import net.minecraft.client.gui.components.ComponentRenderUtils;
+import net.minecraft.client.multiplayer.chat.GuiMessage;
+import net.minecraft.client.multiplayer.chat.GuiMessageSource;
+import net.minecraft.client.multiplayer.chat.GuiMessageTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MessageSignature;
 import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -29,9 +28,9 @@ public class MessageHandlerImpl implements MessageHandler {
             deleteMessage(messageSignature);
             if (component == null) return;
             if (quietly) {
-                addMessageQuietly(component, messageSignature, Minecraft.getInstance().gui.getGuiTicks(), null, false);
+                addMessageQuietly(component, messageSignature, GuiMessageSource.SYSTEM_CLIENT, Minecraft.getInstance().gui.getGuiTicks(), null, false);
             } else {
-                ClientUtil.getChat().addMessage(component, messageSignature, null);
+                ClientUtil.getChat().addPlayerMessage(component, messageSignature, null);
             }
         });
     }
@@ -41,9 +40,9 @@ public class MessageHandlerImpl implements MessageHandler {
         Minecraft.getInstance().execute(() -> {
             if (!ClientUtil.validState()) return;
             if (quietly) {
-                addMessageQuietly(component, null, Minecraft.getInstance().gui.getGuiTicks(), null, false);
+                addMessageQuietly(component, null, GuiMessageSource.SYSTEM_CLIENT, Minecraft.getInstance().gui.getGuiTicks(), null, false);
             } else {
-                ClientUtil.getChat().addMessage(component);
+                ClientUtil.getChat().addServerSystemMessage(component);
             }
         });
     }
@@ -62,23 +61,20 @@ public class MessageHandlerImpl implements MessageHandler {
 
         for (int i = chat.getAllMessages().size() - 1; i >= 0; --i) {
             GuiMessage guiMessage = chat.getAllMessages().get(i);
-            addMessageQuietly(guiMessage.content(), guiMessage.signature(), guiMessage.addedTime(), guiMessage.tag(), true);
+            addMessageQuietly(guiMessage.content(), guiMessage.signature(), guiMessage.source(), guiMessage.addedTime(), guiMessage.tag(), true);
         }
     }
 
     /**
-     * Re-Implementation of {@link ChatComponent#addMessage(Component, MessageSignature, int, GuiMessageTag, boolean)} but without console logging.
+     * Re-Implementation of ChatComponent's display queue update without console logging.
      */
-    private static void addMessageQuietly(Component component, @Nullable MessageSignature messageSignature, int i, @Nullable GuiMessageTag guiMessageTag, boolean updateOnly) {
+    private static void addMessageQuietly(Component component, @Nullable MessageSignature messageSignature, GuiMessageSource source, int i, @Nullable GuiMessageTag guiMessageTag, boolean updateOnly) {
         ChatComponent chat = ClientUtil.getChat();
         MixinChatComponent chatMix = (MixinChatComponent) chat;
 
-        int j = Mth.floor((double) chatMix.invokeGetWidth() / chatMix.invokeGetScale());
-        if (guiMessageTag != null && guiMessageTag.icon() != null) {
-            j -= guiMessageTag.icon().width + 4 + 2;
-        }
-
-        List<FormattedCharSequence> list = ComponentRenderUtils.wrapComponents(component, j, Minecraft.getInstance().font);
+        int width = (int) Math.floor(chatMix.invokeGetWidth() / chatMix.invokeGetScale());
+        GuiMessage message = new GuiMessage(i, component, messageSignature, source, guiMessageTag);
+        List<FormattedCharSequence> list = message.splitLines(Minecraft.getInstance().font, width);
         boolean bl2 = chatMix.invokereisChatFocused();
 
         for (int k = 0; k < list.size(); ++k) {
@@ -89,7 +85,7 @@ public class MessageHandlerImpl implements MessageHandler {
             }
 
             boolean bl3 = k == list.size() - 1;
-            chatMix.getTrimmedMessages().add(0, new GuiMessage.Line(i, formattedCharSequence, guiMessageTag, bl3));
+            chatMix.getTrimmedMessages().add(0, new GuiMessage.Line(message, formattedCharSequence, bl3));
         }
 
         while (chatMix.getTrimmedMessages().size() > 100) {
@@ -97,7 +93,7 @@ public class MessageHandlerImpl implements MessageHandler {
         }
 
         if (!updateOnly) {
-            chatMix.getAllMessages().add(0, new GuiMessage(i, component, messageSignature, guiMessageTag));
+            chatMix.getAllMessages().add(0, message);
 
             while (chatMix.getAllMessages().size() > 100) {
                 chatMix.getAllMessages().remove(chatMix.getAllMessages().size() - 1);

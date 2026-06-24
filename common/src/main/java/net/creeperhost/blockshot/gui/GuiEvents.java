@@ -1,19 +1,15 @@
 package net.creeperhost.blockshot.gui;
 
-import dev.architectury.event.EventResult;
-import dev.architectury.event.events.client.ClientGuiEvent;
-import dev.architectury.event.events.client.ClientRawInputEvent;
-import dev.architectury.hooks.client.screen.ScreenAccess;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.blockshot.capture.RecordingHandler;
 import net.creeperhost.blockshot.capture.ScreenshotHandler;
+import net.creeperhost.polylib.client.modulargui.ModularGuiInjector;
 import net.creeperhost.polylib.client.modulargui.ModularGuiScreen;
+import net.creeperhost.polylib.event.events.client.PolyInputEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.PauseScreen;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
 /**
@@ -24,40 +20,27 @@ public class GuiEvents {
     private static long keybindLast = 0;
 
     public static void init() {
-        ClientRawInputEvent.KEY_PRESSED.register(GuiEvents::onRawInput);
-        ClientGuiEvent.INIT_POST.register(GuiEvents::onGuiInit);
+        PolyInputEvents.INPUT_KEY.register(GuiEvents::onRawInput);
+        ModularGuiInjector.registerInjection(screen -> screen instanceof PauseScreen, screen -> new PauseScreenGuiInjection());
     }
 
-    private static void onGuiInit(Screen screen, ScreenAccess access) {
-        if (screen instanceof PauseScreen) {
-            Config.ButtonPos pos = Config.INSTANCE.buttonPos;
-            //TODO, replace this with modular GUI Injection
-            access.addRenderableWidget(new IconButton(pos.getX(screen.width, 100), pos.getY(screen.height, 20), 100, 20, Component.translatable("gui.blockshot.blockshot_button"), e -> Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui())))
-                    .setIcon(ModTextures.get("blockshot_icon"), 16, 16)
-            );
-        }
-    }
-
-//    private static EventResult onRawInput(Minecraft minecraft, int keyCode, int scanCode, int action, int modifiers) {
-    private static EventResult onRawInput(Minecraft minecraft, int action, KeyEvent event) {
-        if (!Minecraft.getInstance().options.keyScreenshot.matches(event) || action != 0) { //Have to use key release because key pressed does not get fired on forge for keyScreenshot.
-            return EventResult.pass();
+    private static void onRawInput(int key, int scanCode, int action, int modifiers) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (!minecraft.options.keyScreenshot.matches(new KeyEvent(key, scanCode, modifiers)) || action != 0) { //Have to use key release because key pressed does not get fired on forge for keyScreenshot.
+            return;
         }
 
         long elapsed = System.currentTimeMillis() - keybindLast;
         if (elapsed < 5000 && !RecordingHandler.getEncoder().isWorking()) {
-            return EventResult.pass();
+            return;
         }
         keybindLast = System.currentTimeMillis();
 
-        if (event.hasControlDown()) {
+        if (Minecraft.getInstance().hasControlDown()) {
             RecordingHandler.getEncoder().startOrStopRecording();
-            return EventResult.interrupt(true);
-        } else if (event.hasShiftDown()) {
+        } else if (Minecraft.getInstance().hasShiftDown()) {
             RecordingHandler.getEncoder().cancelRecording();
         }
-
-        return EventResult.pass();
     }
 
     public static boolean handleComponentClick(Style style) {

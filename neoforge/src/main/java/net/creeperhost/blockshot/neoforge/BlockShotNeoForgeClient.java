@@ -2,7 +2,7 @@ package net.creeperhost.blockshot.neoforge;
 
 import net.creeperhost.blockshot.BlockShotClient;
 import net.creeperhost.blockshot.gui.ModTextures;
-import net.minecraft.client.resources.model.AtlasManager;
+import net.minecraft.client.resources.model.sprite.AtlasManager;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterTextureAtlasesEvent;

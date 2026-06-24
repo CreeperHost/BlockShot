@@ -1,43 +1,35 @@
 modLoader = "javafml"
-loaderVersion = "[9,)"
+loaderVersion = "${neoforge_loader_version_range}"
 #issueTrackerURL = ""
-license = "https://github.com/CreeperHost/BlockShot/blob/main/LICENSE.md"
+license = "${license}"
 
 [[mods]]
     modId = "blockshot"
     version = "${version}"
-    displayName = "BlockShot"
-    authors = "CreeperHost"
-    description = '''
-    Upload your screenshots for easy sharing
-    '''
+    displayName = "${mod_name}"
+    authors = "${mod_author}"
+    credits = "${credits}"
+    description = '''${description}'''
     #logoFile = ""
 
 [[dependencies.blockshot]]
     modId = "neoforge"
     type = "required"
-    versionRange = "[21.11,)"
+    versionRange = "[${neoforge_version},)"
     ordering = "NONE"
     side = "BOTH"
 
 [[dependencies.blockshot]]
     modId = "minecraft"
     type = "required"
-    versionRange = "[1.21.11,)"
+    versionRange = "${minecraft_version_range}"
     ordering = "NONE"
-    side = "BOTH"
-
-[[dependencies.blockshot]]
-    modId = "architectury"
-    type="required"
-    versionRange = "[19.0.1,)"
-    ordering = "AFTER"
     side = "BOTH"
 
 [[dependencies.blockshot]]
     modId = "polylib"
     type="required"
-    versionRange = "[2111.1.2,)"
+    versionRange = "[${polylib_mod_version},)"
     ordering = "AFTER"
     side = "BOTH"
 

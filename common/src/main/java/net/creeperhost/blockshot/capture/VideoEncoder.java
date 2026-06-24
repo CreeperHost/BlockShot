@@ -5,7 +5,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
-import dev.architectury.platform.Platform;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.Config;
@@ -53,7 +52,7 @@ public class VideoEncoder implements Encoder {
 
     private final ExecutorService RECORDING_EXECUTOR = Executors.newFixedThreadPool(4, new ThreadFactoryBuilder().setNameFormat("blockshot-recorder-%d").setDaemon(true).build());
     private final ExecutorService ENCODING_EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("blockshot-encoder-%d").setDaemon(true).build());
-    private final File tempFile = new File(Platform.getGameFolder().toFile(), "screenshots/blockshot.temp.webm");
+    private final File tempFile = new File(BlockShot.gameFolder().toFile(), "screenshots/blockshot.temp.webm");
     private final List<CompletableFuture<?>> activeFutures = new ArrayList<>();
 
     private AtomicDouble uploadProgress = new AtomicDouble(0);
@@ -187,7 +186,7 @@ public class VideoEncoder implements Encoder {
             //Fallback
             if (writeOnFail) {
                 try (FileInputStream is = new FileInputStream(tempFile)) {
-                    ScreenshotHandler.saveLocal(is.readAllBytes(), Platform.getGameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
+                    ScreenshotHandler.saveLocal(is.readAllBytes(), BlockShot.gameFolder().toFile(), null, fallbackExt, ClientUtil.getMessageHandler()::sendMessage, "chat.blockshot.fallback.success", "chat.blockshot.fallback.failure");
                 } catch (IOException e) {
                     LOGGER.error("An error occurred while uploading image", e);
                 }
