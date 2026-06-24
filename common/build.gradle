@@ -14,11 +14,19 @@ dependencies {
 }
 
 architectury {
-    common()
+    common("fabric", "forge")
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/blockshot.accesswidener")
+
+    mixin {
+        useLegacyMixinAp = true
+    }
+}
+
+tasks.matching { it.name.startsWith("transformProduction") }.configureEach {
+    properties.put("architectury.refmap.name", "blockshot-common-refmap.json")
 }
 
 publishing {
