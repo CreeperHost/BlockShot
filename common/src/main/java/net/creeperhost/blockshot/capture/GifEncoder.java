@@ -4,13 +4,13 @@ import com.google.common.util.concurrent.AtomicDouble;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.ClientUtil;
 import net.creeperhost.blockshot.WebUtils;
 import net.creeperhost.polylib.client.gif.GifSequenceWriter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
 import net.minecraft.network.chat.Component;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -62,10 +62,7 @@ public class GifEncoder implements Encoder {
                 totalSeconds++;
             }
             RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();
-            NativeImage nativeImage = new NativeImage(renderTarget.width, renderTarget.height, false);
-            RenderSystem.bindTexture(renderTarget.getColorTextureId());
-            nativeImage.downloadTexture(0, true);
-            addFrame(nativeImage);
+            Screenshot.takeScreenshot(renderTarget, this::addFrame);
             if (totalSeconds > 30) stopping = true;
         } else {
             frames++;

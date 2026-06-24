@@ -1,7 +1,6 @@
 package net.creeperhost.blockshot.gui;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.math.Axis;
 import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.polylib.client.modulargui.elements.GuiElement;
 import net.creeperhost.polylib.client.modulargui.lib.BackgroundRender;
@@ -11,7 +10,7 @@ import net.creeperhost.polylib.client.modulargui.lib.geometry.Position;
 import net.creeperhost.polylib.helpers.MathUtil;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,13 +42,13 @@ public class GuiLoadingSpinner extends GuiElement<GuiLoadingSpinner> implements 
                 texHeight = image.getHeight();
                 for (int x = 0; x < texWidth; x++) {
                     for (int y = 0; y < texHeight; y++) {
-                        int abgr = image.getPixelRGBA(x, y);
-                        int a = FastColor.ABGR32.alpha(abgr);
+                        int abgr = image.getPixel(x, y);
+                        int a = ABGR32.alpha(abgr);
                         if (a == 0) continue;
-                        int r = FastColor.ABGR32.red(abgr);
-                        int g = FastColor.ABGR32.green(abgr);
-                        int b = FastColor.ABGR32.blue(abgr);
-                        pixels.add(new Pxl(x, y, FastColor.ARGB32.color(a, r, g, b)));//
+                        int r = ABGR32.red(abgr);
+                        int g = ABGR32.green(abgr);
+                        int b = ABGR32.blue(abgr);
+                        pixels.add(new Pxl(x, y, ARGB.color(a, r, g, b)));//
                     }
                 }
             }
@@ -82,12 +81,12 @@ public class GuiLoadingSpinner extends GuiElement<GuiLoadingSpinner> implements 
     public void renderBehind(GuiRender render, double mouseX, double mouseY, float partialTicks) {
         if (fadeOut == 0) return;
         double time = Mth.lerp(partialTicks, animation, animation + animSpeed);
-        render.pose().pushPose();
-        render.pose().translate(xCenter(), yCenter(), 0);
-        render.pose().mulPose(Axis.ZP.rotationDegrees((float) (time * 90) + 40));
-        render.pose().translate(-xCenter(), -yCenter(), 0);
-        render.batchDraw(() -> pixels.forEach(pxl -> pxl.draw(render, (int) xCenter() - (texWidth / 2), (int) yCenter() - (texHeight / 2), partialTicks)));
-        render.pose().popPose();
+        render.pose().pushMatrix();
+        render.pose().translate((int) xCenter(), (int) yCenter());
+        render.pose().rotate((float) Math.toRadians((time * 90) + 40));
+        render.pose().translate((int) -xCenter(), (int) -yCenter());
+        pixels.forEach(pxl -> pxl.draw(render, (int) xCenter() - (texWidth / 2), (int) yCenter() - (texHeight / 2), partialTicks));
+        render.pose().popMatrix();
     }
 
     private class Pxl {
@@ -109,10 +108,28 @@ public class GuiLoadingSpinner extends GuiElement<GuiLoadingSpinner> implements 
             anim = Math.max(0, (anim - 0.1) * 1.1);
             double xAnim = anim * Math.sin(time + (random * pos.x())) * 20 * random;
             double yAnim = anim * Math.cos(time + (random * pos.y())) * 20 * random;
-            int r = Mth.lerpInt((float) MathUtil.clamp(anim - 0.5F, 0F, 1F), FastColor.ARGB32.red(colour), 0xFF);
-            int g = Mth.lerpInt((float) MathUtil.clamp(anim - 0.5F, 0F, 1F), FastColor.ARGB32.green(colour), 0xFF);
-            int b = Mth.lerpInt((float) MathUtil.clamp(anim - 0.5F, 0F, 1F), FastColor.ARGB32.blue(colour), 0xFF);
-            render.rect(x + pos.x() + xAnim, y + pos.y() + yAnim, 1, 1, FastColor.ARGB32.color(fadeOut, r, g, b));
+            int r = Mth.lerpInt((float) MathUtil.clamp(anim - 0.5F, 0F, 1F), ARGB.red(colour), 0xFF);
+            int g = Mth.lerpInt((float) MathUtil.clamp(anim - 0.5F, 0F, 1F), ARGB.green(colour), 0xFF);
+            int b = Mth.lerpInt((float) MathUtil.clamp(anim - 0.5F, 0F, 1F), ARGB.blue(colour), 0xFF);
+            render.rect(x + pos.x() + xAnim, y + pos.y() + yAnim, 1, 1, ARGB.color(fadeOut, r, g, b));
+        }
+    }
+
+    public static class ABGR32 {
+        public static int alpha(int colour) {
+            return colour >>> 24;
+        }
+
+        public static int red(int colour) {
+            return colour & 0xFF;
+        }
+
+        public static int green(int colour) {
+            return colour >> 8 & 0xFF;
+        }
+
+        public static int blue(int colour) {
+            return colour >> 16 & 0xFF;
         }
     }
 }
