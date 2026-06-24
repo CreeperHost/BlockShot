@@ -1,11 +1,13 @@
 package net.creeperhost.blockshot.neoforge;
 
+import net.creeperhost.blockshot.BlockShot;
 import net.creeperhost.blockshot.BlockShotClient;
 import net.creeperhost.blockshot.gui.ModTextures;
 import net.creeperhost.blockshot.integration.Integration;
 import net.creeperhost.blockshot.neoforge.compat.PauseMenuIntegration;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 
 public class BlockShotNeoForgeClient {
@@ -19,8 +21,8 @@ public class BlockShotNeoForgeClient {
         event.register(BlockShotClient.OPEN_GUI);
     }
 
-    private static void registerReloadListeners(RegisterClientReloadListenersEvent event)
+    private static void registerReloadListeners(AddClientReloadListenersEvent event)
     {
-        event.registerReloadListener(ModTextures.getAtlasHolder());
+        event.addListener(ResourceLocation.fromNamespaceAndPath(BlockShot.MOD_ID, "gui_atlas_reload"), ModTextures.getAtlasHolder());
     }
 }

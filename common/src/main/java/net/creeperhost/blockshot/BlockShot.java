@@ -17,7 +17,6 @@ import net.creeperhost.minetogether.lib.web.DynamicWebAuth;
 import net.creeperhost.minetogether.session.JWebToken;
 import net.creeperhost.minetogether.session.MineTogetherSession;
 import net.creeperhost.minetogether.util.SignatureVerifier;
-import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -38,11 +37,19 @@ public class BlockShot {
     public static final ApiClient API = ApiClient.builder()
             .httpEngine(WEB_ENGINE)
             .addUserAgentSegment("MineTogether-lib/" + MineTogetherLib.VERSION)
-            .addUserAgentSegment("BlockShot-mod/" + Platform.getMod(MOD_ID).getVersion())
+            .addUserAgentSegment("BlockShot-mod/" + getModVersion())
             .addUserAgentSegment("Minecraft/" + Platform.getMinecraftVersion())
             .addUserAgentSegment("Modloader/" + ArchitecturyTarget.getCurrentTarget())
             .webAuth(AUTH)
             .build();
+
+    private static String getModVersion() {
+        try {
+            return Platform.getMod(MOD_ID).getVersion();
+        } catch (RuntimeException ignored) {
+            return "dev";
+        }
+    }
 
     public static void init() {
         if (Platform.getEnvironment().equals(Env.CLIENT)) {
@@ -83,6 +90,6 @@ public class BlockShot {
     }
 
     public static int getFPS() {
-        return ((MixinMinecraft) Minecraft.getInstance()).getfps();
+        return MixinMinecraft.getfps();
     }
 }

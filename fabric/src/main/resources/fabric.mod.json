@@ -24,12 +24,13 @@
     "fabric": "*",
     "minecraft": ">=1.21.4",
     "architectury": ">=15.0.1",
-    "polylib": ">=2100.0.4-build.161"
+    "polylib": ">=${polylib_version}"
   },
   "suggests": {
     "flamingo": "*"
   },
   "mixins": [
-    "blockshot.mixins.json"
+    "blockshot.mixins.json",
+    "blockshot.fabric.mixins.json"
   ]
 }
