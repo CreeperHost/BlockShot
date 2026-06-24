@@ -37,9 +37,7 @@ configurations {
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     shadowCommon.extendsFrom shadowLib
     compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
     developmentForge.extendsFrom common
-    implementation.extendsFrom shadowLib
     forgeRuntimeLibrary.extendsFrom shadowLib
 }
 
@@ -56,6 +54,7 @@ dependencies {
     shadowLib("net.creeperhost:MineTogetherSessions:${mtsession_version}") { transitive = false }
     shadowLib ("net.creeperhost:MineTogetherLib:${mtlib_version}") { transitive = false }
     shadowLib ("net.covers1624:Quack:${quack_version}") { transitive = false }
+    shadowLib ("net.covers1624:pircbotx:2.3.11") { transitive = false }
 }
 
 processResources {
@@ -77,7 +76,10 @@ shadowJar {
     relocate 'com.squareup.gifencoder', 'net.creeperhost.blockshot.com.squareup.gifencoder'
     relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
     relocate 'net.sourceforge.jaad', 'net.creeperhost.blockshot.repack.net.sourceforge.jaad'
+    relocate 'net.creeperhost.minetogether.lib', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether.lib'
     relocate 'net.creeperhost.minetogether.session', 'net.creeperhost.blockshot.repack.net.creeperhost.minetogether.session'
+    relocate 'net.covers1624.quack', 'net.creeperhost.blockshot.repack.net.covers1624.quack'
+    relocate 'org.pircbotx', 'net.creeperhost.blockshot.repack.org.pircbotx'
 }
 
 remapJar {
