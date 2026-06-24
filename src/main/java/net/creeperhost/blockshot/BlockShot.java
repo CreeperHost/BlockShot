@@ -2,9 +2,13 @@ package net.creeperhost.blockshot;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.common.util.concurrent.AtomicDouble;
 import com.mojang.authlib.exceptions.AuthenticationException;
+import net.creeperhost.blockshot.lib.MTSessionProvider;
 import net.creeperhost.blockshot.gui.BlockShotClickEvent;
 import net.creeperhost.blockshot.gui.BlockShotHistoryScreen;
+import net.creeperhost.minetogether.session.JWebToken;
+import net.creeperhost.minetogether.session.MineTogetherSession;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
@@ -16,7 +20,7 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
-import net.minecraftforge.client.event.MouseEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.ScreenshotEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -27,32 +31,36 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Mouse;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.IntBuffer;
+import java.io.OutputStream;
 import java.nio.file.Path;
-import java.util.Base64;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Mod(modid = BlockShot.MODID, name = BlockShot.NAME, version = BlockShot.VERSION, clientSideOnly = true)
 public class BlockShot
 {
     public static final String MODID = "blockshot";
     public static final String NAME = "BlockShot";
-    public static final String VERSION = "1.2.4";
+    public static final String VERSION = "1.5.0";
     public static Path configLocation = null;
     public static final int CHAT_UPLOAD_ID = 360360;
     public static final int CHAT_ENCODING_ID = 420420;
     public static byte[] latest;
     private static boolean _active = false;
+    private static CompletableFuture<JWebToken> tokenFuture;
 
     private static Logger logger;
 
@@ -67,7 +75,19 @@ public class BlockShot
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
-        if (getServerIDAndVerify() != null || ((boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment"))) {
+        MineTogetherSession.getDefault().setProvider(new MTSessionProvider());
+        tokenFuture = MineTogetherSession.getDefault().getTokenAsync();
+        try {
+            JWebToken token = tokenFuture.get();
+            if (token != null) {
+                Auth.init(token);
+                _active = true;
+            }
+        } catch (InterruptedException | ExecutionException ignored) {
+        }
+        _active |= ((boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment"));
+
+        if (_active) {
             _active = true;
             MinecraftForge.EVENT_BUS.register(this);
         } else {
@@ -84,7 +104,7 @@ public class BlockShot
                     if (component != null) {
                         if (component.getStyle() != null && component.getStyle().getClickEvent() != null) {
                             if (component.getStyle().getClickEvent() instanceof BlockShotClickEvent) {
-                                BlockShot.uploadAndAddToChat(BlockShot.latest);
+                                BlockShot.uploadAndAddToChat(BlockShot.latest, false, "png", WebUtils.MediaType.PNG, null);
                                 event.setCanceled(true);
                                 return;
                             }
@@ -101,19 +121,25 @@ public class BlockShot
             if (GuiScreen.isCtrlKeyDown()) {
                 event.setResultMessage(new TextComponentString(" "));
                 event.setCanceled(true);
-                if(GifEncoder.isRecording)
-                {
-                    GifEncoder.isRecording = false;
-                } else {
-                    GifEncoder.begin();
-                }
+                VideoEncoder.startOrStopRecording();
+                return;
+            }
+            if (GuiScreen.isShiftKeyDown() && VideoEncoder.isWorking()) {
+                event.setResultMessage(new TextComponentString(" "));
+                event.setCanceled(true);
+                VideoEncoder.cancelRecording();
+                return;
+            }
+            if (VideoEncoder.isWorking()) {
+                event.setResultMessage(new TextComponentString(" "));
+                event.setCanceled(true);
                 return;
             }
             if (Config.INSTANCE.uploadMode != 0) {
                 BufferedImage nativeImage = event.getImage();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 try {
-                    ImageIO.write(nativeImage, "JPEG", baos);
+                    ImageIO.write(nativeImage, "PNG", baos);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -122,7 +148,7 @@ public class BlockShot
                     CompletableFuture.runAsync(() ->
                     {
                         if (BlockShot.latest == null || BlockShot.latest.length == 0) return;
-                        BlockShot.uploadAndAddToChat(BlockShot.latest);
+                        BlockShot.uploadAndAddToChat(BlockShot.latest, true, "png", WebUtils.MediaType.PNG, null);
                         BlockShot.latest = null;
                     });
                 } else {
@@ -146,6 +172,10 @@ public class BlockShot
         if(event != null) {
             GuiScreen screen = event.getGui();
             if (screen != null) {
+                if (screen instanceof GuiIngameMenu && event.getButton().id == 8008137) {
+                    Minecraft.getMinecraft().displayGuiScreen(new BlockShotHistoryScreen(screen));
+                    return;
+                }
                 if (screen instanceof GuiOptions) {
                     GuiButton button = event.getButton();
                     if(whenClick == (System.currentTimeMillis() / 1000)) return;
@@ -153,13 +183,7 @@ public class BlockShot
                     switch(button.id)
                     {
                         case 8008135:
-                            if (Config.INSTANCE.uploadMode == 2) {
-                                Config.INSTANCE.uploadMode = 0;
-                            } else if (Config.INSTANCE.uploadMode == 1) {
-                                Config.INSTANCE.uploadMode = 2;
-                            } else if (Config.INSTANCE.uploadMode == 0) {
-                                Config.INSTANCE.uploadMode = 1;
-                            }
+                            Config.INSTANCE.cycleUploadMode();
                             Config.saveConfigToFile(BlockShot.configLocation.toFile());
                             Minecraft.getMinecraft().displayGuiScreen(screen);
                             break;
@@ -187,10 +211,7 @@ public class BlockShot
                     List<GuiButton> buttons = event.getButtonList();
                     int i = (screen.width / 2 - 155) + 160;
                     int k = (screen.height / 6 - 12) + 30;
-                    String value = "Auto";
-                    if (Config.INSTANCE.uploadMode == 0) value = "Off";
-                    if (Config.INSTANCE.uploadMode == 1) value = "Prompt";
-                    String name = "BlockShot Upload: " + value;
+                    String name = "BlockShot Upload: " + Config.INSTANCE.uploadModeName();
                     buttons.add(new GuiButton(8008135, i, k, 150, 20, name));
                     String value2 = "Anonymous";
                     if (!Config.INSTANCE.anonymous) value2 = Minecraft.getMinecraft().getSession().getUsername();
@@ -199,70 +220,35 @@ public class BlockShot
                     buttons.add(new GuiButton(8008136, i, k, 150, 20, name2));
                     String name3 = "View BlockShot History";
                     k += 120;
-                    GuiButton historyBtn = new GuiButton(8008137, i, k, 150, 20, name3);
-                    historyBtn.enabled = (!Config.INSTANCE.anonymous);
-                    buttons.add(historyBtn);
+                    buttons.add(new GuiButton(8008137, i, k, 150, 20, name3));
+                    event.setButtonList(buttons);
+                }
+                if (screen instanceof GuiIngameMenu) {
+                    List<GuiButton> buttons = event.getButtonList();
+                    int buttonWidth = 100;
+                    int buttonHeight = 20;
+                    buttons.add(new GuiButton(8008137, Config.INSTANCE.getButtonX(screen.width, buttonWidth), Config.INSTANCE.getButtonY(screen.height, buttonHeight), buttonWidth, buttonHeight, "BlockShot"));
                     event.setButtonList(buttons);
                 }
             }
         }
     }
-    private int lastFPS;
-    private int thisFPS;
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event)
     {
-        if (GifEncoder.isRecording) {
-            if (BlockShot.isActive()) {
-                if(lastFPS == 0)
-                {
-                    lastFPS = BlockShot.getFPS();
-                }
-                thisFPS++;
-                int skipFrames = 12;
-                if (lastFPS > 20) {
-                    skipFrames = (lastFPS / 10);
-                }
-                if (GifEncoder.frames > skipFrames || (GifEncoder.lastTimestamp != (System.currentTimeMillis() / 1000))) {
-                    GifEncoder.frames = 0;
-                    if (GifEncoder.lastTimestamp != (System.currentTimeMillis() / 1000)) {
-
-                        GifEncoder.lastTimestamp = (System.currentTimeMillis() / 1000);
-                        GifEncoder.totalSeconds++;
-                        lastFPS = thisFPS;
-                        thisFPS = 0;
-                    }
-                    Framebuffer framebufferIn = Minecraft.getMinecraft().getFramebuffer();
-                    IntBuffer pixelBuffer = null;
-                    int width = 0;
-                    int height = 0;
-                    if (OpenGlHelper.isFramebufferEnabled()) {
-                        //TODO: Investigate performance implications, as seems considerably worse than 1.16 and 1.18
-                        width = framebufferIn.framebufferTextureWidth;
-                        height = framebufferIn.framebufferTextureHeight;
-
-                        int i = width * height;
-                        if (pixelBuffer == null || pixelBuffer.capacity() < i) {
-                            pixelBuffer = BufferUtils.createIntBuffer(i);
-                        }
-                        GlStateManager.glPixelStorei(3333, 1);
-                        GlStateManager.glPixelStorei(3317, 1);
-                        pixelBuffer.clear();
-                        if (OpenGlHelper.isFramebufferEnabled()) {
-                            GlStateManager.bindTexture(framebufferIn.framebufferTexture);
-                            GlStateManager.glGetTexImage(3553, 0, 32993, 33639, pixelBuffer);
-                        } else {
-                            GlStateManager.glReadPixels(0, 0, width, height, 32993, 33639, pixelBuffer);
-                        }
-                        GifEncoder.addFrameAndClose(width, height, pixelBuffer);
-                    }
-                } else {
-                    GifEncoder.frames++;
-                }
-            }
-            if(GifEncoder.totalSeconds > 30) GifEncoder.isRecording = false;
+        if (event.phase == TickEvent.Phase.END && BlockShot.isActive()) {
+            VideoEncoder.updateCapture();
         }
 
+    }
+
+    @SubscribeEvent
+    public void onRenderOverlay(RenderGameOverlayEvent.Text event) {
+        if (!VideoEncoder.isWorking() || Minecraft.getMinecraft().gameSettings.hideGUI) {
+            return;
+        }
+        event.getLeft().add("");
+        event.getLeft().addAll(VideoEncoder.getHudText());
     }
     public static boolean isActive() {
         return _active;
@@ -271,44 +257,130 @@ public class BlockShot
         return Minecraft.getDebugFPS();
     }
     public static void uploadAndAddToChat(byte[] imageBytes) {
+        WebUtils.MediaType type = mediaType(imageBytes);
+        uploadAndAddToChat(imageBytes, false, extensionFor(type), type, null);
+    }
+
+    public static void uploadAndAddToChat(byte[] imageBytes, boolean writeOnFail, String fallbackExt, WebUtils.MediaType type, AtomicDouble progress) {
         if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
             ITextComponent finished = new TextComponentString("[BlockShot] Uploading to BlockShot...");
             Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(finished, BlockShot.CHAT_UPLOAD_ID);
         }
-        String result = BlockShot.uploadImage(imageBytes);
+        String result = BlockShot.uploadImage(imageBytes, type, progress);
         if (result == null) {
             if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
                 ITextComponent finished = new TextComponentString("[BlockShot] An error occurred uploading your content to BlockShot.");
                 Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(finished, BlockShot.CHAT_UPLOAD_ID);
             }
+            if (writeOnFail) {
+                saveLocalFallback(imageBytes, null, fallbackExt);
+            }
         } else if (result.startsWith("http")) {
+            if (Config.INSTANCE.copyToClipboard) {
+                GuiScreen.setClipboardString(result);
+            }
             ITextComponent link = (new TextComponentString(result));
             link.setStyle(link.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, result)).setUnderlined(true).setColor(TextFormatting.LIGHT_PURPLE));
             ITextComponent finished = new TextComponentString("[BlockShot] Your content is now available on BlockShot! ").appendSibling(link);
+            if (Config.INSTANCE.copyToClipboard) {
+                finished.appendText(" (Copied)");
+            }
             Minecraft.getMinecraft().ingameGUI.getChatGUI().deleteChatLine(BlockShot.CHAT_UPLOAD_ID);
             Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(finished);
+        } else if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
+            ITextComponent finished = new TextComponentString("[BlockShot] An error occurred uploading your content to BlockShot: " + result);
+            Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(finished, BlockShot.CHAT_UPLOAD_ID);
+            if (writeOnFail) {
+                saveLocalFallback(imageBytes, null, fallbackExt);
+            }
         }
     }
 
     public static String uploadImage(byte[] imageBytes) {
+        return uploadImage(imageBytes, mediaType(imageBytes), null);
+    }
+
+    public static String uploadImage(byte[] imageBytes, WebUtils.MediaType type, AtomicDouble progress) {
         try {
-            String rsp = WebUtils.putWebResponse("https://blockshot.ch/upload", Base64.getEncoder().encodeToString(imageBytes), false, false, true);
-            if (!rsp.equals("error")) {
-                JsonElement jsonElement = new JsonParser().parse(rsp);
-                String status = jsonElement.getAsJsonObject().get("status").getAsString();
-                if (!status.equals("error")) {
-                    String url = jsonElement.getAsJsonObject().get("url").getAsString();
-                    return url;
-                } else {
-                    BlockShot.logger.error(jsonElement.getAsJsonObject().get("message").getAsString());
-                    return null;
+            String rsp = WebUtils.put("https://blocks.hot/api/v1/shares", imageBytes, type, progress);
+            if (rsp != null && !rsp.equals("error")) {
+                if (!rsp.startsWith("{")) {
+                    return rsp;
                 }
+                JsonElement jsonElement = new JsonParser().parse(rsp);
+                return "https://blocks.hot/" + jsonElement.getAsJsonObject().get("code").getAsString();
             }
         } catch (Throwable t) {
             t.printStackTrace();
             return null;
         }
         return null;
+    }
+
+    public static void saveLocalFallback(byte[] bytes, File sourceFile, String extension) {
+        try {
+            File directory = new File(Minecraft.getMinecraft().mcDataDir, "screenshots");
+            directory.mkdirs();
+            File outputFile = nextCaptureFile(directory, extension);
+            if (sourceFile != null) {
+                try (FileInputStream input = new FileInputStream(sourceFile); OutputStream output = new FileOutputStream(outputFile)) {
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = input.read(buffer)) != -1) {
+                        output.write(buffer, 0, read);
+                    }
+                }
+            } else if (bytes != null) {
+                try (OutputStream output = new FileOutputStream(outputFile)) {
+                    output.write(bytes);
+                }
+            } else {
+                return;
+            }
+
+            ITextComponent file = new TextComponentString(outputFile.getName());
+            file.setStyle(file.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, outputFile.getAbsolutePath())).setUnderlined(true).setColor(TextFormatting.LIGHT_PURPLE));
+            ITextComponent message = new TextComponentString("[BlockShot] Saved capture locally: ").appendSibling(file);
+            if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().ingameGUI.getChatGUI() != null) {
+                Minecraft.getMinecraft().addScheduledTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(message);
+                    }
+                });
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    private static File nextCaptureFile(File directory, String extension) {
+        String dateTime = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date());
+        int index = 1;
+        while (true) {
+            File file = new File(directory, dateTime + (index == 1 ? "" : "_" + index) + "." + extension);
+            if (!file.exists()) {
+                return file;
+            }
+            index++;
+        }
+    }
+
+    private static WebUtils.MediaType mediaType(byte[] imageBytes) {
+        if (imageBytes != null && imageBytes.length > 4 && (imageBytes[0] & 0xFF) == 0x89 && imageBytes[1] == 'P' && imageBytes[2] == 'N' && imageBytes[3] == 'G') {
+            return WebUtils.MediaType.PNG;
+        }
+        return WebUtils.MediaType.JPEG;
+    }
+
+    private static String extensionFor(WebUtils.MediaType type) {
+        if (type == WebUtils.MediaType.PNG) {
+            return "png";
+        }
+        if (type == WebUtils.MediaType.WEBM) {
+            return "webm";
+        }
+        return "jpg";
     }
 
     public static String getServerIDAndVerify() {

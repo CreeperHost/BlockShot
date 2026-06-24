@@ -2,13 +2,13 @@
 {
   "modid": "blockshot",
   "name": "BlockShot",
-  "description": "Example placeholder mod.",
+  "description": "Upload your screenshots for easy sharing.",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://blocks.hot",
   "updateUrl": "",
   "authorList": ["CreeperHost"],
-  "credits": "The Forge and FML guys, for making this example",
+  "credits": "",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []

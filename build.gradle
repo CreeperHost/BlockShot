@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        maven { url = 'https://maven.minecraftforge.net/' }
         maven { url = 'https://maven.creeperhost.net/' }
         mavenCentral()
     }
@@ -14,11 +15,17 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.2.5'
+version = '1.5.0'
 group = 'net.creeperhost.blockshot'
 archivesBaseName = "blockshot-forge-1.12.2"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+
+repositories {
+    maven { url = 'https://maven.minecraftforge.net/' }
+    maven { url = 'https://maven.creeperhost.net/' }
+    mavenCentral()
+}
 
 minecraft {
     mappings channel: 'snapshot', version: '20171003-1.12'
@@ -39,10 +46,15 @@ minecraft {
 configurations {
     shadow
     compile.extendsFrom shadow
+    all {
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j18-impl'
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
 }
 dependencies {
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2859'
-
+    shadow ("net.creeperhost:jcodec:0.2.6") { transitive = false }
+    shadow ("net.creeperhost:MineTogetherSessions:1.2.6") { transitive = false }
 }
 jar {
     classifier 'base'
@@ -61,6 +73,7 @@ jar {
 shadowJar {
     configurations = [project.configurations.shadow]
     classifier ''
+    relocate 'org.jcodec', 'net.creeperhost.blockshot.repack.org.jcodec'
 }
 
 reobf {
@@ -73,15 +86,15 @@ processResources {
 
     // replace stuff in mods.toml, nothing else
     from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mcmod.info'
+        include 'mcmod.info'
 
         // replace version and mcversion
-        expand 'version':project.version
+        expand 'version':project.version, 'mcversion':'1.12.2'
     }
 
     // copy everything else except the mods.toml
     from(sourceSets.main.resources.srcDirs) {
-        exclude 'META-INF/mcmod.info'
+        exclude 'mcmod.info'
     }
 }
 
