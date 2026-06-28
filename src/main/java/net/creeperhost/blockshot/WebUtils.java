@@ -32,11 +32,10 @@ public class WebUtils {
 
     public static String put(String url, byte[] data, MediaType type, AtomicDouble progress) {
         ModPackInfo.VersionInfo info = ModPackInfo.getInfo();
-        if (!info.ftbPackID.isEmpty()) {
-            return executeWebRequest("PUT", url, data, type, true, progress, "FTB", info.ftbPackID);
-        }
-        if (!info.curseID.isEmpty()) {
-            return executeWebRequest("PUT", url, data, type, true, progress, "Curseforge", info.curseID);
+        String platform = info.getUploadModpackPlatform();
+        String id = info.getUploadModpackId();
+        if (!platform.isEmpty() && !id.isEmpty()) {
+            return executeWebRequest("PUT", url, data, type, true, progress, platform, id);
         }
         return executeWebRequest("PUT", url, data, type, true, progress);
     }

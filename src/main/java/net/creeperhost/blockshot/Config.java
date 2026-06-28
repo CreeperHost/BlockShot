@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Config {
     public static Config INSTANCE;
@@ -17,12 +19,14 @@ public class Config {
     public boolean anonymous;
     public boolean copyToClipboard;
     public Integer buttonPos;
+    public Map<String, ModpackResolverCacheEntry> modpackResolverCache;
 
     public Config() {
         this.uploadMode = 1;
         this.anonymous = true;
         this.copyToClipboard = false;
         this.buttonPos = 2;
+        this.modpackResolverCache = new HashMap<>();
     }
 
     public Config(int mode) {
@@ -86,6 +90,18 @@ public class Config {
         if (INSTANCE.buttonPos == null || INSTANCE.buttonPos < 0 || INSTANCE.buttonPos > 3) {
             INSTANCE.buttonPos = 2;
         }
+        if (INSTANCE.modpackResolverCache == null) {
+            INSTANCE.modpackResolverCache = new HashMap<>();
+        }
+    }
+
+    public static class ModpackResolverCacheEntry {
+        public String platform = "";
+        public String projectId = "";
+        public String projectVersion = "";
+        public String minecraftVersion = "";
+        public String displayName = "";
+        public long timestamp = 0L;
     }
 
     public void cycleUploadMode() {
