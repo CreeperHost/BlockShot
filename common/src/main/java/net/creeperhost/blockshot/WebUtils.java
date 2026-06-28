@@ -37,13 +37,8 @@ public class WebUtils {
         String id = "";
         // this is not really the best place to put it, refactoring to allow headers before this would be best
         // but it's only used in this project, and put is only used in uploading media, so...
-        if (!info.ftbPackID.isEmpty()) {
-            id = info.ftbPackID.substring(1);
-            platform = "FTB";
-        } else if (!info.curseID.isEmpty()) {
-            id = info.curseID;
-            platform = "Curseforge";
-        }
+        platform = info.getUploadModpackPlatform();
+        id = info.getUploadModpackId();
 
         HttpPut httpput = new HttpPut(url);
         if (!platform.isEmpty()) {
@@ -184,19 +179,3 @@ public class WebUtils {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
