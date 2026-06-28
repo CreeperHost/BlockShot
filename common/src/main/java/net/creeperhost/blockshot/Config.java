@@ -13,7 +13,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -24,6 +26,7 @@ public class Config {
     public boolean copyToClipboard = false;
     public ButtonPos buttonPos = ButtonPos.BOTTOM_LEFT;
     public boolean anonymous;
+    public Map<String, ModpackResolverCacheEntry> modpackResolverCache = new HashMap<>();
 
     public Config() {
         this.anonymous = true;
@@ -52,7 +55,7 @@ public class Config {
         try {
             FileReader fileReader = new FileReader(file);
             INSTANCE = gson.fromJson(fileReader, Config.class);
-            if (INSTANCE.uploadMode == null) INSTANCE.uploadMode = Mode.PROMPT; //Fixes null pointer due to loading previous config format.
+            validate();
         } catch (Exception ex) {
             BlockShot.LOGGER.error("Failed to load config, Resetting to default", ex);
             INSTANCE = new Config();
@@ -79,8 +82,26 @@ public class Config {
             } else {
                 Config.loadFromFile(file);
             }
+            validate();
         } catch (Exception ignored) {
         }
+    }
+
+    public static void validate() {
+        if (INSTANCE == null) {
+            INSTANCE = new Config();
+        }
+        if (INSTANCE.uploadMode == null) INSTANCE.uploadMode = Mode.PROMPT; //Fixes null pointer due to loading previous config format.
+        if (INSTANCE.modpackResolverCache == null) INSTANCE.modpackResolverCache = new HashMap<>();
+    }
+
+    public static class ModpackResolverCacheEntry {
+        public String platform = "";
+        public String projectId = "";
+        public String projectVersion = "";
+        public String minecraftVersion = "";
+        public String displayName = "";
+        public long timestamp = 0L;
     }
 
     public enum Mode {
@@ -88,7 +109,9 @@ public class Config {
         PROMPT,
         AUTO;
 
-        public Mode next() { return values()[(ordinal() + 1) % values().length]; }
+        public Mode next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
 
         public String translatableName() {
             return "gui.blockshot.settings.upload_mode." + name().toLowerCase(Locale.ENGLISH);
@@ -109,7 +132,9 @@ public class Config {
             this.yGetter = yGetter;
         }
 
-        public ButtonPos next() { return values()[(ordinal() + 1) % values().length]; }
+        public ButtonPos next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
 
         public String translatableName() {
             return "gui.blockshot.settings.button_pos." + name().toLowerCase(Locale.ENGLISH);
@@ -118,6 +143,7 @@ public class Config {
         public int getX(int screenWidth, int buttonWidth) {
             return xGetter.apply(screenWidth, buttonWidth);
         }
+
         public int getY(int screenHeight, int buttonHeight) {
             return yGetter.apply(screenHeight, buttonHeight);
         }
