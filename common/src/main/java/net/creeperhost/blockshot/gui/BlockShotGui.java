@@ -99,7 +99,7 @@ public class BlockShotGui implements GuiProvider {
                 .setTooltipDelay(0)
                 .setTooltipSingle(Component.translatable("gui.blockshot.history.buttons_disabled"))
                 .setEnableToolTip(() -> selected == null)
-                .onPress(() -> activateSelected(true))
+                .onPress(() -> activateSelected(true), InputConstants.MOUSE_BUTTON_LEFT)
                 .constrain(LEFT, match(historyPanel.get(LEFT)))
                 .constrain(BOTTOM, relative(root.get(BOTTOM), -4))
                 .constrain(WIDTH, literal(80))
@@ -110,7 +110,7 @@ public class BlockShotGui implements GuiProvider {
                 .setTooltipDelay(0)
                 .setTooltipSingle(Component.translatable("gui.blockshot.history.buttons_disabled"))
                 .setEnableToolTip(() -> selected == null)
-                .onPress(() -> activateSelected(false))
+                .onPress(() -> activateSelected(false), InputConstants.MOUSE_BUTTON_LEFT)
                 .constrain(LEFT, relative(copyUrl.get(RIGHT), 2))
                 .constrain(BOTTOM, relative(root.get(BOTTOM), -4))
                 .constrain(WIDTH, literal(80))
@@ -121,7 +121,7 @@ public class BlockShotGui implements GuiProvider {
                 .setTooltipDelay(0)
                 .setTooltipSingle(Component.translatable("gui.blockshot.history.buttons_disabled"))
                 .setEnableToolTip(() -> selected == null)
-                .onPress(this::deleteSelected)
+                .onPress(this::deleteSelected, InputConstants.MOUSE_BUTTON_LEFT)
                 .constrain(RIGHT, match(historyPanel.get(RIGHT)))
                 .constrain(BOTTOM, relative(root.get(BOTTOM), -4))
                 .constrain(WIDTH, literal(60))
@@ -140,7 +140,7 @@ public class BlockShotGui implements GuiProvider {
                 .onPress(() -> {
                     Config.INSTANCE.anonymous = !Config.INSTANCE.anonymous;
                     Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                })
+                }, InputConstants.MOUSE_BUTTON_LEFT)
                 .constrain(RIGHT, relative(root.get(RIGHT), -4))
                 .constrain(TOP, relative(previous.get(BOTTOM), 2))
                 .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
@@ -158,7 +158,7 @@ public class BlockShotGui implements GuiProvider {
                 .onPress(() -> {
                     Config.INSTANCE.uploadMode = Config.INSTANCE.uploadMode.next();
                     Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                })
+                }, InputConstants.MOUSE_BUTTON_LEFT)
                 .constrain(RIGHT, relative(root.get(RIGHT), -4))
                 .constrain(TOP, relative(previous.get(BOTTOM), 2))
                 .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
@@ -170,7 +170,7 @@ public class BlockShotGui implements GuiProvider {
                 .onPress(() -> {
                     Config.INSTANCE.copyToClipboard = !Config.INSTANCE.copyToClipboard;
                     Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                })
+                }, InputConstants.MOUSE_BUTTON_LEFT)
                 .constrain(RIGHT, relative(root.get(RIGHT), -4))
                 .constrain(TOP, relative(previous.get(BOTTOM), 2))
                 .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
@@ -189,7 +189,7 @@ public class BlockShotGui implements GuiProvider {
                 .onPress(() -> {
                     Config.INSTANCE.buttonPos = Config.INSTANCE.buttonPos.next();
                     Config.saveConfigToFile(BlockShot.configLocation.toFile());
-                })
+                }, InputConstants.MOUSE_BUTTON_LEFT)
                 .setTooltipSingle(Component.translatable("gui.blockshot.settings.button_pos.info"))
                 .constrain(RIGHT, relative(root.get(RIGHT), -4))
                 .constrain(TOP, relative(previous.get(BOTTOM), 2))
@@ -198,7 +198,7 @@ public class BlockShotGui implements GuiProvider {
         ((GuiButton) previous).getLabel().setTextSupplier(() -> Component.translatable(Config.INSTANCE.buttonPos.translatableName()));
 
         Flat.button(root, Component.translatable("gui.blockshot.close"))
-                .onPress(() -> gui.mc().gui.setScreen(null))
+                .onPress(() -> gui.mc().gui.setScreen(null), InputConstants.MOUSE_BUTTON_LEFT)
                 .constrain(RIGHT, relative(root.get(RIGHT), -4))
                 .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
                 .constrain(BOTTOM, match(historyPanel.get(BOTTOM)))

@@ -1,5 +1,6 @@
 package net.creeperhost.blockshot.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.creeperhost.blockshot.Config;
 import net.creeperhost.polylib.client.modulargui.ModularGui;
 import net.creeperhost.polylib.client.modulargui.ModularGuiScreen;
@@ -28,8 +29,9 @@ public class PauseScreenGuiInjection implements GuiProvider {
         gui.initFullscreenGui();
         GuiElement<?> root = gui.getRoot();
 
+        // PolyLib's default click binding still uses the pre-26.3 mouse button IDs.
         GuiButton button = GuiButton.vanilla(root, null)
-                .onClick(() -> Minecraft.getInstance().gui.setScreen(new ModularGuiScreen(new BlockShotGui())));
+                .onClick(() -> Minecraft.getInstance().gui.setScreen(new ModularGuiScreen(new BlockShotGui())), InputConstants.MOUSE_BUTTON_LEFT);
         Constraints.size(button, BUTTON_WIDTH, BUTTON_HEIGHT);
         button.constrain(LEFT, dynamic(() -> (double) Config.INSTANCE.buttonPos.getX((int) root.xSize(), BUTTON_WIDTH)));
         button.constrain(TOP, dynamic(() -> (double) Config.INSTANCE.buttonPos.getY((int) root.ySize(), BUTTON_HEIGHT)));
