@@ -1,5 +1,63 @@
+import me.modmuss50.mpp.ReleaseType
+import net.creeperhost.modpacksch.EnvironmentSupport
+
 plugins {
+    id 'base'
+    id 'net.creeperhost.modpacksch' version '0.1.1'
     id 'net.fabricmc.fabric-loom' version '1.17.21' apply false
     id 'net.neoforged.moddev' version '2.0.147' apply false
-    id "me.shedaniel.unified-publishing" version "0.1.+" apply false
+}
+
+def releaseTag = providers.environmentVariable('GITHUB_REF_NAME')
+        .orElse("${minecraft_version}-${project.version}")
+
+publishMods {
+    version = releaseTag
+    changelog = providers.environmentVariable('BLOCKSHOT_CHANGELOG')
+            .orElse('See the GitHub release notes for changes in this version.')
+    type = ReleaseType.of(artifact_type == 'release' ? 'stable' : artifact_type)
+    displayName = "BlockShot ${project.version} for Minecraft ${minecraft_version}"
+    dryRun = providers.environmentVariable('BLOCKSHOT_PUBLISH_DRY_RUN')
+            .map { it.equalsIgnoreCase('true') }
+            .orElse(false)
+
+    github {
+        repository = 'CreeperHost/BlockShot'
+        accessToken = providers.environmentVariable('GITHUB_TOKEN')
+        commitish = minecraft_version
+        tagName = releaseTag
+        allowEmptyFiles = true
+    }
+}
+
+modpacksCh {
+    defaults {
+        gameVersions.add(minecraft_version)
+        environment {
+            client = EnvironmentSupport.REQUIRED
+            server = EnvironmentSupport.UNSUPPORTED
+        }
+        dependencies {
+            requiredCurseForge('576589')
+            requiredModrinth('6lvkzFFj')
+        }
+    }
+    publication(':fabric:publishGithub') {
+        displayName = "BlockShot Fabric ${minecraft_version}"
+        loaders.add('fabric')
+        dependencies {
+            requiredCurseForge('306612')
+            requiredModrinth('P7dR8mSH')
+        }
+    }
+    publication(':neoforge:publishGithub') {
+        displayName = "BlockShot NeoForge ${minecraft_version}"
+        loaders.add('neoforge')
+    }
+}
+
+tasks.register('buildAll') {
+    group = 'build'
+    description = 'Builds every BlockShot loader for this Minecraft branch.'
+    dependsOn(':common:build', ':fabric:build', ':neoforge:build')
 }

@@ -2,7 +2,6 @@ plugins {
     id "com.gradleup.shadow" version "9.2.2"
     id 'multiloader-loader'
     id 'net.neoforged.moddev'
-    id "me.shedaniel.unified-publishing"
 }
 
 def ENV = System.getenv()
@@ -120,36 +119,40 @@ publishing {
     }
 }
 
-unifiedPublishing {
-    project {
-        displayName = "$rootProject.version [NeoForge]"
-        releaseType = "$rootProject.artifact_type"
-        changelog = ""
-        gameVersions = ["$rootProject.minecraft_version"]
-        gameLoaders = ["neoforge"]
-        mainPublication tasks.shadowJar
-        relations {
-            depends {
-                curseforge = "polylib"
-                modrinth = "polylib"
-            }
-        }
+publishMods {
+    file = shadowJar.archiveFile
+    version = rootProject.publishMods.version
+    changelog = rootProject.publishMods.changelog
+    type = rootProject.publishMods.type
+    displayName = "BlockShot ${project.version} for NeoForge ${minecraft_version}"
+    modLoaders.add('neoforge')
+    dryRun = rootProject.publishMods.dryRun
 
-        var CURSE_API_KEY = project.findProperty("CURSE_API_KEY") ?: System.getenv("CURSE_API_KEY")
-        if (CURSE_API_KEY != null) {
-            curseforge {
-                token = CURSE_API_KEY
-                id = rootProject.curseforge_id
-            }
-        }
+    github {
+        accessToken = providers.environmentVariable('GITHUB_TOKEN')
+        parent(rootProject.tasks.named('publishGithub'))
+    }
 
-        var MODRINTH_TOKEN = project.findProperty("MODRINTH_TOKEN") ?: System.getenv("MODRINTH_TOKEN")
-        if (MODRINTH_TOKEN != null) {
-            modrinth {
-                token = MODRINTH_TOKEN
-                id = rootProject.modrinth_id
-                version = "$project.version"
-            }
+    if (providers.environmentVariable('CURSEFORGE_PROJECT_ID').isPresent()) {
+        curseforge {
+            projectId = providers.environmentVariable('CURSEFORGE_PROJECT_ID')
+            accessToken = providers.environmentVariable('CURSEFORGE_TOKEN')
+            minecraftVersions.add(minecraft_version)
+            client = true
+            server = false
+            requires('polylib')
+            dryRun = rootProject.publishMods.dryRun
+        }
+    }
+
+    if (providers.environmentVariable('MODRINTH_PROJECT_ID').isPresent()) {
+        modrinth {
+            projectId = providers.environmentVariable('MODRINTH_PROJECT_ID')
+            accessToken = providers.environmentVariable('MODRINTH_TOKEN')
+            minecraftVersions.add(minecraft_version)
+            environment = CLIENT_ONLY
+            requires('6lvkzFFj')
+            dryRun = rootProject.publishMods.dryRun
         }
     }
 }

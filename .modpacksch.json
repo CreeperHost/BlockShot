@@ -1,0 +1,18 @@
+{
+  "$schema": "https://modpacks.ch/schemas/project-link-v1.json",
+  "version": 1,
+  "projects": {
+    "github": "CreeperHost/BlockShot",
+    "curseforge": "571107",
+    "modrinth": "UymUHj8N"
+  },
+  "preferredDownload": "curseforge",
+  "destinations": [
+    {
+      "platform": "github",
+      "releases": true,
+      "manifestAsset": "modpacksch-release.json"
+    }
+  ],
+  "visibility": "listed"
+}

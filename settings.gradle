@@ -1,5 +1,9 @@
 pluginManagement {
     repositories {
+        maven {
+            name = 'CreeperHost'
+            url = uri('https://maven.creeperhost.net')
+        }
         gradlePluginPortal()
         mavenCentral()
         exclusiveContent {
