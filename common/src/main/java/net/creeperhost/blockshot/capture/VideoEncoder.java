@@ -106,7 +106,7 @@ public class VideoEncoder implements Encoder {
             if (activeFutures.isEmpty()) {
                 try {
                     activeEncoder.finish();
-                } catch (IOException e) {
+                } catch (Throwable e) {
                     LOGGER.error("Something went wrong while encoding video", e);
                 }
                 uploadAndCleanup();
