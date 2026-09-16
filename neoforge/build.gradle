@@ -135,6 +135,7 @@ publishMods {
 
     if (providers.environmentVariable('CURSEFORGE_PROJECT_ID').isPresent()) {
         curseforge {
+            displayName = "${minecraft_version}-${project.version} [NeoForge]"
             projectId = providers.environmentVariable('CURSEFORGE_PROJECT_ID')
             accessToken = providers.environmentVariable('CURSEFORGE_TOKEN')
             minecraftVersions.add(minecraft_version)
