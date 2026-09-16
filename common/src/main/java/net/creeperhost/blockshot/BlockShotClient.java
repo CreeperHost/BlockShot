@@ -23,8 +23,8 @@ public class BlockShotClient {
 
         PolyInputEvents.INPUT_KEY.register((key, scanCode, action, modifiers) -> {
             Minecraft minecraft = Minecraft.getInstance();
-            if (OPEN_GUI.isDown() && minecraft.screen == null) {
-                Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui()));
+            if (OPEN_GUI.isDown() && minecraft.gui.screen() == null) {
+                minecraft.gui.setScreen(new ModularGuiScreen(new BlockShotGui()));
             }
         });
     }

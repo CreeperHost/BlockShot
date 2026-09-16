@@ -29,7 +29,7 @@ public class PauseScreenGuiInjection implements GuiProvider {
         GuiElement<?> root = gui.getRoot();
 
         GuiButton button = GuiButton.vanilla(root, null)
-                .onClick(() -> Minecraft.getInstance().setScreen(new ModularGuiScreen(new BlockShotGui())));
+                .onClick(() -> Minecraft.getInstance().gui.setScreen(new ModularGuiScreen(new BlockShotGui())));
         Constraints.size(button, BUTTON_WIDTH, BUTTON_HEIGHT);
         button.constrain(LEFT, dynamic(() -> (double) Config.INSTANCE.buttonPos.getX((int) root.xSize(), BUTTON_WIDTH)));
         button.constrain(TOP, dynamic(() -> (double) Config.INSTANCE.buttonPos.getY((int) root.ySize(), BUTTON_HEIGHT)));

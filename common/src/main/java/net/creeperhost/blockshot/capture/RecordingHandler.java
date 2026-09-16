@@ -41,7 +41,7 @@ public class RecordingHandler {
         if (!BlockShot.isActive() || !getEncoder().isWorking()) {
             return;
         }
-        if (Minecraft.getInstance().level == null || Minecraft.getInstance().options.hideGui) return;
+        if (Minecraft.getInstance().level == null || Minecraft.getInstance().gui.hud.isHidden()) return;
         drawRecordingIndicator(graphics, 5, 5);
     }
 

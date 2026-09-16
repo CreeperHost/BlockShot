@@ -62,7 +62,7 @@ public class GifEncoder implements Encoder {
                 lastTimestamp = (System.currentTimeMillis() / 1000);
                 totalSeconds++;
             }
-            RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();
+            RenderTarget renderTarget = Minecraft.getInstance().gameRenderer.mainRenderTarget();
             Screenshot.takeScreenshot(renderTarget, this::addFrame);
             if (totalSeconds > 30) stopping = true;
         } else {

@@ -42,7 +42,7 @@ public class ClientUtil {
     }
 
     public static ChatComponent getChat() {
-        return Minecraft.getInstance().gui.getChat();
+        return Minecraft.getInstance().gui.hud.getChat();
     }
 
     public static boolean validState() {

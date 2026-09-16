@@ -28,7 +28,7 @@ public class MessageHandlerImpl implements MessageHandler {
             deleteMessage(messageSignature);
             if (component == null) return;
             if (quietly) {
-                addMessageQuietly(component, messageSignature, GuiMessageSource.SYSTEM_CLIENT, Minecraft.getInstance().gui.getGuiTicks(), null, false);
+                addMessageQuietly(component, messageSignature, GuiMessageSource.SYSTEM_CLIENT, Minecraft.getInstance().gui.hud.getGuiTicks(), null, false);
             } else {
                 ClientUtil.getChat().addPlayerMessage(component, messageSignature, null);
             }
@@ -40,7 +40,7 @@ public class MessageHandlerImpl implements MessageHandler {
         Minecraft.getInstance().execute(() -> {
             if (!ClientUtil.validState()) return;
             if (quietly) {
-                addMessageQuietly(component, null, GuiMessageSource.SYSTEM_CLIENT, Minecraft.getInstance().gui.getGuiTicks(), null, false);
+                addMessageQuietly(component, null, GuiMessageSource.SYSTEM_CLIENT, Minecraft.getInstance().gui.hud.getGuiTicks(), null, false);
             } else {
                 ClientUtil.getChat().addServerSystemMessage(component);
             }

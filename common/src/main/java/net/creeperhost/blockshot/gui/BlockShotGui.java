@@ -1,5 +1,6 @@
 package net.creeperhost.blockshot.gui;
 
+import com.mojang.blaze3d.Blaze3D;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -25,7 +26,6 @@ import net.creeperhost.polylib.client.modulargui.lib.geometry.Constraint;
 import net.creeperhost.polylib.client.modulargui.lib.geometry.GuiParent;
 import net.creeperhost.polylib.client.modulargui.sprite.Material;
 import net.minecraft.ChatFormatting;
-import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -35,6 +35,7 @@ import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -197,7 +198,7 @@ public class BlockShotGui implements GuiProvider {
         ((GuiButton) previous).getLabel().setTextSupplier(() -> Component.translatable(Config.INSTANCE.buttonPos.translatableName()));
 
         Flat.button(root, Component.translatable("gui.blockshot.close"))
-                .onPress(() -> gui.mc().setScreen(null))
+                .onPress(() -> gui.mc().gui.setScreen(null))
                 .constrain(RIGHT, relative(root.get(RIGHT), -4))
                 .constrain(LEFT, relative(historyPanel.get(RIGHT), 12))
                 .constrain(BOTTOM, match(historyPanel.get(BOTTOM)))
@@ -225,7 +226,7 @@ public class BlockShotGui implements GuiProvider {
         if (copyUrl) {
             Minecraft.getInstance().keyboardHandler.setClipboard("https://blocks.hot/" + selected.id());
         } else {
-            Util.getPlatform().openUri("https://blocks.hot/" + selected.id());
+            Blaze3D.openUri(URI.create("https://blocks.hot/" + selected.id()));
         }
     }
 

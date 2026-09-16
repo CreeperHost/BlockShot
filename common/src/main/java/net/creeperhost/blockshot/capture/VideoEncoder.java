@@ -114,7 +114,7 @@ public class VideoEncoder implements Encoder {
             return;
         }
 
-        RenderTarget renderTarget = Minecraft.getInstance().getMainRenderTarget();
+        RenderTarget renderTarget = Minecraft.getInstance().gameRenderer.mainRenderTarget();
         Screenshot.takeScreenshot(renderTarget, image -> {
             CompletableFuture<BufferedImage> converter = CompletableFuture.supplyAsync(() -> toBufferedImage(image, TARGET_WIDTH, TARGET_HEIGHT), RECORDING_EXECUTOR);
             activeFutures.add(converter);
