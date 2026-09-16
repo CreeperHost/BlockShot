@@ -21,6 +21,9 @@
     ],
     "main": [
       "net.creeperhost.blockshot.fabric.BlockShotFabric"
+    ],
+    "client": [
+      "net.creeperhost.blockshot.fabric.BlockShotFabricClient"
     ]
   },
   "depends": {

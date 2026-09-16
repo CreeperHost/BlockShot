@@ -7,7 +7,6 @@
   "client": [
     "MixinChatComponent",
     "MixinGameRenderer",
-    "MixinHud",
     "MixinMinecraft",
     "MixinScreen",
     "MixinScreenshot"
