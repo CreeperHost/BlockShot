@@ -1,16 +1,18 @@
 modLoader = "javafml"
 loaderVersion = "${neoforge_loader_version_range}"
-#issueTrackerURL = ""
+issueTrackerURL = "https://github.com/CreeperHost/BlockShot/issues"
 license = "${license}"
 
 [[mods]]
     modId = "blockshot"
     version = "${version}"
     displayName = "${mod_name}"
+    displayURL = "https://www.curseforge.com/minecraft/mc-mods/blockshot"
     authors = "${mod_author}"
     credits = "${credits}"
     description = '''${description}'''
-    #logoFile = ""
+    iconFile = "assets/blockshot/icon.png"
+    bannerFile = "assets/blockshot/textures/gui/blockshot.png"
 
 [[dependencies.blockshot]]
     modId = "neoforge"
